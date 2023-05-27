@@ -1,5 +1,7 @@
 # My Book - Facebook functional clone app (back-end)
 
+**This project setup is based on https://github.com/brocoders/nestjs-boilerplate**
+
 ## Table of Contents
 
 - [My Book - Facebook functional clone app (back-end)](#my-book---facebook-functional-clone-app-back-end)
