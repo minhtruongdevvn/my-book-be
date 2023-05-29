@@ -9,6 +9,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 import { AppModule } from './app.module';
 import { AllConfigType } from './config/config.type';
+import { ParamValidationPipe } from './utils/pipes/param-validation.pipe';
 import validationOptions from './utils/validation-options';
 
 async function bootstrap() {
@@ -26,7 +27,10 @@ async function bootstrap() {
   app.enableVersioning({
     type: VersioningType.URI,
   });
-  app.useGlobalPipes(new ValidationPipe(validationOptions));
+  app.useGlobalPipes(
+    new ParamValidationPipe(),
+    new ValidationPipe(validationOptions),
+  );
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const options = new DocumentBuilder()

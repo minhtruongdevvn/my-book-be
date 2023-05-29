@@ -7,15 +7,15 @@ import {
 
 const validationOptions: ValidationPipeOptions = {
   transform: true,
+  transformOptions: { exposeDefaultValues: true },
   whitelist: true,
   errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-  exceptionFactory: (errors: ValidationError[]) =>
-    new HttpException(
+  exceptionFactory: (errors: ValidationError[]) => {
+    return new HttpException(
       {
         status: HttpStatus.UNPROCESSABLE_ENTITY,
         errors: errors.reduce(
           (accumulator, currentValue) => ({
-            //todo
             ...accumulator,
             [currentValue.property]: Object.values(
               currentValue.constraints ?? {},
@@ -25,7 +25,8 @@ const validationOptions: ValidationPipeOptions = {
         ),
       },
       HttpStatus.UNPROCESSABLE_ENTITY,
-    ),
+    );
+  },
 };
 
 export default validationOptions;

@@ -8,6 +8,16 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: ${DATABASE_NAME}
 
+  mongo:
+    image: mongo
+    restart: always
+    expose:
+      - 27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${CHATBOX_DB_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${CHATBOX_DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${CHATBOX_DB_NAME}
+
   maildev:
     build:
       context: .

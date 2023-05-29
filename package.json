@@ -1,10 +1,10 @@
 {
-  "name": "nestjs-boilerplate",
+  "name": "my-book-be",
   "version": "0.0.1",
   "description": "",
   "author": "",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "typeorm": "env-cmd ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:generate": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:generate",
@@ -48,6 +48,7 @@
     "fb": "2.0.0",
     "google-auth-library": "8.8.0",
     "handlebars": "4.7.7",
+    "mongodb": "^5.5.0",
     "multer": "1.4.4",
     "multer-s3": "3.0.1",
     "nestjs-i18n": "10.2.6",
@@ -62,7 +63,8 @@
     "source-map-support": "0.5.21",
     "swagger-ui-express": "4.6.3",
     "twitter": "1.7.1",
-    "typeorm": "0.3.16"
+    "typeorm": "0.3.16",
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
     "@nestjs/cli": "9.5.0",

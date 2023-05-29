@@ -38,14 +38,11 @@ cd my-app/
 cp env-example .env
 ```
 
-Change `DATABASE_HOST=postgres` to `DATABASE_HOST=localhost`
-
-Change `MAIL_HOST=maildev` to `MAIL_HOST=localhost`
-
+Delete all comments in .env
 Run additional container:
 
 ```bash
-docker compose up -d postgres adminer maildev
+docker compose up -d postgres mongo adminer mongo-express maildev
 ```
 
 ```bash
@@ -61,7 +58,7 @@ npm run start:dev
 ## Links
 
 - Swagger: http://localhost:3000/docs
-- Adminer (client for DB): http://localhost:8080
+- Adminer (client for DB): http://localhost:8081
 - Maildev: http://localhost:1080
 
 ## Automatic update of dependencies

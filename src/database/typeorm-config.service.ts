@@ -2,56 +2,73 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModuleOptions, TypeOrmOptionsFactory } from '@nestjs/typeorm';
 import { AllConfigType } from 'src/config/config.type';
+import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
 
 @Injectable()
-export class TypeOrmConfigService implements TypeOrmOptionsFactory {
+export class AppOrmConfigService implements TypeOrmOptionsFactory {
   constructor(private configService: ConfigService<AllConfigType>) {}
 
   createTypeOrmOptions(): TypeOrmModuleOptions {
     return {
-      type: this.configService.get('database.type', { infer: true }),
-      url: this.configService.get('database.url', { infer: true }),
-      host: this.configService.get('database.host', { infer: true }),
-      port: this.configService.get('database.port', { infer: true }),
-      username: this.configService.get('database.username', { infer: true }),
-      password: this.configService.get('database.password', { infer: true }),
-      database: this.configService.get('database.name', { infer: true }),
-      synchronize: this.configService.get('database.synchronize', {
-        infer: true,
-      }),
-      dropSchema: false,
-      keepConnectionAlive: true,
-      logging:
-        this.configService.get('app.nodeEnv', { infer: true }) !== 'production',
+      ...getConfig(this.configService, 'database'),
       entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-      migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
-      cli: {
-        entitiesDir: 'src',
-        migrationsDir: 'src/database/migrations',
-        subscribersDir: 'subscriber',
-      },
-      extra: {
-        // based on https://node-postgres.com/apis/pool
-        // max connection pool size
-        max: this.configService.get('database.maxConnections', { infer: true }),
-        ssl: this.configService.get('database.sslEnabled', { infer: true })
-          ? {
-              rejectUnauthorized: this.configService.get(
-                'database.rejectUnauthorized',
-                { infer: true },
-              ),
-              ca:
-                this.configService.get('database.ca', { infer: true }) ??
-                undefined,
-              key:
-                this.configService.get('database.key', { infer: true }) ??
-                undefined,
-              cert:
-                this.configService.get('database.cert', { infer: true }) ??
-                undefined,
-            }
-          : undefined,
-      },
-    } as TypeOrmModuleOptions;
+    };
   }
 }
+
+@Injectable()
+export class ChatboxOrmConfigService implements TypeOrmOptionsFactory {
+  constructor(private configService: ConfigService<AllConfigType>) {}
+
+  createTypeOrmOptions(): TypeOrmModuleOptions {
+    return {
+      ...getConfig(this.configService, 'chatbox_database'),
+      name: CHATBOX_DB_TOKEN,
+      entities: [__dirname + '/../**/*.collection{.ts,.js}'],
+    };
+  }
+}
+
+type DbType = 'database' | 'chatbox_database';
+
+export const getConfig = (
+  configService: ConfigService<AllConfigType>,
+  db: DbType,
+) => {
+  return {
+    type: configService.get(`${db}.type`, { infer: true }),
+    url: configService.get(`${db}.url`, { infer: true }),
+    host: configService.get(`${db}.host`, { infer: true }),
+    port: configService.get(`${db}.port`, { infer: true }),
+    username: configService.get(`${db}.username`, { infer: true }),
+    password: configService.get(`${db}.password`, { infer: true }),
+    database: configService.get(`${db}.name`, { infer: true }),
+    synchronize: configService.get(`${db}.synchronize`, {
+      infer: true,
+    }),
+    dropSchema: false,
+    keepConnectionAlive: true,
+    logging: configService.get('app.nodeEnv', { infer: true }) !== 'production',
+    migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+    cli: {
+      entitiesDir: 'src',
+      migrationsDir: 'src/database/migrations',
+      subscribersDir: 'subscriber',
+    },
+    extra: {
+      // based on https://node-postgres.com/apis/pool
+      // max connection pool size
+      max: configService.get(`${db}.maxConnections`, { infer: true }),
+      ssl: configService.get(`${db}.sslEnabled`, { infer: true })
+        ? {
+            rejectUnauthorized: configService.get(`${db}.rejectUnauthorized`, {
+              infer: true,
+            }),
+            ca: configService.get(`${db}.ca`, { infer: true }) ?? undefined,
+            key: configService.get(`${db}.key`, { infer: true }) ?? undefined,
+            cert: configService.get(`${db}.cert`, { infer: true }) ?? undefined,
+          }
+        : undefined,
+    },
+  } as TypeOrmModuleOptions;
+};

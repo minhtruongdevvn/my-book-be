@@ -78,6 +78,7 @@ export type AllConfigType = {
   apple: AppleConfig;
   auth: AuthConfig;
   database: DatabaseConfig;
+  chatbox_database: DatabaseConfig;
   facebook: FacebookConfig;
   file: FileConfig;
   google: GoogleConfig;

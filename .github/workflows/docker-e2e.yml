@@ -1,4 +1,4 @@
-name: NestJS API CI
+name: MyBook API CI
 
 on:
   push:

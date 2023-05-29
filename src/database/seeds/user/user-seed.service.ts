@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 export class UserSeedService {
   constructor(
     @InjectRepository(User)
-    private repository: Repository<User>,
+    private readonly repository: Repository<User>,
   ) {}
 
   async run() {
@@ -51,13 +51,13 @@ export class UserSeedService {
     if (!countUser) {
       await this.repository.save(
         this.repository.create({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'john.doe@example.com',
-          password: 'secret',
+          firstName: 'Thorfinn',
+          lastName: 'Karlsefni',
+          email: 'test1@example.com',
+          password: 'string',
           role: {
             id: RoleEnum.user,
-            name: 'Admin',
+            name: 'User',
           },
           status: {
             id: StatusEnum.active,
