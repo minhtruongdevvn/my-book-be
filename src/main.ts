@@ -7,15 +7,22 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { AllConfigType } from './config/config.type';
 import { ParamValidationPipe } from './utils/pipes/param-validation.pipe';
 import validationOptions from './utils/validation-options';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: true });
-  useContainer(app.select(AppModule), { fallbackOnErrors: true });
+  const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService<AllConfigType>);
+  app.use(cookieParser());
+
+  app.enableCors({
+    origin: configService.getOrThrow('app.frontendDomain', { infer: true }),
+    credentials: true,
+  });
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   app.enableShutdownHooks();
   app.setGlobalPrefix(

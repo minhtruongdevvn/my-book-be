@@ -44,7 +44,6 @@ export class ChatboxesService {
 
   async updateGroup(id: string, userId: number, dto: UpdateChatboxDto) {
     await this.isValidChatboxOrThrow(id, userId);
-    console.log(dto);
     await this.chatboxesRepository.updateOne(
       { _id: new ObjectId(id) },
       { $set: { ...dto } },

@@ -7,12 +7,17 @@ import {
   HttpStatus,
   Patch,
   Post,
+  Req,
   Request,
   SerializeOptions,
+  UnauthorizedException,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Request as RequestType } from 'express';
+import { HttpOnlyCookieInterceptor } from 'src/utils/interceptors/http-only-cookie.interceptor';
 import { User } from '../users/entities/user.entity';
 import { LoginResponseType } from '../utils/types/auth/login-response.type';
 import { NullableType } from '../utils/types/nullable.type';
@@ -32,6 +37,30 @@ import { AuthUpdateDto } from './dto/auth-update.dto';
 export class AuthController {
   constructor(private readonly service: AuthService) {}
 
+  @UseInterceptors(
+    new HttpOnlyCookieInterceptor([['refresh_token', 'refresh']]),
+  )
+  @Get('logout')
+  logout() {
+    return { refresh: 'invalid' };
+  }
+
+  @UseInterceptors(
+    new HttpOnlyCookieInterceptor([['refresh_token', 'refresh']]),
+  )
+  @Get('refresh')
+  refresh(@Req() request: RequestType) {
+    const token: string = request.cookies['refresh_token'];
+    if (!token) {
+      throw new UnauthorizedException();
+    }
+
+    return this.service.getByRefreshToken(token);
+  }
+
+  @UseInterceptors(
+    new HttpOnlyCookieInterceptor([['refresh_token', 'refresh']]),
+  )
   @SerializeOptions({
     groups: ['me'],
   })
@@ -43,6 +72,9 @@ export class AuthController {
     return this.service.validateLogin(loginDto, false);
   }
 
+  @UseInterceptors(
+    new HttpOnlyCookieInterceptor([['refresh_token', 'refresh']]),
+  )
   @SerializeOptions({
     groups: ['me'],
   })

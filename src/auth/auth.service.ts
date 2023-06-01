@@ -1,5 +1,11 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { plainToClass } from 'class-transformer';
@@ -27,7 +33,70 @@ export class AuthService {
     private usersService: UsersService,
     private forgotService: ForgotService,
     private mailService: MailService,
+    private configService: ConfigService,
   ) {}
+
+  async getByRefreshToken(refreshToken: string) {
+    let id: number;
+    try {
+      const claim = await this.jwtService.verifyAsync<{ id: number }>(
+        refreshToken,
+        {
+          secret: this.configService.get('auth.refreshSecret'),
+          ignoreExpiration: false,
+        },
+      );
+      id = claim.id;
+    } catch {
+      throw new UnauthorizedException();
+    }
+
+    return await this.getCredentialData(id);
+  }
+
+  async getCredentialData(user: User | number): Promise<LoginResponseType> {
+    if (!isNaN(+user)) {
+      const queryResult = await this.usersService.findOne({
+        id: user as number,
+      });
+      if (queryResult == null) {
+        throw new HttpException(
+          {
+            status: HttpStatus.UNPROCESSABLE_ENTITY,
+            errors: {
+              email: 'notFound',
+            },
+          },
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
+      user = queryResult;
+    }
+
+    const actualUser: User = user as User;
+    const token = this.jwtService.sign(
+      {
+        id: actualUser.id,
+        role: actualUser.role,
+      },
+      {
+        secret: this.configService.get('auth.secret'),
+        expiresIn: this.configService.get('auth.expires'),
+      },
+    );
+
+    const refresh = this.jwtService.sign(
+      {
+        id: actualUser.id,
+      },
+      {
+        secret: this.configService.get('auth.refreshSecret'),
+        expiresIn: this.configService.get('auth.refreshSecretExpired'),
+      },
+    );
+
+    return { token, refresh, user: actualUser };
+  }
 
   async validateLogin(
     loginDto: AuthEmailLoginDto,
@@ -84,12 +153,7 @@ export class AuthService {
       );
     }
 
-    const token = this.jwtService.sign({
-      id: user.id,
-      role: user.role,
-    });
-
-    return { token, user };
+    return await this.getCredentialData(user);
   }
 
   async validateSocialLogin(
@@ -150,15 +214,7 @@ export class AuthService {
       );
     }
 
-    const jwtToken = this.jwtService.sign({
-      id: user.id,
-      role: user.role,
-    });
-
-    return {
-      token: jwtToken,
-      user,
-    };
+    return await this.getCredentialData(user);
   }
 
   async register(dto: AuthRegisterLoginDto): Promise<void> {
