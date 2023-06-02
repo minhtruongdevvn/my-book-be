@@ -103,11 +103,61 @@ export class ChatboxesController {
     return this.chatboxService.updateMessage(id, userId, dto);
   }
 
-  @Get('conversation/:toUserId')
+  @Delete(':id/messages/:messageId')
+  deleteMessages(
+    @GetUser('id') userId: number,
+    @Param('id') id: string,
+    @Param('messageId') messageId: string,
+  ) {
+    return this.chatboxService.deleteMessage(id, userId, messageId);
+  }
+
+  @Get('conversations/to/:toUserId')
   getOrCreateConversation(
     @GetUser('id') userId: number,
     @Param('toUserId') toUserId: number,
   ) {
     return this.chatboxService.getOrCreateConversation(userId, toUserId);
+  }
+
+  @Get('conversations')
+  getConversations(@GetUser('id') userId: number) {
+    return this.chatboxService.getConversationsByUserId(userId);
+  }
+
+  @Get('conversations/:id/messages')
+  getConversationMessages(
+    @GetUser('id') userId: number,
+    @Param('id') id: string,
+    @Body() dto: GetMessageDto,
+  ) {
+    return this.chatboxService.getConversationsMessagesByOrder(id, userId, dto);
+  }
+
+  @Post('conversations/:id/messages')
+  addConversationMessages(
+    @GetUser('id') userId: number,
+    @Param('id') id: string,
+    @Body() dto: CreateMessageDto,
+  ) {
+    return this.chatboxService.addConversationMessage(id, userId, dto);
+  }
+
+  @Put('conversations/:id/messages')
+  updateConversationMessages(
+    @GetUser('id') userId: number,
+    @Param('id') id: string,
+    @Body() dto: UpdateMessageDto,
+  ) {
+    return this.chatboxService.updateConversationMessage(id, userId, dto);
+  }
+
+  @Delete('conversations/:id/messages/:messageId')
+  deleteConversationMessages(
+    @GetUser('id') userId: number,
+    @Param('id') id: string,
+    @Param('messageId') messageId: string,
+  ) {
+    return this.chatboxService.deleteConversationMessage(id, userId, messageId);
   }
 }

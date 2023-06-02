@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { Chatbox } from './collections/chatbox.collection';
 import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { DeleteMessageDto } from './dto/delete-message.dto';
 import { GetMessageDto } from './dto/get-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -108,7 +107,7 @@ export class ChatboxesService {
       { _id: new ObjectId(id), $or: [{ members: userId }, { admin: userId }] },
       {
         $push: {
-          messages: { ...dto, id: uuidv4(), isEdited: true, at: new Date() },
+          messages: { ...dto, id: uuidv4(), isEdited: false, at: new Date() },
         },
       },
     );
@@ -132,9 +131,7 @@ export class ChatboxesService {
     );
   }
 
-  async deleteMessage(id: string, userId: number, dto: DeleteMessageDto) {
-    if (id !== dto.chatboxId)
-      throw new HttpException('invalid payload', HttpStatus.BAD_REQUEST);
+  async deleteMessage(id: string, userId: number, messageId: string) {
     await this.isValidChatboxOrThrow(id);
 
     await this.chatboxesRepository.updateOne(
@@ -142,8 +139,10 @@ export class ChatboxesService {
         _id: new ObjectId(id),
         $or: [{ admin: userId }, { 'messages.from': userId, members: userId }],
       },
-      { $set: { 'messages.$[el]': { content: null } } },
-      { arrayFilters: [{ 'el.id': dto.messageId }] },
+      {
+        $set: { 'messages.$[el].content': null },
+      },
+      { arrayFilters: [{ 'el.id': messageId }] },
     );
   }
 
@@ -172,7 +171,7 @@ export class ChatboxesService {
   }
 
   getConversationsByUserId(userId: number) {
-    return this.chatboxesRepository.findBy({
+    return this.chatboxesRepository.find({
       where: {
         conversationBetween: {
           $elemMatch: { $eq: userId },
@@ -199,8 +198,7 @@ export class ChatboxesService {
   getConversationsMessagesByOrder(
     id: string,
     userId: number,
-    count: number,
-    nthFromEnd: number | undefined = undefined,
+    dto: GetMessageDto,
   ) {
     return this.getMessages(
       {
@@ -208,9 +206,9 @@ export class ChatboxesService {
         conversationBetween: userId,
       },
       {
-        messages: !nthFromEnd
-          ? { $slice: -count }
-          : { $slice: [-(count + nthFromEnd), count] },
+        messages: !dto.nthFromEnd
+          ? { $slice: -dto.count }
+          : { $slice: [-(dto.count + dto.nthFromEnd), dto.count] },
       },
     );
   }
@@ -228,7 +226,7 @@ export class ChatboxesService {
       { _id: new ObjectId(id), conversationBetween: userId },
       {
         $push: {
-          messages: { ...dto, id: uuidv4(), isEdited: true, at: new Date() },
+          messages: { ...dto, id: uuidv4(), isEdited: false, at: new Date() },
         },
       },
     );
@@ -247,10 +245,8 @@ export class ChatboxesService {
   async deleteConversationMessage(
     id: string,
     userId: number,
-    dto: DeleteMessageDto,
+    messageId: string,
   ) {
-    if (id !== dto.chatboxId)
-      throw new HttpException('invalid payload', HttpStatus.BAD_REQUEST);
     await this.isValidChatboxOrThrow(id);
 
     await this.chatboxesRepository.updateOne(
@@ -259,8 +255,10 @@ export class ChatboxesService {
         'messages.from': userId,
         conversationBetween: userId,
       },
-      { $set: { 'messages.$[el]': { content: null } } },
-      { arrayFilters: [{ 'el.id': dto.messageId }] },
+      {
+        $set: { 'messages.$[el].content': null },
+      },
+      { arrayFilters: [{ 'el.id': messageId }] },
     );
   }
 
