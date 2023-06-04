@@ -19,6 +19,15 @@ export class ChatboxesService {
     private chatboxesRepository: MongoRepository<Chatbox>,
   ) {}
 
+  getById(id: string, userId: number) {
+    return this.chatboxesRepository.findOne({
+      where: {
+        _id: new ObjectId(id),
+        $or: [{ members: userId }, { admin: userId }],
+      },
+    });
+  }
+
   getByUserId(userId: number) {
     return this.chatboxesRepository.find({
       where: { $or: [{ members: userId }, { admin: userId }] },

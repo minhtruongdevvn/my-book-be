@@ -34,6 +34,11 @@ export class ChatboxesController {
     return this.chatboxService.createGroup(userId, dto);
   }
 
+  @Get(':id')
+  getById(@GetUser('id') userId: number, @Param('id') id: string) {
+    return this.chatboxService.getById(id, userId);
+  }
+
   @Get()
   getByCurrentUser(@GetUser('id') userId: number) {
     return this.chatboxService.getByUserId(userId);

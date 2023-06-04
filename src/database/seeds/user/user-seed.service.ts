@@ -65,6 +65,22 @@ export class UserSeedService {
           },
         }),
       );
+      await this.repository.save(
+        this.repository.create({
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'doe@example.com',
+          password: 'string',
+          role: {
+            id: RoleEnum.user,
+            name: 'User',
+          },
+          status: {
+            id: StatusEnum.active,
+            name: 'Active',
+          },
+        }),
+      );
     }
   }
 }

@@ -48,7 +48,7 @@ export const getConfig = (
     }),
     dropSchema: false,
     keepConnectionAlive: true,
-    logging: configService.get('app.nodeEnv', { infer: true }) !== 'production',
+    // logging: configService.get('app.nodeEnv', { infer: true }) !== 'production',
     migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
     cli: {
       entitiesDir: 'src',
