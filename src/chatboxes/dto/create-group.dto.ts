@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsOptional } from 'class-validator';
 import { IsAlphaWithSpaces } from 'src/utils/validators/is-alpha-with-spaces.validator';
 
 export class CreateChatboxDto {
@@ -7,4 +7,8 @@ export class CreateChatboxDto {
   @IsAlphaWithSpaces()
   @ApiProperty()
   name: string;
+
+  @IsOptional()
+  @ApiProperty()
+  photo?: string;
 }

@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -16,7 +17,6 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { ChatboxesService } from './chatboxes.service';
 import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { GetMessageDto } from './dto/get-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 
@@ -85,9 +85,15 @@ export class ChatboxesController {
   getMessages(
     @GetUser('id') userId: number,
     @Param('id') id: string,
-    @Body() dto: GetMessageDto,
+    @Query('count') count: number,
+    @Query('nthFromEnd') nthFromEnd: number | undefined,
   ) {
-    return this.chatboxService.getMessagesByOrder(id, userId, dto);
+    return this.chatboxService.getMessagesByOrder(
+      id,
+      userId,
+      count,
+      nthFromEnd,
+    );
   }
 
   @Post(':id/messages')
@@ -134,9 +140,15 @@ export class ChatboxesController {
   getConversationMessages(
     @GetUser('id') userId: number,
     @Param('id') id: string,
-    @Body() dto: GetMessageDto,
+    @Query('count') count: number,
+    @Query('nthFromEnd') nthFromEnd: number | undefined,
   ) {
-    return this.chatboxService.getConversationsMessagesByOrder(id, userId, dto);
+    return this.chatboxService.getConversationsMessagesByOrder(
+      id,
+      userId,
+      count,
+      nthFromEnd,
+    );
   }
 
   @Post('conversations/:id/messages')

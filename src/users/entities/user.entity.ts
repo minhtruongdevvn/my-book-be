@@ -1,6 +1,12 @@
+import * as bcrypt from 'bcryptjs';
+import { Exclude, Expose } from 'class-transformer';
+import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
+import { EntityHelper } from 'src/utils/entity-helper';
 import {
-  Column,
   AfterLoad,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
@@ -8,16 +14,10 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  BeforeInsert,
-  BeforeUpdate,
 } from 'typeorm';
+import { FileEntity } from '../../files/entities/file.entity';
 import { Role } from '../../roles/entities/role.entity';
 import { Status } from '../../statuses/entities/status.entity';
-import { FileEntity } from '../../files/entities/file.entity';
-import * as bcrypt from 'bcryptjs';
-import { EntityHelper } from 'src/utils/entity-helper';
-import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
-import { Exclude, Expose } from 'class-transformer';
 
 @Entity()
 export class User extends EntityHelper {
@@ -27,7 +27,6 @@ export class User extends EntityHelper {
   // For "string | null" we need to use String type.
   // More info: https://github.com/typeorm/typeorm/issues/2567
   @Column({ type: String, unique: true, nullable: true })
-  @Expose({ groups: ['me', 'admin'] })
   email: string | null;
 
   @Column({ nullable: true })

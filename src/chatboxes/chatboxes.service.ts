@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId } from 'mongodb';
 import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { Chatbox } from './collections/chatbox.collection';
 import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { GetMessageDto } from './dto/get-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 
@@ -59,6 +58,7 @@ export class ChatboxesService {
   }
 
   async addMember(id: string, userId: number, memberId: number) {
+    if (userId == memberId) throw new BadRequestException('self_added');
     await this.isValidChatboxOrThrow(id, userId);
     await this.chatboxesRepository.findOneAndUpdate(
       { _id: new ObjectId(id) },
@@ -89,16 +89,21 @@ export class ChatboxesService {
     );
   }
 
-  getMessagesByOrder(id: string, userId: number, dto: GetMessageDto) {
+  getMessagesByOrder(
+    id: string,
+    userId: number,
+    count: number,
+    nthFromEnd?: number,
+  ) {
     return this.getMessages(
       {
         _id: new ObjectId(id),
         $or: [{ admin: userId }, { members: userId }],
       },
       {
-        messages: !dto.nthFromEnd
-          ? { $slice: -dto.count }
-          : { $slice: [-(dto.count + dto.nthFromEnd), dto.count] },
+        messages: !nthFromEnd
+          ? { $slice: -count }
+          : { $slice: [-(count + nthFromEnd), count] },
       },
     );
   }
@@ -107,21 +112,21 @@ export class ChatboxesService {
     id: string,
     userId: number,
     dto: CreateMessageDto,
-  ): Promise<ChatboxMessage[]> {
-    if (dto.from != userId)
-      throw new HttpException('invalid payload', HttpStatus.BAD_REQUEST);
-
+  ): Promise<ChatboxMessage> {
     await this.isValidChatboxOrThrow(id);
-    const chatbox = await this.chatboxesRepository.findOneAndUpdate(
+    const message: ChatboxMessage = {
+      ...dto,
+      id: uuidv4(),
+      isEdited: false,
+      at: new Date(),
+      from: userId,
+    };
+    await this.chatboxesRepository.updateOne(
       { _id: new ObjectId(id), $or: [{ members: userId }, { admin: userId }] },
-      {
-        $push: {
-          messages: { ...dto, id: uuidv4(), isEdited: false, at: new Date() },
-        },
-      },
+      { $push: { messages: message as any } },
     );
 
-    return chatbox.messages;
+    return message;
   }
 
   async updateMessage(id: string, userId: number, dto: UpdateMessageDto) {
@@ -158,10 +163,7 @@ export class ChatboxesService {
   // conversation section
   async getOrCreateConversation(user1Id: number, user2Id: number) {
     if (user1Id == user2Id) {
-      throw new HttpException(
-        'users cannot be identical',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new BadRequestException('users cannot be identical');
     }
 
     let conversation = await this.chatboxesRepository.findOne({
@@ -207,7 +209,8 @@ export class ChatboxesService {
   getConversationsMessagesByOrder(
     id: string,
     userId: number,
-    dto: GetMessageDto,
+    count: number,
+    nthFromEnd?: number,
   ) {
     return this.getMessages(
       {
@@ -215,9 +218,9 @@ export class ChatboxesService {
         conversationBetween: userId,
       },
       {
-        messages: !dto.nthFromEnd
-          ? { $slice: -dto.count }
-          : { $slice: [-(dto.count + dto.nthFromEnd), dto.count] },
+        messages: !nthFromEnd
+          ? { $slice: -count }
+          : { $slice: [-(count + nthFromEnd), count] },
       },
     );
   }
@@ -226,21 +229,22 @@ export class ChatboxesService {
     id: string,
     userId: number,
     dto: CreateMessageDto,
-  ): Promise<ChatboxMessage[]> {
-    if (dto.from != userId)
-      throw new HttpException('invalid payload', HttpStatus.BAD_REQUEST);
+  ): Promise<ChatboxMessage> {
     await this.isValidChatboxOrThrow(id);
+    const message: ChatboxMessage = {
+      ...dto,
+      id: uuidv4(),
+      isEdited: false,
+      at: new Date(),
+      from: userId,
+    };
 
-    const chatbox = await this.chatboxesRepository.findOneAndUpdate(
+    await this.chatboxesRepository.updateOne(
       { _id: new ObjectId(id), conversationBetween: userId },
-      {
-        $push: {
-          messages: { ...dto, id: uuidv4(), isEdited: false, at: new Date() },
-        },
-      },
+      { $push: { messages: message as any } },
     );
 
-    return chatbox.messages;
+    return message;
   }
 
   async updateConversationMessage(
@@ -284,15 +288,17 @@ export class ChatboxesService {
     chatboxId: string,
     adminId: number | undefined = undefined,
   ) {
-    const count = await this.chatboxesRepository.count({
-      _id: new ObjectId(chatboxId),
-      admin: adminId,
+    const chatbox = await this.chatboxesRepository.findOne({
+      where: {
+        _id: new ObjectId(chatboxId),
+        ...(adminId && { admin: adminId }),
+      },
+      select: ['_id'],
     });
 
-    if (count == null) {
-      throw new HttpException(
+    if (chatbox == null) {
+      throw new BadRequestException(
         `invalid group${!!adminId ? ' or admin' : ''}`,
-        HttpStatus.BAD_REQUEST,
       );
     }
   }

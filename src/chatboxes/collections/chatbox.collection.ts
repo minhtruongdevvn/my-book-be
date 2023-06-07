@@ -32,6 +32,9 @@ export class Chatbox extends EntityHelper {
   @Column({ nullable: false })
   admin: number;
 
+  @Column()
+  photo?: string;
+
   @Column({ type: Number, array: true })
   members: number[];
 }
