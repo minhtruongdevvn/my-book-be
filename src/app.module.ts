@@ -10,16 +10,13 @@ import { AuthGoogleModule } from './auth-google/auth-google.module';
 import { AuthModule } from './auth/auth.module';
 import { ChatboxesModule } from './chatboxes/chatboxes.module';
 import appConfig from './config/app.config';
-import appleConfig from './config/apple.config';
 import authConfig from './config/auth.config';
 import chatboxDatabaseConfig from './config/chatbox-database.config';
 import { AllConfigType } from './config/config.type';
 import databaseConfig from './config/database.config';
-import facebookConfig from './config/facebook.config';
 import fileConfig from './config/file.config';
 import googleConfig from './config/google.config';
 import mailConfig from './config/mail.config';
-import twitterConfig from './config/twitter.config';
 import {
   AppOrmConfigService,
   ChatboxOrmConfigService,
@@ -42,10 +39,7 @@ import { CHATBOX_DB_TOKEN } from './utils/app-constant';
         appConfig,
         mailConfig,
         fileConfig,
-        facebookConfig,
         googleConfig,
-        twitterConfig,
-        appleConfig,
         chatboxDatabaseConfig,
       ],
       envFilePath: ['.env'],

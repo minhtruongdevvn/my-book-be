@@ -5,6 +5,7 @@ import { ChatboxesController } from './chatboxes.controller';
 import { ChatboxesService } from './chatboxes.service';
 import { Chatbox } from './collections/chatbox.collection';
 import { RoomUserMapper } from './collections/room-user-mapper.collection';
+import { ConversationsService } from './conversations.service';
 import { ChatboxGateway } from './gateway';
 
 @Module({
@@ -13,6 +14,6 @@ import { ChatboxGateway } from './gateway';
     TypeOrmModule.forFeature([RoomUserMapper], CHATBOX_DB_TOKEN),
   ],
   controllers: [ChatboxesController],
-  providers: [ChatboxesService, ChatboxGateway],
+  providers: [ChatboxesService, ConversationsService, ChatboxGateway],
 })
 export class ChatboxesModule {}

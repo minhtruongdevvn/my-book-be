@@ -6,76 +6,56 @@ import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
 import { MongoRepository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Chatbox } from './collections/chatbox.collection';
-import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
-import { UpdateChatboxDto } from './dto/update-chatbox.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { getMessages, isValidChatboxOrThrow } from './utils/service.util';
 
 @Injectable()
-export class ChatboxesService {
+export class ConversationsService {
   constructor(
     @InjectRepository(Chatbox, CHATBOX_DB_TOKEN)
     private chatboxesRepository: MongoRepository<Chatbox>,
   ) {}
+  async getOrCreateConversation(user1Id: number, user2Id: number) {
+    if (user1Id == user2Id) {
+      throw new BadRequestException('users cannot be identical');
+    }
 
-  getById(id: string, userId: number) {
+    let conversation = await this.chatboxesRepository.findOne({
+      where: {
+        conversationBetween: { $in: [user1Id, user2Id] },
+      },
+    });
+
+    if (conversation == null) {
+      conversation = new Chatbox();
+      conversation.conversationBetween = [user1Id, user2Id];
+      await conversation.save();
+    }
+
+    return conversation;
+  }
+
+  getConversationById(id: string, userId: number) {
     return this.chatboxesRepository.findOne({
       where: {
         _id: new ObjectId(id),
-        $or: [{ members: userId }, { admin: userId }],
+        conversationBetween: userId,
       },
     });
   }
 
-  getByUserId(userId: number) {
+  getConversationsByUserId(userId: number) {
     return this.chatboxesRepository.find({
-      where: { $or: [{ members: userId }, { admin: userId }] },
+      where: {
+        conversationBetween: {
+          $elemMatch: { $eq: userId },
+        },
+      },
     });
   }
 
-  async createGroup(userId: number, dto: CreateChatboxDto) {
-    const chatbox = new Chatbox();
-    chatbox.name = dto.name;
-    chatbox.admin = userId;
-    await chatbox.save();
-
-    return chatbox;
-  }
-
-  async removeGroup(id: string, userId: number) {
-    await this.chatboxesRepository.deleteOne({
-      _id: new ObjectId(id),
-      admin: userId,
-    });
-  }
-
-  async updateGroup(id: string, userId: number, dto: UpdateChatboxDto) {
-    await isValidChatboxOrThrow(this.chatboxesRepository, id, userId);
-    await this.chatboxesRepository.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { ...dto } },
-    );
-  }
-
-  async addMember(id: string, userId: number, memberId: number) {
-    if (userId == memberId) throw new BadRequestException('self_added');
-    await isValidChatboxOrThrow(this.chatboxesRepository, id, userId);
-    await this.chatboxesRepository.findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { $addToSet: { members: memberId } },
-    );
-  }
-
-  async removeMember(id: string, userId: number, memberId: number) {
-    await isValidChatboxOrThrow(this.chatboxesRepository, id, userId);
-    await this.chatboxesRepository.findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { $pull: { members: memberId } },
-    );
-  }
-
-  getMessagesByTimeRange(
+  getConversationsMessagesByTimeRange(
     id: string,
     userId: number,
     startAt: Date,
@@ -84,14 +64,14 @@ export class ChatboxesService {
     return getMessages(
       {
         _id: new ObjectId(id),
-        $or: [{ admin: userId }, { members: userId }],
+        conversationBetween: userId,
       },
       { messages: { $elemMatch: { at: { $gte: startAt, $lt: endAt } } } },
       this.chatboxesRepository,
     );
   }
 
-  getMessagesByOrder(
+  getConversationsMessagesByOrder(
     id: string,
     userId: number,
     count: number,
@@ -100,7 +80,7 @@ export class ChatboxesService {
     return getMessages(
       {
         _id: new ObjectId(id),
-        $or: [{ admin: userId }, { members: userId }],
+        conversationBetween: userId,
       },
       {
         messages: !nthFromEnd
@@ -111,7 +91,7 @@ export class ChatboxesService {
     );
   }
 
-  async addMessage(
+  async addConversationMessage(
     id: string,
     userId: number,
     dto: CreateMessageDto,
@@ -124,15 +104,20 @@ export class ChatboxesService {
       at: new Date(),
       from: userId,
     };
+
     await this.chatboxesRepository.updateOne(
-      { _id: new ObjectId(id), $or: [{ members: userId }, { admin: userId }] },
+      { _id: new ObjectId(id), conversationBetween: userId },
       { $push: { messages: message as any } },
     );
 
     return message;
   }
 
-  async updateMessage(id: string, userId: number, dto: UpdateMessageDto) {
+  async updateConversationMessage(
+    id: string,
+    userId: number,
+    dto: UpdateMessageDto,
+  ) {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
     await this.chatboxesRepository.updateOne(
       {
@@ -148,13 +133,18 @@ export class ChatboxesService {
     );
   }
 
-  async deleteMessage(id: string, userId: number, messageId: string) {
+  async deleteConversationMessage(
+    id: string,
+    userId: number,
+    messageId: string,
+  ) {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
 
     await this.chatboxesRepository.updateOne(
       {
         _id: new ObjectId(id),
-        $or: [{ admin: userId }, { 'messages.from': userId, members: userId }],
+        'messages.from': userId,
+        conversationBetween: userId,
       },
       {
         $set: { 'messages.$[el].content': null },

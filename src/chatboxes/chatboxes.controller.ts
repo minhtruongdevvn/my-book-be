@@ -15,6 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
 import { ChatboxesService } from './chatboxes.service';
+import { ConversationsService } from './conversations.service';
 import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';
@@ -27,7 +28,10 @@ import { UpdateMessageDto } from './dto/update-message.dto';
   path: 'chatboxes',
 })
 export class ChatboxesController {
-  constructor(private readonly chatboxService: ChatboxesService) {}
+  constructor(
+    private readonly chatboxService: ChatboxesService,
+    private readonly conversationService: ConversationsService,
+  ) {}
 
   @Post()
   create(@Body() dto: CreateChatboxDto, @GetUser('id') userId: number) {
@@ -128,12 +132,17 @@ export class ChatboxesController {
     @GetUser('id') userId: number,
     @Param('toUserId') toUserId: number,
   ) {
-    return this.chatboxService.getOrCreateConversation(userId, toUserId);
+    return this.conversationService.getOrCreateConversation(userId, toUserId);
   }
 
   @Get('conversations')
   getConversations(@GetUser('id') userId: number) {
-    return this.chatboxService.getConversationsByUserId(userId);
+    return this.conversationService.getConversationsByUserId(userId);
+  }
+
+  @Get('conversations/:id')
+  getConversationsById(@GetUser('id') userId: number, @Param('id') id: string) {
+    return this.conversationService.getConversationById(id, userId);
   }
 
   @Get('conversations/:id/messages')
@@ -143,7 +152,7 @@ export class ChatboxesController {
     @Query('count') count: number,
     @Query('nthFromEnd') nthFromEnd: number | undefined,
   ) {
-    return this.chatboxService.getConversationsMessagesByOrder(
+    return this.conversationService.getConversationsMessagesByOrder(
       id,
       userId,
       count,
@@ -157,7 +166,7 @@ export class ChatboxesController {
     @Param('id') id: string,
     @Body() dto: CreateMessageDto,
   ) {
-    return this.chatboxService.addConversationMessage(id, userId, dto);
+    return this.conversationService.addConversationMessage(id, userId, dto);
   }
 
   @Put('conversations/:id/messages')
@@ -166,7 +175,7 @@ export class ChatboxesController {
     @Param('id') id: string,
     @Body() dto: UpdateMessageDto,
   ) {
-    return this.chatboxService.updateConversationMessage(id, userId, dto);
+    return this.conversationService.updateConversationMessage(id, userId, dto);
   }
 
   @Delete('conversations/:id/messages/:messageId')
@@ -175,6 +184,10 @@ export class ChatboxesController {
     @Param('id') id: string,
     @Param('messageId') messageId: string,
   ) {
-    return this.chatboxService.deleteConversationMessage(id, userId, messageId);
+    return this.conversationService.deleteConversationMessage(
+      id,
+      userId,
+      messageId,
+    );
   }
 }

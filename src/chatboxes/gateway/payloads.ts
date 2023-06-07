@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class MessageSentPayload {
   @IsString()
@@ -11,4 +11,8 @@ export class MessageSentPayload {
   @IsString()
   @IsNotEmpty()
   content: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  isGroup: boolean;
 }

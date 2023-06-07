@@ -7,6 +7,7 @@ import {
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 import { ObjectId } from 'mongodb';
 import { Namespace, Socket } from 'socket.io';
@@ -16,6 +17,7 @@ import validationOptions from 'src/utils/validation-options';
 import { MongoRepository } from 'typeorm';
 import { ChatboxesService } from '../chatboxes.service';
 import { RoomUserMapper } from '../collections/room-user-mapper.collection';
+import { ConversationsService } from '../conversations.service';
 import {
   MESSAGE_RECEIVED,
   MESSAGE_SENT,
@@ -43,6 +45,7 @@ export class ChatboxGateway
     @InjectRepository(RoomUserMapper, CHATBOX_DB_TOKEN)
     private store: MongoRepository<RoomUserMapper>,
     private readonly chatboxService: ChatboxesService,
+    private readonly conversationService: ConversationsService,
   ) {}
 
   @WebSocketServer()
@@ -50,16 +53,19 @@ export class ChatboxGateway
 
   @SubscribeMessage(MESSAGE_SENT)
   async messageSent(@MessageBody() payload: MessageSentPayload) {
-    this.server
-      .to(payload.chatboxId)
-      .emit(
-        MESSAGE_RECEIVED,
-        await this.chatboxService.addMessage(
+    const response = await (payload.isGroup
+      ? this.chatboxService.addMessage(payload.chatboxId, payload.userId, {
+          content: payload.content,
+        })
+      : this.conversationService.addConversationMessage(
           payload.chatboxId,
           payload.userId,
-          { content: payload.content },
-        ),
-      );
+          {
+            content: payload.content,
+          },
+        ));
+
+    this.server.to(payload.chatboxId).emit(MESSAGE_RECEIVED, response);
   }
 
   async handleConnection(client: Socket) {
@@ -114,6 +120,7 @@ export class ChatboxGateway
   }
 
   private async ensureChatboxExist(id: string) {
+    if (!id) throw new WsException('chatbox is not valid');
     const docId = new ObjectId(id);
     const chatbox = await this.store.findOne({
       where: { _id: docId },
