@@ -1,4 +1,4 @@
-import { UseFilters } from '@nestjs/common';
+import { UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   MessageBody,
@@ -12,6 +12,7 @@ import { ObjectId } from 'mongodb';
 import { Namespace, Socket } from 'socket.io';
 import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
 import { Client } from 'src/utils/types/chatbox/client.type';
+import validationOptions from 'src/utils/validation-options';
 import { MongoRepository } from 'typeorm';
 import { ChatboxesService } from '../chatboxes.service';
 import { RoomUserMapper } from '../collections/room-user-mapper.collection';
@@ -30,6 +31,7 @@ import {
   UserJoinedPayload,
 } from './types';
 
+@UsePipes(new ValidationPipe(validationOptions))
 @UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   namespace: 'chatbox',
@@ -61,18 +63,18 @@ export class ChatboxGateway
   }
 
   async handleConnection(client: Socket) {
-    const room = client.handshake.query.chatboxId as string;
+    const chatboxId = client.handshake.query.chatboxId as string;
     const userId = Number(client.handshake.query.userId);
-    if (!room && !userId) return;
+    if (!chatboxId && !userId) return;
 
-    await client.join(room);
-    await this.ensureChatboxExist(room);
+    await client.join(chatboxId);
+    await this.ensureChatboxExist(chatboxId);
     const map = await this.store.findOneAndUpdate(
-      { _id: new ObjectId(room) },
+      { _id: new ObjectId(chatboxId) },
       { $push: { clients: new Client(userId, client.id) } },
       { returnDocument: 'after' },
     );
-    const userCount = this.server.adapter.rooms?.get(room)?.size ?? 0;
+    const userCount = this.server.adapter.rooms?.get(chatboxId)?.size ?? 0;
 
     client.broadcast.emit(USER_JOINED, {
       userCount,

@@ -1,9 +1,15 @@
-import { ArgumentsHost, BadRequestException, Catch } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  BadRequestException,
+  Catch,
+  HttpException,
+} from '@nestjs/common';
 import { BaseWsExceptionFilter, WsException } from '@nestjs/websockets';
 
-@Catch(BadRequestException)
+@Catch(HttpException)
 export class WsExceptionFilter extends BaseWsExceptionFilter {
   catch(exception: BadRequestException, host: ArgumentsHost) {
+    // client can get the error by listen for 'exception' event
     const properException = new WsException(exception.getResponse());
     super.catch(properException, host);
   }
