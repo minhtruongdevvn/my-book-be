@@ -1,13 +1,14 @@
-import { INestApplicationContext, Logger } from '@nestjs/common';
+import { INestApplicationContext } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { IncomingMessage } from 'http';
 import { Server, ServerOptions } from 'socket.io';
+import { verifyToken } from '../utils/jwt-token.util';
 
 export class ChatboxSocketIOAdapter extends IoAdapter {
   constructor(
     app: INestApplicationContext,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {
     super(app);
   }
@@ -18,38 +19,28 @@ export class ChatboxSocketIOAdapter extends IoAdapter {
     const cors = {
       origin: [clientPort],
     };
-
-    const optionsWithCORS: Partial<ServerOptions> = {
+    const chatboxOption: Partial<ServerOptions> = {
       ...(options ?? {}),
       cors,
+      allowRequest: (req, fn) => validateRequest(req, this.configService, fn),
     };
 
-    //const jwtService = this.app.get(JwtService);
-    const server: Server = super.createIOServer(port, optionsWithCORS);
-
-    //server.of('polls').use(createTokenMiddleware(jwtService, this.logger));
-
+    const server: Server = super.createIOServer(port, chatboxOption);
     return server;
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const createTokenMiddleware =
-  (jwtService: JwtService, logger: Logger) =>
-  (socket /*:SocketWithAuth*/, next) => {
-    // for Postman testing support, fallback to token header
-    const token =
-      socket.handshake.auth.token || socket.handshake.headers['token'];
+const validateRequest = async (
+  request: IncomingMessage,
+  configService: ConfigService,
+  allowFunction: (err: string | null | undefined, success: boolean) => void,
+) => {
+  console.log('called from adapter');
+  const user = await verifyToken(
+    configService.getOrThrow<string>('auth.secret'),
+    request.headers.authorization,
+  );
 
-    logger.debug(`Validating auth token before connection: ${token}`);
-
-    try {
-      const payload = jwtService.verify(token);
-      socket.userID = payload.sub;
-      socket.pollID = payload.pollID;
-      socket.name = payload.name;
-      next();
-    } catch {
-      next(new Error('FORBIDDEN'));
-    }
-  };
+  if (!user) return allowFunction('Unauthorized', false);
+  return allowFunction(undefined, true);
+};

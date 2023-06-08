@@ -1,4 +1,10 @@
-import { UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  UseFilters,
+  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   MessageBody,
@@ -16,8 +22,10 @@ import { Client } from 'src/utils/types/chatbox/client.type';
 import validationOptions from 'src/utils/validation-options';
 import { MongoRepository } from 'typeorm';
 import { ChatboxesService } from '../chatboxes.service';
+import { Chatbox } from '../collections/chatbox.collection';
 import { RoomUserMapper } from '../collections/room-user-mapper.collection';
 import { ConversationsService } from '../conversations.service';
+import { saveUserForSocket } from '../utils/jwt-token.util';
 import {
   MESSAGE_RECEIVED,
   MESSAGE_SENT,
@@ -28,11 +36,13 @@ import {
 import { WsExceptionFilter } from './exception.filter';
 import { MessageSentPayload } from './payloads';
 import {
+  ChatboxSocket,
   UserConnectedPayload,
   UserDisconnectedPayload,
   UserJoinedPayload,
 } from './types';
 
+@UseInterceptors(ClassSerializerInterceptor)
 @UsePipes(new ValidationPipe(validationOptions))
 @UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
@@ -43,9 +53,11 @@ export class ChatboxGateway
 {
   constructor(
     @InjectRepository(RoomUserMapper, CHATBOX_DB_TOKEN)
-    private store: MongoRepository<RoomUserMapper>,
+    private readonly store: MongoRepository<RoomUserMapper>,
     private readonly chatboxService: ChatboxesService,
     private readonly conversationService: ConversationsService,
+    @InjectRepository(Chatbox, CHATBOX_DB_TOKEN)
+    private chatboxesRepository: MongoRepository<Chatbox>,
   ) {}
 
   @WebSocketServer()
@@ -68,28 +80,35 @@ export class ChatboxGateway
     this.server.to(payload.chatboxId).emit(MESSAGE_RECEIVED, response);
   }
 
-  async handleConnection(client: Socket) {
-    const chatboxId = client.handshake.query.chatboxId as string;
-    const userId = Number(client.handshake.query.userId);
-    if (!chatboxId && !userId) return;
+  async handleConnection(client: ChatboxSocket) {
+    saveUserForSocket(client);
+    const chatbox = await this.getChatbox(
+      client.handshake.query.chatboxId,
+      client.conn.userId,
+    );
+    if (!chatbox) {
+      client.disconnect(true);
+      return;
+    }
 
-    await client.join(chatboxId);
-    await this.ensureChatboxExist(chatboxId);
+    await client.join(chatbox.id);
+    await this.ensureChatboxExist(chatbox.id);
     const map = await this.store.findOneAndUpdate(
-      { _id: new ObjectId(chatboxId) },
-      { $push: { clients: new Client(userId, client.id) } },
+      { _id: new ObjectId(chatbox.id) },
+      { $push: { clients: new Client(client.conn.userId, client.id) } },
       { returnDocument: 'after' },
     );
-    const userCount = this.server.adapter.rooms?.get(chatboxId)?.size ?? 0;
+    const userCount = this.server.adapter.rooms?.get(chatbox.id)?.size ?? 0;
 
     client.broadcast.emit(USER_JOINED, {
       userCount,
-      userJoinedId: userId,
+      userJoinedId: client.conn.userId,
     } as UserJoinedPayload);
 
     const clients: Client[] = map.value?.clients;
     this.server.to(client.id).emit(USER_CONNECTED, {
       userCount,
+      chatbox,
       userIds: clients.map((e) => e.userId),
     } as UserConnectedPayload);
   }
@@ -117,6 +136,21 @@ export class ChatboxGateway
     if (clients.length == 1) {
       await this.store.deleteOne({ _id: doc.value._id });
     }
+  }
+
+  private async getChatbox(chatboxId: undefined | any, userId: number) {
+    if (!chatboxId || typeof chatboxId !== 'string') return null;
+    return await this.chatboxesRepository.findOne({
+      where: {
+        _id: new ObjectId(chatboxId),
+        $or: [
+          {
+            $or: [{ members: userId }, { admin: userId }],
+          },
+          { conversationBetween: userId },
+        ],
+      },
+    });
   }
 
   private async ensureChatboxExist(id: string) {
