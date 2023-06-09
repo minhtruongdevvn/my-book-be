@@ -27,7 +27,17 @@ export class ChatboxSocketService {
   }
 
   countActiveUserByChatbox(chatboxId: string) {
-    return this.server.adapter.rooms?.get(chatboxId)?.size ?? 0;
+    const room = this.server.adapter.rooms?.get(chatboxId);
+    if (!room) return 0;
+
+    const uniqueUser = new Set<number>();
+    for (const i of Array.from(room)) {
+      const socket = this.server.sockets.get(i);
+      if (!socket || !socket.data.userId) continue;
+      uniqueUser.add(socket.data.userId);
+    }
+
+    return uniqueUser.size;
   }
 
   emitMessageReceived(chatboxId: string, payload: MessageReceivedPayload) {
@@ -64,7 +74,7 @@ export class ChatboxSocketService {
   }
 
   async getChatboxById(chatboxId: undefined | any, userId: number | undefined) {
-    if (!chatboxId || typeof chatboxId !== 'string' || !userId) return null;
+    if (!chatboxId || !ObjectId.isValid(chatboxId) || !userId) return null;
     return await this.chatboxesRepository.findOne({
       where: {
         _id: new ObjectId(chatboxId),
