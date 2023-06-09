@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from 'src/users/users.module';
 import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
 import { ChatboxSocketService } from './chatbox-socket.service';
 import { ChatboxesController } from './chatboxes.controller';
@@ -10,7 +11,7 @@ import { ConversationsService } from './conversations.service';
 import { ChatboxGateway } from './gateway';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Chatbox], CHATBOX_DB_TOKEN)],
+  imports: [TypeOrmModule.forFeature([Chatbox], CHATBOX_DB_TOKEN), UsersModule],
   controllers: [ChatboxesController, ConversationsController],
   providers: [
     ChatboxesService,

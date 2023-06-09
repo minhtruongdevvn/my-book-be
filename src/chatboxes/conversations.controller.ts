@@ -12,6 +12,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
 import { ConversationsService } from './conversations.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
@@ -23,19 +25,56 @@ import { UpdateMessageDto } from './dto/update-message.dto';
   path: 'conversations',
 })
 export class ConversationsController {
-  constructor(private readonly conversationService: ConversationsService) {}
+  constructor(
+    private readonly conversationService: ConversationsService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Get('to/:toUserId')
-  getOrCreateConversation(
+  async getOrCreateConversation(
     @GetUser('id') userId: number,
     @Param('toUserId') toUserId: number,
   ) {
-    return this.conversationService.getOrCreateConversation(userId, toUserId);
+    const chatbox = await this.conversationService.getOrCreateConversation(
+      userId,
+      toUserId,
+    );
+    if (!chatbox) return;
+    const userIds = chatbox.conversationBetween;
+    chatbox.conversationBetween = [];
+
+    return {
+      ...chatbox,
+      id: chatbox._id.toString(),
+      _id: undefined,
+      conversationBetween: await this.usersService.getUserByRangeId(userIds),
+    };
   }
 
   @Get()
-  getConversations(@GetUser('id') userId: number) {
-    return this.conversationService.getConversationsByUserId(userId);
+  async getConversations(@GetUser('id') userId: number) {
+    const chatboxes = await this.conversationService.getConversationsByUserId(
+      userId,
+    );
+    if (!chatboxes) return;
+
+    const users = new Map<number, User | undefined>();
+    for (const chatbox of chatboxes) {
+      if (chatbox.conversationBetween.length != 2) return; // add logger
+      users.set(chatbox.conversationBetween[0], undefined);
+      users.set(chatbox.conversationBetween[1], undefined);
+    }
+    const userArr = await this.usersService.getUserByRangeId([...users.keys()]);
+    for (const user of userArr) users.set(user.id, user);
+
+    return chatboxes.map((cb) => {
+      return {
+        ...cb,
+        id: cb._id.toString(),
+        _id: undefined,
+        conversationBetween: cb.conversationBetween.map((e) => users.get(e)),
+      };
+    });
   }
 
   @Get(':id')

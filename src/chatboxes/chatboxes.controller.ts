@@ -14,6 +14,8 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/users.service';
 import { ChatboxesService } from './chatboxes.service';
 import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -27,7 +29,10 @@ import { UpdateMessageDto } from './dto/update-message.dto';
   path: 'chatboxes',
 })
 export class ChatboxesController {
-  constructor(private readonly chatboxService: ChatboxesService) {}
+  constructor(
+    private readonly chatboxService: ChatboxesService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @Post()
   create(@Body() dto: CreateChatboxDto, @GetUser('id') userId: number) {
@@ -35,13 +40,42 @@ export class ChatboxesController {
   }
 
   @Get(':id')
-  getById(@GetUser('id') userId: number, @Param('id') id: string) {
-    return this.chatboxService.getById(id, userId);
+  async getById(@GetUser('id') userId: number, @Param('id') id: string) {
+    const chatbox = await this.chatboxService.getById(id, userId);
+    if (!chatbox) return null;
+    const userIds = chatbox.members;
+    chatbox.members = [];
+
+    return {
+      ...chatbox,
+      _id: undefined,
+      id: chatbox._id.toString(),
+      members: await this.usersService.getUserByRangeId(userIds),
+    };
   }
 
   @Get()
-  getByCurrentUser(@GetUser('id') userId: number) {
-    return this.chatboxService.getByUserId(userId);
+  async get(@GetUser('id') userId: number) {
+    const chatboxes = await this.chatboxService.getByUserId(userId);
+    if (!chatboxes) return null;
+
+    const users = new Map<number, User | undefined>();
+    for (const chatbox of chatboxes) {
+      for (const uId of chatbox.members) {
+        users.set(uId, undefined);
+      }
+    }
+    const userArr = await this.usersService.getUserByRangeId([...users.keys()]);
+    for (const user of userArr) users.set(user.id, user);
+
+    return chatboxes.map((cb) => {
+      return {
+        ...cb,
+        id: cb._id.toString(),
+        _id: undefined,
+        members: cb.members.map((e) => users.get(e)),
+      };
+    });
   }
 
   @Put(':id')

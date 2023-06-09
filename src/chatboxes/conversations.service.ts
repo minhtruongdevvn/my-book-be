@@ -21,11 +21,12 @@ export class ConversationsService {
       throw new BadRequestException('users cannot be identical');
     }
 
-    let conversation = await this.chatboxesRepository.findOne({
-      where: {
+    let conversation = await this.chatboxesRepository
+      .createCursor({
         conversationBetween: { $in: [user1Id, user2Id] },
-      },
-    });
+      })
+      .project({ messages: 0 })
+      .next();
 
     if (conversation == null) {
       conversation = new Chatbox();
@@ -46,13 +47,14 @@ export class ConversationsService {
   }
 
   getConversationsByUserId(userId: number) {
-    return this.chatboxesRepository.find({
-      where: {
+    return this.chatboxesRepository
+      .createCursor({
         conversationBetween: {
           $elemMatch: { $eq: userId },
         },
-      },
-    });
+      })
+      .project({ messages: 0 })
+      .toArray();
   }
 
   getConversationsMessagesByTimeRange(

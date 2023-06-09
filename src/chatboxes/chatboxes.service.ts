@@ -20,18 +20,20 @@ export class ChatboxesService {
   ) {}
 
   getById(id: string, userId: number) {
-    return this.chatboxesRepository.findOne({
-      where: {
+    return this.chatboxesRepository
+      .createCursor({
         _id: new ObjectId(id),
         $or: [{ members: userId }, { admin: userId }],
-      },
-    });
+      })
+      .project({ messages: 0 })
+      .next();
   }
 
   getByUserId(userId: number) {
-    return this.chatboxesRepository.find({
-      where: { $or: [{ members: userId }, { admin: userId }] },
-    });
+    return this.chatboxesRepository
+      .createCursor({ $or: [{ members: userId }, { admin: userId }] })
+      .project({ messages: 0 })
+      .toArray();
   }
 
   async createGroup(userId: number, dto: CreateChatboxDto) {
