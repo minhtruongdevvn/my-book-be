@@ -115,7 +115,7 @@ export class ChatboxesService {
     id: string,
     userId: number,
     dto: CreateMessageDto,
-  ): Promise<ChatboxMessage> {
+  ): Promise<ChatboxMessage | undefined> {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
     const message: ChatboxMessage = {
       ...dto,
@@ -124,10 +124,16 @@ export class ChatboxesService {
       at: new Date(),
       from: userId,
     };
-    await this.chatboxesRepository.updateOne(
+    const result = await this.chatboxesRepository.updateOne(
       { _id: new ObjectId(id), $or: [{ members: userId }, { admin: userId }] },
       { $push: { messages: message as any } },
     );
+    if (
+      !result.acknowledged ||
+      (result.modifiedCount <= 0 && result.upsertedCount <= 0)
+    ) {
+      return undefined;
+    }
 
     return message;
   }

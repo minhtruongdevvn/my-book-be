@@ -35,7 +35,6 @@ const validateRequest = async (
   configService: ConfigService,
   allowFunction: (err: string | null | undefined, success: boolean) => void,
 ) => {
-  console.log('called from adapter');
   const user = await verifyToken(
     configService.getOrThrow<string>('auth.secret'),
     request.headers.authorization,

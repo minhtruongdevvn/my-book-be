@@ -1,6 +1,6 @@
 import { JwtService } from '@nestjs/jwt';
-import { ChatboxSocket } from '../gateway/types';
 
+const jwtService: JwtService = new JwtService();
 export async function verifyToken(
   secret: string,
   accessToken: any | undefined | null,
@@ -8,7 +8,6 @@ export async function verifyToken(
   const token = getJwtToken(accessToken);
   if (!token) return undefined;
 
-  const jwtService: JwtService = new JwtService();
   try {
     const claim = await jwtService.verifyAsync<{ id: number }>(token, {
       secret,
@@ -20,29 +19,24 @@ export async function verifyToken(
   }
 }
 
-export function saveUserForSocket(socket: ChatboxSocket) {
-  const token = getJwtToken(socket.handshake.headers.authorization);
-  if (!token) return;
-
-  const jwtService: JwtService = new JwtService();
+export function getIdByToken(accessToken: string | any): number | undefined {
+  const token = getJwtToken(accessToken);
+  if (!token) return undefined;
 
   const claim = jwtService.decode(token);
-  if (!claim) return; // add log
+  if (!claim) return undefined; // add log
 
   const id = claim['id'];
-  if (!id) return; // add log
+  if (!id) return undefined; // add log
 
-  socket.conn.userId = id;
+  return id;
 }
 
 const getJwtToken = (accessToken: undefined | null | any) => {
   if (!accessToken || typeof accessToken !== 'string') return undefined;
-  const tokenData = accessToken.split(' ');
 
-  if (tokenData.length == 2) {
-    if (tokenData[0].toLowerCase() !== 'bearer') return undefined;
-
-    return tokenData[1];
+  if (accessToken.substring(0, 6).toLowerCase() === 'bearer') {
+    return accessToken.substring(6, accessToken.length);
   } else {
     return accessToken;
   }

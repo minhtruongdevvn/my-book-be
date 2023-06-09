@@ -1,6 +1,6 @@
 import { IsBoolean, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
-export class MessageSentPayload {
+export class MessageSentDto {
   @IsString()
   @IsNotEmpty()
   chatboxId: string;
