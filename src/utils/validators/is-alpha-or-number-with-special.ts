@@ -16,6 +16,7 @@ type SpecialCharacter =
 
 export function IsAlphaOrNumberWithSpecial(
   special?: SpecialCharacter[],
+  optional = false,
   validationOptions?: ValidationOptions,
 ) {
   return function (object: object, propertyName: string) {
@@ -26,6 +27,7 @@ export function IsAlphaOrNumberWithSpecial(
       options: validationOptions,
       validator: {
         validate(value: any) {
+          if (optional && !value) return true;
           if (!special) {
             return typeof value === 'string' && /^[a-zA-Z0-9]*$/.test(value);
           }

@@ -89,6 +89,12 @@ export class AuthController {
   @Post('email/register')
   @HttpCode(HttpStatus.NO_CONTENT)
   async register(@Body() createUserDto: AuthRegisterLoginDto): Promise<void> {
+    if (!createUserDto.alias) {
+      createUserDto.alias = createUserDto.email.replace(
+        /^(.+)@(.+)\.(.+)$/,
+        '$2:$1',
+      );
+    }
     return this.service.register(createUserDto);
   }
 

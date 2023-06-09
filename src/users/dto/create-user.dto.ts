@@ -16,14 +16,6 @@ import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
 import { Role } from '../../roles/entities/role.entity';
 
 export class CreateUserDto {
-  constructor() {
-    if (!this.alias) {
-      this.alias =
-        this.email?.replace(/^(.+)@(.+)$/, '$2:$1') ??
-        `${this.firstName}:${Date.now()}`;
-    }
-  }
-
   @ApiProperty({ example: 'test1@example.com' })
   @Transform(lowerCaseTransformer)
   @IsNotEmpty()
@@ -39,7 +31,6 @@ export class CreateUserDto {
 
   provider?: string;
 
-  @IsOptional()
   @IsAlphaOrNumberWithSpecial(['_'])
   alias?: string;
 
