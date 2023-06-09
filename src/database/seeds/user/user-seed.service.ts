@@ -32,6 +32,7 @@ export class UserSeedService {
             id: RoleEnum.admin,
             name: 'Admin',
           },
+          alias: 'example:admin',
           status: {
             id: StatusEnum.active,
             name: 'Active',
@@ -59,6 +60,7 @@ export class UserSeedService {
             id: RoleEnum.user,
             name: 'User',
           },
+          alias: 'example:test1',
           status: {
             id: StatusEnum.active,
             name: 'Active',
@@ -75,6 +77,7 @@ export class UserSeedService {
             id: RoleEnum.user,
             name: 'User',
           },
+          alias: 'example:doe',
           status: {
             id: StatusEnum.active,
             name: 'Active',

@@ -55,6 +55,10 @@ export class User extends EntityHelper {
   provider: string;
 
   @Index()
+  @Column({ type: String, nullable: false, unique: true })
+  alias: string;
+
+  @Index()
   @Column({ type: String, nullable: true })
   @Expose({ groups: ['me', 'admin'] })
   socialId: string | null;

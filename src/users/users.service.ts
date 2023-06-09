@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityCondition } from 'src/utils/types/entity-condition.type';
 import { IPaginationOptions } from 'src/utils/types/pagination-options';
-import { DeepPartial, Repository } from 'typeorm';
+import { DeepPartial, In, Repository } from 'typeorm';
+import { NullableType } from '../utils/types/nullable.type';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './entities/user.entity';
-import { NullableType } from '../utils/types/nullable.type';
 
 @Injectable()
 export class UsersService {
@@ -33,6 +33,15 @@ export class UsersService {
     return this.usersRepository.findOne({
       where: fields,
     });
+  }
+
+  getUserByRangeId(userIds: number[]) {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .where({ id: In(userIds) })
+      .leftJoinAndSelect('user.photo', 'photo')
+      .select(['user.id', 'user.firstName', 'user.lastName', 'photo'])
+      .getMany();
   }
 
   update(id: number, payload: DeepPartial<User>): Promise<User> {

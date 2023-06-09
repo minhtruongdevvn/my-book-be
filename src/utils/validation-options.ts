@@ -7,7 +7,6 @@ import {
 
 const validationOptions: ValidationPipeOptions = {
   transform: true,
-  transformOptions: { exposeDefaultValues: true },
   whitelist: true,
   errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
   exceptionFactory: (errors: ValidationError[]) => {
