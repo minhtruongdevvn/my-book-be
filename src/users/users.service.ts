@@ -41,7 +41,13 @@ export class UsersService {
       .createQueryBuilder('user')
       .where({ id: In(userIds) })
       .leftJoinAndSelect('user.photo', 'photo')
-      .select(['user.id', 'user.firstName', 'user.lastName', 'photo'])
+      .select([
+        'user.id',
+        'user.firstName',
+        'user.lastName',
+        'user.alias',
+        'photo',
+      ])
       .getMany();
   }
 
