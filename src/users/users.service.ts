@@ -5,6 +5,7 @@ import { IPaginationOptions } from 'src/utils/types/pagination-options';
 import { DeepPartial, In, Repository } from 'typeorm';
 import { NullableType } from '../utils/types/nullable.type';
 import { CreateUserDto } from './dto/create-user.dto';
+import { MinimalUser } from './dto/minimal-user';
 import { User } from './entities/user.entity';
 
 @Injectable()
@@ -35,7 +36,7 @@ export class UsersService {
     });
   }
 
-  getUserByRangeId(userIds: number[]) {
+  getUserByRangeId(userIds: number[]): Promise<MinimalUser[]> {
     return this.usersRepository
       .createQueryBuilder('user')
       .where({ id: In(userIds) })

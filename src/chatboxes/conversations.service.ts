@@ -48,12 +48,12 @@ export class ConversationsService {
 
   getConversationsByUserId(userId: number) {
     return this.chatboxesRepository
-      .createCursor({
+      .createCursor<Chatbox>({
         conversationBetween: {
           $elemMatch: { $eq: userId },
         },
       })
-      .project({ messages: 0 })
+      .project<Chatbox>({ messages: 0 })
       .toArray();
   }
 

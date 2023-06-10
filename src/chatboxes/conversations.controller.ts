@@ -12,9 +12,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
-import { User } from 'src/users/entities/user.entity';
+import { MinimalUser } from 'src/users/dto/minimal-user';
 import { UsersService } from 'src/users/users.service';
 import { ConversationsService } from './conversations.service';
+import { ChatboxWithUser } from './dto/chatbox-with-user.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 
@@ -43,12 +44,11 @@ export class ConversationsController {
     const userIds = chatbox.conversationBetween;
     chatbox.conversationBetween = [];
 
-    return {
-      ...chatbox,
-      id: chatbox._id.toString(),
-      _id: undefined,
-      conversationBetween: await this.usersService.getUserByRangeId(userIds),
-    };
+    return new ChatboxWithUser(
+      chatbox,
+      false,
+      await this.usersService.getUserByRangeId(userIds),
+    );
   }
 
   @Get()
@@ -58,7 +58,7 @@ export class ConversationsController {
     );
     if (!chatboxes) return;
 
-    const users = new Map<number, User | undefined>();
+    const users = new Map<number, MinimalUser | undefined>();
     for (const chatbox of chatboxes) {
       if (chatbox.conversationBetween.length != 2) return; // add logger
       users.set(chatbox.conversationBetween[0], undefined);
@@ -68,12 +68,14 @@ export class ConversationsController {
     for (const user of userArr) users.set(user.id, user);
 
     return chatboxes.map((cb) => {
-      return {
-        ...cb,
-        id: cb._id.toString(),
-        _id: undefined,
-        conversationBetween: cb.conversationBetween.map((e) => users.get(e)),
-      };
+      return new ChatboxWithUser(
+        cb,
+        false,
+        cb.conversationBetween.flatMap((e) => {
+          const user = users.get(e);
+          return user ? [user] : [];
+        }),
+      );
     });
   }
 

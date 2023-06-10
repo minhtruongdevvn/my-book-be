@@ -31,8 +31,8 @@ export class ChatboxesService {
 
   getByUserId(userId: number) {
     return this.chatboxesRepository
-      .createCursor({ $or: [{ members: userId }, { admin: userId }] })
-      .project({ messages: 0 })
+      .createCursor<Chatbox>({ $or: [{ members: userId }, { admin: userId }] })
+      .project<Chatbox>({ messages: 0 })
       .toArray();
   }
 

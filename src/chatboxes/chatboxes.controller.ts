@@ -14,9 +14,10 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { GetUser } from 'src/auth/decorators/get-user.decorator';
-import { User } from 'src/users/entities/user.entity';
+import { MinimalUser } from 'src/users/dto/minimal-user';
 import { UsersService } from 'src/users/users.service';
 import { ChatboxesService } from './chatboxes.service';
+import { ChatboxWithUser } from './dto/chatbox-with-user.dto';
 import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';
@@ -46,12 +47,11 @@ export class ChatboxesController {
     const userIds = chatbox.members;
     chatbox.members = [];
 
-    return {
-      ...chatbox,
-      _id: undefined,
-      id: chatbox._id.toString(),
-      members: await this.usersService.getUserByRangeId(userIds),
-    };
+    return new ChatboxWithUser(
+      chatbox,
+      true,
+      await this.usersService.getUserByRangeId(userIds),
+    );
   }
 
   @Get()
@@ -59,7 +59,7 @@ export class ChatboxesController {
     const chatboxes = await this.chatboxService.getByUserId(userId);
     if (!chatboxes) return null;
 
-    const users = new Map<number, User | undefined>();
+    const users = new Map<number, MinimalUser | undefined>();
     for (const chatbox of chatboxes) {
       for (const uId of chatbox.members) {
         users.set(uId, undefined);
@@ -69,12 +69,14 @@ export class ChatboxesController {
     for (const user of userArr) users.set(user.id, user);
 
     return chatboxes.map((cb) => {
-      return {
-        ...cb,
-        id: cb._id.toString(),
-        _id: undefined,
-        members: cb.members.map((e) => users.get(e)),
-      };
+      return new ChatboxWithUser(
+        cb,
+        true,
+        cb.members.flatMap((e) => {
+          const user = users.get(e);
+          return user ? [user] : [];
+        }),
+      );
     });
   }
 
