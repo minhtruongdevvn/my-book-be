@@ -89,6 +89,6 @@ export class ChatboxGateway
   }
 
   handleDisconnect(client: ChatboxSocket) {
-    this.socketService.emitUserDisconnected(client);
+    void this.socketService.emitUserDisconnected(client);
   }
 }
