@@ -10,7 +10,11 @@ import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import { getMessages, isValidChatboxOrThrow } from './utils/service.util';
+import {
+  getMessages,
+  isUpdateFailed,
+  isValidChatboxOrThrow,
+} from './utils/service.util';
 
 @Injectable()
 export class ChatboxesService {
@@ -130,21 +134,18 @@ export class ChatboxesService {
       { _id: new ObjectId(id), $or: [{ members: userId }, { admin: userId }] },
       { $push: { messages: message as any } },
     );
-    if (
-      !result.acknowledged ||
-      (result.modifiedCount <= 0 && result.upsertedCount <= 0)
-    ) {
-      return undefined;
-    }
+
+    if (isUpdateFailed(result)) return undefined;
 
     return message;
   }
 
   async updateMessage(id: string, userId: number, dto: UpdateMessageDto) {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
-    await this.chatboxesRepository.updateOne(
+    const updateResult = await this.chatboxesRepository.updateOne(
       {
         _id: new ObjectId(id),
+        $or: [{ admin: userId }, { members: userId }],
       },
       {
         $set: {
@@ -152,22 +153,34 @@ export class ChatboxesService {
           'messages.$[el].isEdited': true,
         },
       },
-      { arrayFilters: [{ 'el.from': userId, 'el.id': dto.id }] },
+      {
+        arrayFilters: [{ 'el.from': userId, 'el.id': dto.id }],
+      },
     );
+    return !isUpdateFailed(updateResult);
   }
 
   async deleteMessage(id: string, userId: number, messageId: string) {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
 
-    await this.chatboxesRepository.updateOne(
+    const updateResult = await this.chatboxesRepository.updateOne(
       {
         _id: new ObjectId(id),
-        $or: [{ admin: userId }, { 'messages.from': userId, members: userId }],
+        $or: [{ admin: userId }, { members: userId }],
       },
       {
         $set: { 'messages.$[el].content': null },
       },
-      { arrayFilters: [{ 'el.id': messageId }] },
+      {
+        arrayFilters: [
+          {
+            $or: [{ admin: userId }, { 'el.from': userId }],
+            'el.id': messageId,
+          },
+        ],
+      },
     );
+
+    return !isUpdateFailed(updateResult);
   }
 }

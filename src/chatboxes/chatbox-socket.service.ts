@@ -3,13 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId } from 'mongodb';
 import { Namespace } from 'socket.io';
 import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
+import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
 import { MongoRepository } from 'typeorm';
 import { Chatbox } from './collections/chatbox.collection';
 import { MessageEvents, UserEvents } from './gateway/events';
 import {
   Adapter,
   ChatboxSocket,
-  MessageReceivedPayload,
+  MessageUpdatedPayload,
   ServerToClientEvents,
   SocketData,
 } from './gateway/types';
@@ -40,8 +41,16 @@ export class ChatboxSocketService {
     return uniqueUser.size;
   }
 
-  emitMessageReceived(chatboxId: string, payload: MessageReceivedPayload) {
+  emitMessageReceived(chatboxId: string, payload: ChatboxMessage) {
     this.server.to(chatboxId).emit(MessageEvents.MESSAGE_RECEIVED, payload);
+  }
+
+  emitMessageUpdated(chatboxId: string, payload: MessageUpdatedPayload) {
+    this.server.to(chatboxId).emit(MessageEvents.MESSAGE_UPDATED, payload);
+  }
+
+  emitMessageDelete(chatboxId: string, payload: { id: string }) {
+    this.server.to(chatboxId).emit(MessageEvents.MESSAGE_DELETED, payload);
   }
 
   async emitUserConnected(
@@ -77,16 +86,20 @@ export class ChatboxSocketService {
 
   async getChatboxById(chatboxId: undefined | any, userId: number | undefined) {
     if (!chatboxId || !ObjectId.isValid(chatboxId) || !userId) return null;
-    return await this.chatboxesRepository.findOne({
-      where: {
+    const chatboxDoc = await this.chatboxesRepository
+      .createCursor({
         _id: new ObjectId(chatboxId),
         $or: [
-          {
-            $or: [{ members: userId }, { admin: userId }],
-          },
+          { admin: userId },
+          { members: userId },
           { conversationBetween: userId },
         ],
-      },
-    });
+      })
+      .project({ messages: { $slice: -10 } })
+      .next();
+    if (!chatboxDoc) return null;
+    chatboxDoc['id'] = chatboxDoc['_id'].toString();
+    delete chatboxDoc['_id'];
+    return chatboxDoc;
   }
 }

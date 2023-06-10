@@ -1,8 +1,8 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 import { MessageBaseDto } from './message-base.dto';
 
-export class MessageSentDto extends MessageBaseDto {
-  @IsString()
+export class MessageDeletingDto extends MessageBaseDto {
   @IsNotEmpty()
-  content: string;
+  @IsString()
+  id: string;
 }

@@ -13,5 +13,6 @@ export class ChatboxSeedService {
 
   async run() {
     await this.repository.createCollectionIndex({ members: 1 });
+    await this.repository.createCollectionIndex({ 'messages.id': 1 });
   }
 }

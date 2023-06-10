@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { ObjectId } from 'mongodb';
+import { Document, ObjectId, UpdateResult } from 'mongodb';
 import { MongoRepository } from 'typeorm';
 import { Chatbox } from '../collections/chatbox.collection';
 
@@ -11,6 +11,12 @@ export async function getMessages(
   const chatbox = await repo.createCursor(where).project(select).toArray();
 
   return chatbox[0]?.messages ?? [];
+}
+
+export function isUpdateFailed(result: UpdateResult | Document) {
+  return (
+    !result.acknowledged || (result.modifiedCount && result.modifiedCount <= 0)
+  );
 }
 
 export async function isValidChatboxOrThrow(

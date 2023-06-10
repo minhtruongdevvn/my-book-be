@@ -8,7 +8,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { Chatbox } from './collections/chatbox.collection';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import { getMessages, isValidChatboxOrThrow } from './utils/service.util';
+import {
+  getMessages,
+  isUpdateFailed,
+  isValidChatboxOrThrow,
+} from './utils/service.util';
 
 @Injectable()
 export class ConversationsService {
@@ -97,7 +101,7 @@ export class ConversationsService {
     id: string,
     userId: number,
     dto: CreateMessageDto,
-  ): Promise<ChatboxMessage> {
+  ): Promise<ChatboxMessage | undefined> {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
     const message: ChatboxMessage = {
       ...dto,
@@ -107,10 +111,12 @@ export class ConversationsService {
       from: userId,
     };
 
-    await this.chatboxesRepository.updateOne(
+    const result = await this.chatboxesRepository.updateOne(
       { _id: new ObjectId(id), conversationBetween: userId },
       { $push: { messages: message as any } },
     );
+
+    if (isUpdateFailed(result)) return undefined;
 
     return message;
   }
@@ -121,9 +127,10 @@ export class ConversationsService {
     dto: UpdateMessageDto,
   ) {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
-    await this.chatboxesRepository.updateOne(
+    const updateResult = await this.chatboxesRepository.updateOne(
       {
         _id: new ObjectId(id),
+        conversationBetween: userId,
       },
       {
         $set: {
@@ -131,8 +138,11 @@ export class ConversationsService {
           'messages.$[el].isEdited': true,
         },
       },
-      { arrayFilters: [{ 'el.from': userId, 'el.id': dto.id }] },
+      {
+        arrayFilters: [{ 'el.from': userId, 'el.id': dto.id }],
+      },
     );
+    return !isUpdateFailed(updateResult);
   }
 
   async deleteConversationMessage(
@@ -142,7 +152,7 @@ export class ConversationsService {
   ) {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
 
-    await this.chatboxesRepository.updateOne(
+    const updateResult = await this.chatboxesRepository.updateOne(
       {
         _id: new ObjectId(id),
         'messages.from': userId,
@@ -153,5 +163,7 @@ export class ConversationsService {
       },
       { arrayFilters: [{ 'el.id': messageId }] },
     );
+
+    return !isUpdateFailed(updateResult);
   }
 }
