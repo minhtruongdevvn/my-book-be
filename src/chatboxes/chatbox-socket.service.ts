@@ -57,7 +57,7 @@ export class ChatboxSocketService {
     });
   }
 
-  emitUserDisconnected(client: ChatboxSocket) {
+  async emitUserDisconnected(client: ChatboxSocket) {
     if (!client.data.userId) return;
 
     const clientAdapter: Adapter = client['adapter'];
@@ -68,6 +68,8 @@ export class ChatboxSocketService {
     if (!room) return;
 
     const roomId = room[0];
+    const members = await this.server.to(roomId).fetchSockets();
+    if (members.some((e) => e.data.userId === client.data.userId)) return;
     this.server.to(roomId).emit(UserEvents.USER_DISCONNECTED, {
       userDisconnectedId: client.data.userId,
     });
