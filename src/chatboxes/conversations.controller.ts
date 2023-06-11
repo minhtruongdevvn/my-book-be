@@ -42,11 +42,9 @@ export class ConversationsController {
     );
     if (!chatbox) return;
     const userIds = chatbox.conversationBetween;
-    chatbox.conversationBetween = [];
 
     return new ChatboxWithUser(
       chatbox,
-      false,
       await this.usersService.getUserByRangeId(userIds),
     );
   }
@@ -70,7 +68,6 @@ export class ConversationsController {
     return chatboxes.map((cb) => {
       return new ChatboxWithUser(
         cb,
-        false,
         cb.conversationBetween.flatMap((e) => {
           const user = users.get(e);
           return user ? [user] : [];

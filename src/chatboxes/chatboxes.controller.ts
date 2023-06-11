@@ -45,11 +45,9 @@ export class ChatboxesController {
     const chatbox = await this.chatboxService.getById(id, userId);
     if (!chatbox) return null;
     const userIds = chatbox.members;
-    chatbox.members = [];
 
     return new ChatboxWithUser(
       chatbox,
-      true,
       await this.usersService.getUserByRangeId(userIds),
     );
   }
@@ -71,7 +69,6 @@ export class ChatboxesController {
     return chatboxes.map((cb) => {
       return new ChatboxWithUser(
         cb,
-        true,
         cb.members.flatMap((e) => {
           const user = users.get(e);
           return user ? [user] : [];

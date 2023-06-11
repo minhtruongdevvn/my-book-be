@@ -5,14 +5,12 @@ import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
 import { Chatbox } from '../collections/chatbox.collection';
 
 export class ChatboxWithUser {
-  constructor(
-    chatbox: Chatbox | Document,
-    isGroup: boolean,
-    users: MinimalUser[],
-  ) {
+  constructor(chatbox: Chatbox | Document, users: MinimalUser[]) {
+    if (chatbox.conversationBetween) chatbox.conversationBetween = [];
+    else chatbox.members = [];
     Object.assign(this, chatbox);
-    if (isGroup) this.members = users;
-    else this.conversationBetween = users;
+    if (chatbox.conversationBetween) this.conversationBetween = users;
+    else this.members = users;
   }
 
   @Exclude()

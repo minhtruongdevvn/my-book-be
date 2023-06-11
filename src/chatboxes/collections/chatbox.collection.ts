@@ -1,17 +1,16 @@
 import { Exclude, Expose } from 'class-transformer';
-import { EntityHelper } from 'src/utils/entity-helper';
 import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
 import { Column, Entity, ObjectId, ObjectIdColumn } from 'typeorm';
 
 @Entity()
-export class Chatbox extends EntityHelper {
+export class Chatbox {
   @ObjectIdColumn()
   @Exclude()
   _id: ObjectId;
 
   @Expose()
   get id() {
-    return this._id.toString();
+    return this._id?.toString();
   }
 
   @Column({ nullable: false })
@@ -20,7 +19,6 @@ export class Chatbox extends EntityHelper {
   @Column()
   theme: string;
 
-  @Column()
   quickEmoji: string;
 
   @Column(() => ChatboxMessage, { array: true })

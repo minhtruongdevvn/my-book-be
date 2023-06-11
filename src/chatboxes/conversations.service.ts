@@ -35,7 +35,7 @@ export class ConversationsService {
     if (conversation == null) {
       conversation = new Chatbox();
       conversation.conversationBetween = [user1Id, user2Id];
-      await conversation.save();
+      await this.chatboxesRepository.save(conversation);
     }
 
     return conversation;

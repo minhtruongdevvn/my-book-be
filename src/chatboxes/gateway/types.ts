@@ -1,12 +1,11 @@
 import { Namespace, Socket } from 'socket.io';
 import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
-import { Chatbox } from '../collections/chatbox.collection';
+import { ChatboxWithUser } from '../dto/chatbox-with-user.dto';
 import { MessageEvents, UserEvents } from './events';
 
 export type UserConnectedPayload = {
   userCount: number;
-  userIds: number[];
-  chatbox: Chatbox;
+  chatbox: ChatboxWithUser;
 };
 
 export type UserJoinedPayload = {

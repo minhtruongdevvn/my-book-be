@@ -44,7 +44,7 @@ export class ChatboxesService {
     const chatbox = new Chatbox();
     chatbox.name = dto.name;
     chatbox.admin = userId;
-    await chatbox.save();
+    await this.chatboxesRepository.save(chatbox);
 
     return chatbox;
   }

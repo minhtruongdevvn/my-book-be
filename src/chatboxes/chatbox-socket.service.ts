@@ -2,10 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId } from 'mongodb';
 import { Namespace } from 'socket.io';
+import { UsersService } from 'src/users/users.service';
 import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
 import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
 import { MongoRepository } from 'typeorm';
 import { Chatbox } from './collections/chatbox.collection';
+import { ChatboxWithUser } from './dto/chatbox-with-user.dto';
 import { MessageEvents, UserEvents } from './gateway/events';
 import {
   Adapter,
@@ -21,6 +23,7 @@ export class ChatboxSocketService {
   constructor(
     @InjectRepository(Chatbox, CHATBOX_DB_TOKEN)
     private chatboxesRepository: MongoRepository<Chatbox>,
+    private readonly usersService: UsersService,
   ) {}
 
   setServer(server: Namespace) {
@@ -53,16 +56,18 @@ export class ChatboxSocketService {
     this.server.to(chatboxId).emit(MessageEvents.MESSAGE_DELETED, payload);
   }
 
-  async emitUserConnected(
+  emitUserConnected(
     clientId: string,
     userCount: number,
-    chatbox: Chatbox,
+    chatbox: ChatboxWithUser,
   ) {
-    const clients = await this.server.in(chatbox.id).fetchSockets();
     this.server.to(clientId).emit(UserEvents.USER_CONNECTED, {
       userCount,
-      chatbox,
-      userIds: clients.map((e) => e.data.userId),
+      chatbox: {
+        ...chatbox,
+        id: chatbox._id.toString(),
+        _id: undefined,
+      } as any,
     });
   }
 
@@ -86,7 +91,7 @@ export class ChatboxSocketService {
 
   async getChatboxById(chatboxId: undefined | any, userId: number | undefined) {
     if (!chatboxId || !ObjectId.isValid(chatboxId) || !userId) return null;
-    const chatboxDoc = await this.chatboxesRepository
+    const chatbox = await this.chatboxesRepository
       .createCursor({
         _id: new ObjectId(chatboxId),
         $or: [
@@ -95,11 +100,37 @@ export class ChatboxSocketService {
           { conversationBetween: userId },
         ],
       })
-      .project({ messages: { $slice: -10 } })
+      .project({
+        messages: { $slice: -10 },
+        _id: 1,
+        name: 1,
+        theme: 1,
+        quickEmoji: 1,
+        conversationBetween: 1,
+        admin: 1,
+        photo: 1,
+        members: 1,
+      })
       .next();
-    if (!chatboxDoc) return null;
-    chatboxDoc['id'] = chatboxDoc['_id'].toString();
-    delete chatboxDoc['_id'];
-    return chatboxDoc;
+
+    if (!chatbox) return null;
+    const userIds = chatbox.conversationBetween
+      ? chatbox.conversationBetween
+      : chatbox.members;
+    const users = await this.usersService.getUserByRangeId(userIds);
+    const activeUserIds = new Set(
+      (await this.server.to(chatboxId).fetchSockets()).map(
+        (e) => e.data.userId,
+      ),
+    );
+    users.forEach((e) => {
+      if (activeUserIds.has(e.id)) e.metadata = { isActive: true };
+      else e.metadata = { isActive: false };
+    });
+
+    return new ChatboxWithUser(
+      chatbox,
+      await this.usersService.getUserByRangeId(userIds),
+    );
   }
 }

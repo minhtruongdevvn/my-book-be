@@ -6,4 +6,5 @@ export class MinimalUser {
   lastName: string | null;
   firstName: string | null;
   photo?: FileEntity | null;
+  metadata?: { isActive?: boolean; [key: string]: any };
 }

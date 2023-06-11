@@ -24,7 +24,6 @@ import { MessageEvents, UserEvents } from './events';
 import { WsExceptionFilter } from './exception.filter';
 
 import { ChatboxSocketService } from '../chatbox-socket.service';
-import { Chatbox } from '../collections/chatbox.collection';
 import { MessageDeletingDto } from './dto/message-deleting.dto';
 import { MessageSentDto } from './dto/message-send.dto';
 import { MessageUpdatingDto } from './dto/message-updating.dto';
@@ -131,6 +130,7 @@ export class ChatboxGateway
       client.handshake.query.chatboxId,
       client.data.userId,
     );
+
     if (!chatbox || !client.data.userId) {
       client.disconnect(true);
       return;
@@ -144,11 +144,7 @@ export class ChatboxGateway
       userJoinedId: client.data.userId,
     });
 
-    void this.socketService.emitUserConnected(
-      client.id,
-      count,
-      chatbox as Chatbox,
-    );
+    this.socketService.emitUserConnected(client.id, count, chatbox);
   }
 
   handleDisconnect(client: ChatboxSocket) {
