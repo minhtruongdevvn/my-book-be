@@ -25,16 +25,16 @@ export class Chatbox extends BaseCollection {
   messages: ChatboxMessage[];
 
   @Prop({ type: [Number] })
-  conversationBetween: number[];
+  conversationBetween?: number[];
 
   @Prop()
-  admin: number;
+  admin?: number;
 
   @Prop()
   photo: string;
 
   @Prop({ type: [Number] })
-  members: number[];
+  members?: number[];
 }
 
 const ChatboxSchema = SchemaFactory.createForClass(Chatbox);

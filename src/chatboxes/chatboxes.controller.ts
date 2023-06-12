@@ -48,7 +48,7 @@ export class ChatboxesController {
 
     return new ChatboxWithUser(
       chatbox,
-      await this.usersService.getUserByRangeId(userIds),
+      await this.usersService.getUserByRangeId(userIds ?? []),
     );
   }
 
@@ -59,7 +59,7 @@ export class ChatboxesController {
 
     const users = new Map<number, MinimalUser | undefined>();
     for (const chatbox of chatboxes) {
-      for (const uId of chatbox.members) {
+      for (const uId of chatbox.members ?? []) {
         users.set(uId, undefined);
       }
     }
@@ -69,10 +69,10 @@ export class ChatboxesController {
     return chatboxes.map((cb) => {
       return new ChatboxWithUser(
         cb,
-        cb.members.flatMap((e) => {
+        cb.members?.flatMap((e) => {
           const user = users.get(e);
           return user ? [user] : [];
-        }),
+        }) ?? [],
       );
     });
   }

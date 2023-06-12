@@ -41,7 +41,7 @@ export class ConversationsController {
       toUserId,
     );
     if (!chatbox) return;
-    const userIds = chatbox.conversationBetween;
+    const userIds = chatbox.conversationBetween ?? [];
 
     return new ChatboxWithUser(
       chatbox,
@@ -58,7 +58,12 @@ export class ConversationsController {
 
     const users = new Map<number, MinimalUser | undefined>();
     for (const chatbox of chatboxes) {
-      if (chatbox.conversationBetween.length != 2) return; // add logger
+      if (
+        !chatbox.conversationBetween ||
+        chatbox.conversationBetween.length != 2
+      ) {
+        return; // add logger}
+      }
       users.set(chatbox.conversationBetween[0], undefined);
       users.set(chatbox.conversationBetween[1], undefined);
     }
@@ -68,10 +73,10 @@ export class ConversationsController {
     return chatboxes.map((cb) => {
       return new ChatboxWithUser(
         cb,
-        cb.conversationBetween.flatMap((e) => {
+        cb.conversationBetween?.flatMap((e) => {
           const user = users.get(e);
           return user ? [user] : [];
-        }),
+        }) ?? [],
       );
     });
   }

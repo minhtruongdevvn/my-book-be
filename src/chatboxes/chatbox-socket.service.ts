@@ -59,11 +59,7 @@ export class ChatboxSocketService {
   ) {
     this.server.to(clientId).emit(UserEvents.USER_CONNECTED, {
       userCount,
-      chatbox: {
-        ...chatbox,
-        id: chatbox._id.toString(),
-        _id: undefined,
-      } as any,
+      chatbox,
     });
   }
 
@@ -81,7 +77,7 @@ export class ChatboxSocketService {
     const members = await this.server.to(roomId).fetchSockets();
     if (members.some((e) => e.data.userId === client.data.userId)) return;
     this.server.to(roomId).emit(UserEvents.USER_DISCONNECTED, {
-      userDisconnectedId: client.data.userId,
+      id: client.data.userId,
     });
   }
 
@@ -111,10 +107,10 @@ export class ChatboxSocketService {
     // todo: try better way
 
     if (!chatbox) return null;
-    const userIds = chatbox.conversationBetween
-      ? chatbox.conversationBetween
-      : chatbox.members;
-    const users = await this.usersService.getUserByRangeId(userIds);
+    const userIds = chatbox.admin
+      ? chatbox.members
+      : chatbox.conversationBetween;
+    const users = await this.usersService.getUserByRangeId(userIds ?? []);
     const activeUserIds = new Set(
       (await this.server.to(chatboxId).fetchSockets()).map(
         (e) => e.data.userId,
@@ -127,7 +123,7 @@ export class ChatboxSocketService {
 
     return new ChatboxWithUser(
       chatbox,
-      await this.usersService.getUserByRangeId(userIds),
+      await this.usersService.getUserByRangeId(userIds ?? []),
     );
   }
 }
