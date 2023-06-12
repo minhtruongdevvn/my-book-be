@@ -14,7 +14,7 @@ export type UserJoinedPayload = {
 };
 
 export type UserDisconnectedPayload = {
-  userDisconnectedId: number;
+  id: number;
 };
 
 export type MessageUpdatedPayload = {
