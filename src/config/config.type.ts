@@ -19,7 +19,7 @@ export type AuthConfig = {
   expires?: string;
 };
 
-export type DatabaseConfig = {
+export type SQLDatabaseConfig = {
   url?: string;
   type?: string;
   host?: string;
@@ -31,6 +31,17 @@ export type DatabaseConfig = {
   maxConnections: number;
   sslEnabled?: boolean;
   rejectUnauthorized?: boolean;
+  ca?: string;
+  key?: string;
+  cert?: string;
+};
+
+export type NoSQLDatabaseConfig = {
+  name?: string;
+  username?: string;
+  password?: string;
+  host?: string;
+  port?: number;
   ca?: string;
   key?: string;
   cert?: string;
@@ -77,8 +88,8 @@ export type AllConfigType = {
   app: AppConfig;
   apple: AppleConfig;
   auth: AuthConfig;
-  database: DatabaseConfig;
-  chatbox_database: DatabaseConfig;
+  database: SQLDatabaseConfig;
+  cb_database: NoSQLDatabaseConfig;
   facebook: FacebookConfig;
   file: FileConfig;
   google: GoogleConfig;

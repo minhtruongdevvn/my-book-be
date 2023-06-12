@@ -1,82 +1,69 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ObjectId } from 'mongodb';
-import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
-import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
-import { MongoRepository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Chatbox } from './collections/chatbox.collection';
+import { ChatboxRepository } from './chatboxes.repository';
+import { Chatbox } from './collections/chatbox.document';
+import { ChatboxMessage } from './collections/message.document';
 import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import {
-  getMessages,
-  isUpdateFailed,
-  isValidChatboxOrThrow,
-} from './utils/service.util';
+import { getMessages, isValidChatboxOrThrow } from './utils/service.util';
 
 @Injectable()
 export class ChatboxesService {
-  constructor(
-    @InjectRepository(Chatbox, CHATBOX_DB_TOKEN)
-    private chatboxesRepository: MongoRepository<Chatbox>,
-  ) {}
+  constructor(private chatboxesRepository: ChatboxRepository) {}
 
   getById(id: string, userId: number) {
-    return this.chatboxesRepository
-      .createCursor({
-        _id: new ObjectId(id),
+    return this.chatboxesRepository.findOne(
+      {
+        _id: id,
         $or: [{ members: userId }, { admin: userId }],
-      })
-      .project({ messages: 0 })
-      .next();
+      },
+      { messages: 0 },
+    );
   }
 
   getByUserId(userId: number) {
-    return this.chatboxesRepository
-      .createCursor<Chatbox>({ $or: [{ members: userId }, { admin: userId }] })
-      .project<Chatbox>({ messages: 0 })
-      .toArray();
+    return this.chatboxesRepository.find(
+      { $or: [{ members: userId }, { admin: userId }] },
+      { messages: 0 },
+    );
   }
 
   async createGroup(userId: number, dto: CreateChatboxDto) {
     const chatbox = new Chatbox();
     chatbox.name = dto.name;
     chatbox.admin = userId;
-    await this.chatboxesRepository.save(chatbox);
+    await this.chatboxesRepository.create(chatbox);
 
     return chatbox;
   }
 
   async removeGroup(id: string, userId: number) {
     await this.chatboxesRepository.deleteOne({
-      _id: new ObjectId(id),
+      _id: id,
       admin: userId,
     });
   }
 
   async updateGroup(id: string, userId: number, dto: UpdateChatboxDto) {
     await isValidChatboxOrThrow(this.chatboxesRepository, id, userId);
-    await this.chatboxesRepository.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { ...dto } },
-    );
+    await this.chatboxesRepository.updateOne({ _id: id }, { $set: { ...dto } });
   }
 
   async addMember(id: string, userId: number, memberId: number) {
     if (userId == memberId) throw new BadRequestException('self_added');
     await isValidChatboxOrThrow(this.chatboxesRepository, id, userId);
-    await this.chatboxesRepository.findOneAndUpdate(
-      { _id: new ObjectId(id) },
+    await this.chatboxesRepository.updateOne(
+      { _id: id },
       { $addToSet: { members: memberId } },
     );
   }
 
   async removeMember(id: string, userId: number, memberId: number) {
     await isValidChatboxOrThrow(this.chatboxesRepository, id, userId);
-    await this.chatboxesRepository.findOneAndUpdate(
-      { _id: new ObjectId(id) },
+    await this.chatboxesRepository.updateOne(
+      { _id: id },
       { $pull: { members: memberId } },
     );
   }
@@ -88,12 +75,12 @@ export class ChatboxesService {
     endAt: Date,
   ) {
     return getMessages(
+      this.chatboxesRepository,
       {
-        _id: new ObjectId(id),
+        _id: id,
         $or: [{ admin: userId }, { members: userId }],
       },
       { messages: { $elemMatch: { at: { $gte: startAt, $lt: endAt } } } },
-      this.chatboxesRepository,
     );
   }
 
@@ -104,8 +91,9 @@ export class ChatboxesService {
     nthFromEnd?: number,
   ) {
     return getMessages(
+      this.chatboxesRepository,
       {
-        _id: new ObjectId(id),
+        _id: id,
         $or: [{ admin: userId }, { members: userId }],
       },
       {
@@ -113,7 +101,6 @@ export class ChatboxesService {
           ? { $slice: -count }
           : { $slice: [-(count + nthFromEnd), count] },
       },
-      this.chatboxesRepository,
     );
   }
 
@@ -131,11 +118,11 @@ export class ChatboxesService {
       from: userId,
     };
     const result = await this.chatboxesRepository.updateOne(
-      { _id: new ObjectId(id), $or: [{ members: userId }, { admin: userId }] },
-      { $push: { messages: message as any } },
+      { _id: id, $or: [{ members: userId }, { admin: userId }] },
+      { $push: { messages: message } },
     );
 
-    if (isUpdateFailed(result)) return undefined;
+    if (!result) return undefined;
 
     return message;
   }
@@ -144,7 +131,7 @@ export class ChatboxesService {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
     const updateResult = await this.chatboxesRepository.updateOne(
       {
-        _id: new ObjectId(id),
+        _id: id,
         $or: [{ admin: userId }, { members: userId }],
       },
       {
@@ -157,7 +144,7 @@ export class ChatboxesService {
         arrayFilters: [{ 'el.from': userId, 'el.id': dto.id }],
       },
     );
-    return !isUpdateFailed(updateResult);
+    return updateResult;
   }
 
   async deleteMessage(id: string, userId: number, messageId: string) {
@@ -165,7 +152,7 @@ export class ChatboxesService {
 
     const updateResult = await this.chatboxesRepository.updateOne(
       {
-        _id: new ObjectId(id),
+        _id: id,
         $or: [{ admin: userId }, { members: userId }],
       },
       {
@@ -181,6 +168,6 @@ export class ChatboxesService {
       },
     );
 
-    return !isUpdateFailed(updateResult);
+    return updateResult;
   }
 }

@@ -1,41 +1,30 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ObjectId } from 'mongodb';
-import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
-import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
-import { MongoRepository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { Chatbox } from './collections/chatbox.collection';
+import { ChatboxRepository } from './chatboxes.repository';
+import { Chatbox } from './collections/chatbox.document';
+import { ChatboxMessage } from './collections/message.document';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import {
-  getMessages,
-  isUpdateFailed,
-  isValidChatboxOrThrow,
-} from './utils/service.util';
+import { getMessages, isValidChatboxOrThrow } from './utils/service.util';
 
 @Injectable()
 export class ConversationsService {
-  constructor(
-    @InjectRepository(Chatbox, CHATBOX_DB_TOKEN)
-    private chatboxesRepository: MongoRepository<Chatbox>,
-  ) {}
+  constructor(private chatboxesRepository: ChatboxRepository) {}
   async getOrCreateConversation(user1Id: number, user2Id: number) {
     if (user1Id == user2Id) {
       throw new BadRequestException('users cannot be identical');
     }
-
-    let conversation = await this.chatboxesRepository
-      .createCursor({
+    let conversation = await this.chatboxesRepository.findOne(
+      {
         conversationBetween: { $in: [user1Id, user2Id] },
-      })
-      .project({ messages: 0 })
-      .next();
+      },
+      { messages: 0 },
+    );
 
     if (conversation == null) {
       conversation = new Chatbox();
       conversation.conversationBetween = [user1Id, user2Id];
-      await this.chatboxesRepository.save(conversation);
+      await this.chatboxesRepository.create(conversation);
     }
 
     return conversation;
@@ -43,22 +32,20 @@ export class ConversationsService {
 
   getConversationById(id: string, userId: number) {
     return this.chatboxesRepository.findOne({
-      where: {
-        _id: new ObjectId(id),
-        conversationBetween: userId,
-      },
+      _id: id,
+      conversationBetween: userId,
     });
   }
 
   getConversationsByUserId(userId: number) {
-    return this.chatboxesRepository
-      .createCursor<Chatbox>({
+    return this.chatboxesRepository.find(
+      {
         conversationBetween: {
           $elemMatch: { $eq: userId },
         },
-      })
-      .project<Chatbox>({ messages: 0 })
-      .toArray();
+      },
+      { messages: 0 },
+    );
   }
 
   getConversationsMessagesByTimeRange(
@@ -68,12 +55,12 @@ export class ConversationsService {
     endAt: Date,
   ) {
     return getMessages(
+      this.chatboxesRepository,
       {
-        _id: new ObjectId(id),
+        _id: id,
         conversationBetween: userId,
       },
       { messages: { $elemMatch: { at: { $gte: startAt, $lt: endAt } } } },
-      this.chatboxesRepository,
     );
   }
 
@@ -84,8 +71,9 @@ export class ConversationsService {
     nthFromEnd?: number,
   ) {
     return getMessages(
+      this.chatboxesRepository,
       {
-        _id: new ObjectId(id),
+        _id: id,
         conversationBetween: userId,
       },
       {
@@ -93,7 +81,6 @@ export class ConversationsService {
           ? { $slice: -count }
           : { $slice: [-(count + nthFromEnd), count] },
       },
-      this.chatboxesRepository,
     );
   }
 
@@ -112,11 +99,11 @@ export class ConversationsService {
     };
 
     const result = await this.chatboxesRepository.updateOne(
-      { _id: new ObjectId(id), conversationBetween: userId },
-      { $push: { messages: message as any } },
+      { _id: id, conversationBetween: userId },
+      { $push: { messages: message } },
     );
 
-    if (isUpdateFailed(result)) return undefined;
+    if (!result) return undefined;
 
     return message;
   }
@@ -129,7 +116,7 @@ export class ConversationsService {
     await isValidChatboxOrThrow(this.chatboxesRepository, id);
     const updateResult = await this.chatboxesRepository.updateOne(
       {
-        _id: new ObjectId(id),
+        _id: id,
         conversationBetween: userId,
       },
       {
@@ -142,7 +129,7 @@ export class ConversationsService {
         arrayFilters: [{ 'el.from': userId, 'el.id': dto.id }],
       },
     );
-    return !isUpdateFailed(updateResult);
+    return updateResult;
   }
 
   async deleteConversationMessage(
@@ -154,7 +141,7 @@ export class ConversationsService {
 
     const updateResult = await this.chatboxesRepository.updateOne(
       {
-        _id: new ObjectId(id),
+        _id: id,
         'messages.from': userId,
         conversationBetween: userId,
       },
@@ -164,6 +151,6 @@ export class ConversationsService {
       { arrayFilters: [{ 'el.id': messageId }] },
     );
 
-    return !isUpdateFailed(updateResult);
+    return updateResult;
   }
 }

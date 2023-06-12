@@ -1,6 +1,7 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HeaderResolver } from 'nestjs-i18n';
 import { I18nModule } from 'nestjs-i18n/dist/i18n.module';
@@ -17,17 +18,14 @@ import databaseConfig from './config/database.config';
 import fileConfig from './config/file.config';
 import googleConfig from './config/google.config';
 import mailConfig from './config/mail.config';
-import {
-  AppOrmConfigService,
-  ChatboxOrmConfigService,
-} from './database/typeorm-config.service';
+import { NoSQLConfigService } from './database/nosql-config.service';
+import { SQLConfigService } from './database/sql-config.service';
 import { FilesModule } from './files/files.module';
 import { ForgotModule } from './forgot/forgot.module';
 import { HomeModule } from './home/home.module';
 import { MailConfigService } from './mail/mail-config.service';
 import { MailModule } from './mail/mail.module';
 import { UsersModule } from './users/users.module';
-import { CHATBOX_DB_TOKEN } from './utils/app-constant';
 
 @Module({
   imports: [
@@ -45,17 +43,14 @@ import { CHATBOX_DB_TOKEN } from './utils/app-constant';
       envFilePath: ['.env'],
     }),
     TypeOrmModule.forRootAsync({
-      useClass: AppOrmConfigService,
+      useClass: SQLConfigService,
       dataSourceFactory: async (options: DataSourceOptions) => {
         return new DataSource(options).initialize();
       },
     }),
-    TypeOrmModule.forRootAsync({
-      useClass: ChatboxOrmConfigService,
-      name: CHATBOX_DB_TOKEN,
-      dataSourceFactory: async (options: DataSourceOptions) => {
-        return new DataSource(options).initialize();
-      },
+    MongooseModule.forRootAsync({
+      useClass: NoSQLConfigService,
+      inject: [ConfigService],
     }),
     MailerModule.forRootAsync({
       useClass: MailConfigService,

@@ -1,11 +1,11 @@
 import { Exclude, Expose } from 'class-transformer';
-import { Document, ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { MinimalUser } from 'src/users/dto/minimal-user';
-import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
-import { Chatbox } from '../collections/chatbox.collection';
+import { Chatbox } from '../collections/chatbox.document';
+import { ChatboxMessage } from '../collections/message.document';
 
 export class ChatboxWithUser {
-  constructor(chatbox: Chatbox | Document, users: MinimalUser[]) {
+  constructor(chatbox: Chatbox, users: MinimalUser[]) {
     if (chatbox.conversationBetween) chatbox.conversationBetween = [];
     else chatbox.members = [];
     Object.assign(this, chatbox);

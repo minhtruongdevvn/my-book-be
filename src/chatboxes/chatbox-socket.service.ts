@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { ObjectId } from 'mongodb';
 import { Namespace } from 'socket.io';
 import { UsersService } from 'src/users/users.service';
-import { CHATBOX_DB_TOKEN } from 'src/utils/app-constant';
-import { ChatboxMessage } from 'src/utils/types/chatbox/chatbox-message.type';
-import { MongoRepository } from 'typeorm';
-import { Chatbox } from './collections/chatbox.collection';
+import { ChatboxRepository } from './chatboxes.repository';
+import { ChatboxMessage } from './collections/message.document';
 import { ChatboxWithUser } from './dto/chatbox-with-user.dto';
 import { MessageEvents, UserEvents } from './gateway/events';
 import {
@@ -21,8 +18,7 @@ import {
 export class ChatboxSocketService {
   private server: Namespace<any, ServerToClientEvents, any, SocketData>;
   constructor(
-    @InjectRepository(Chatbox, CHATBOX_DB_TOKEN)
-    private chatboxesRepository: MongoRepository<Chatbox>,
+    private chatboxesRepository: ChatboxRepository,
     private readonly usersService: UsersService,
   ) {}
 
@@ -91,16 +87,16 @@ export class ChatboxSocketService {
 
   async getChatboxById(chatboxId: undefined | any, userId: number | undefined) {
     if (!chatboxId || !ObjectId.isValid(chatboxId) || !userId) return null;
-    const chatbox = await this.chatboxesRepository
-      .createCursor({
-        _id: new ObjectId(chatboxId),
+    const chatbox = await this.chatboxesRepository.findOne(
+      {
+        _id: chatboxId,
         $or: [
           { admin: userId },
           { members: userId },
           { conversationBetween: userId },
         ],
-      })
-      .project({
+      },
+      {
         messages: { $slice: -10 },
         _id: 1,
         name: 1,
@@ -110,8 +106,9 @@ export class ChatboxSocketService {
         admin: 1,
         photo: 1,
         members: 1,
-      })
-      .next();
+      },
+    );
+    // todo: try better way
 
     if (!chatbox) return null;
     const userIds = chatbox.conversationBetween

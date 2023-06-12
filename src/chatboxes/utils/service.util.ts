@@ -1,22 +1,16 @@
 import { BadRequestException } from '@nestjs/common';
-import { Document, ObjectId, UpdateResult } from 'mongodb';
-import { MongoRepository } from 'typeorm';
-import { Chatbox } from '../collections/chatbox.collection';
+import { FilterQuery, ProjectionType } from 'mongoose';
+import { MongoRepository } from 'src/utils/mongo/mongo-repository';
+import { Chatbox } from '../collections/chatbox.document';
 
 export async function getMessages(
-  where: any,
-  select: any,
   repo: MongoRepository<Chatbox>,
+  filter?: FilterQuery<Chatbox>,
+  projection?: ProjectionType<Chatbox> | null,
 ) {
-  const chatbox = await repo.createCursor(where).project(select).toArray();
+  const chatbox = await repo.findOne(filter, projection);
 
-  return chatbox[0]?.messages ?? [];
-}
-
-export function isUpdateFailed(result: UpdateResult | Document) {
-  return (
-    !result.acknowledged || (result.modifiedCount && result.modifiedCount <= 0)
-  );
+  return chatbox?.messages ?? [];
 }
 
 export async function isValidChatboxOrThrow(
@@ -24,13 +18,13 @@ export async function isValidChatboxOrThrow(
   chatboxId: string,
   adminId: number | undefined = undefined,
 ) {
-  const chatbox = await repo.findOne({
-    where: {
-      _id: new ObjectId(chatboxId),
+  const chatbox = await repo.findOne(
+    {
+      _id: chatboxId,
       ...(adminId && { admin: adminId }),
     },
-    select: ['_id'],
-  });
+    { _id: 1 },
+  );
 
   if (chatbox == null) {
     throw new BadRequestException(
