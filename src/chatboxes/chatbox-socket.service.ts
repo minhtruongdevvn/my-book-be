@@ -54,11 +54,11 @@ export class ChatboxSocketService {
 
   emitUserConnected(
     clientId: string,
-    userCount: number,
+    userActiveCount: number,
     chatbox: ChatboxWithUser,
   ) {
     this.server.to(clientId).emit(UserEvents.USER_CONNECTED, {
-      userCount,
+      userActiveCount,
       chatbox,
     });
   }

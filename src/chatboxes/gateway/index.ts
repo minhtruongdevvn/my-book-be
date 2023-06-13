@@ -95,7 +95,7 @@ export class ChatboxGateway
           },
         ));
     if (!result) return;
-    -this.socketService.emitMessageUpdated(payload.chatboxId, {
+    this.socketService.emitMessageUpdated(payload.chatboxId, {
       id: payload.id,
       content: payload.content,
     });
@@ -140,7 +140,7 @@ export class ChatboxGateway
     const count = this.socketService.countActiveUserByChatbox(chatbox.id);
 
     client.broadcast.emit(UserEvents.USER_JOINED, {
-      userCount: count,
+      userActiveCount: count,
       userJoinedId: client.data.userId,
     });
 

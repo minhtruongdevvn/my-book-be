@@ -4,12 +4,12 @@ import { ChatboxWithUser } from '../dto/chatbox-with-user.dto';
 import { MessageEvents, UserEvents } from './events';
 
 export type UserConnectedPayload = {
-  userCount: number;
+  userActiveCount: number;
   chatbox: ChatboxWithUser;
 };
 
 export type UserJoinedPayload = {
-  userCount: number;
+  userActiveCount: number;
   userJoinedId: number;
 };
 
