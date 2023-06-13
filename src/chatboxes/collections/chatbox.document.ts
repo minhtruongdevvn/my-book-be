@@ -41,4 +41,10 @@ const ChatboxSchema = SchemaFactory.createForClass(Chatbox);
 ChatboxSchema.index({ members: 1 }, { unique: true, background: false });
 ChatboxSchema.index({ 'messages.id': 1 }, { unique: true, background: false });
 
-export { ChatboxSchema };
+const chatboxProjectionAll = { ...ChatboxSchema.obj };
+Object.keys(chatboxProjectionAll).forEach(function (key) {
+  chatboxProjectionAll[key] = 1;
+});
+chatboxProjectionAll['_id'] = 1;
+
+export { ChatboxSchema, chatboxProjectionAll };

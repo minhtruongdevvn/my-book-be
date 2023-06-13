@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb';
 import { Namespace } from 'socket.io';
 import { UsersService } from 'src/users/users.service';
 import { ChatboxRepository } from './chatboxes.repository';
+import { chatboxProjectionAll } from './collections/chatbox.document';
 import { ChatboxMessage } from './collections/message.document';
 import { ChatboxWithUser } from './dto/chatbox-with-user.dto';
 import { MessageEvents, UserEvents } from './gateway/events';
@@ -93,18 +94,10 @@ export class ChatboxSocketService {
         ],
       },
       {
+        ...chatboxProjectionAll,
         messages: { $slice: -10 },
-        _id: 1,
-        name: 1,
-        theme: 1,
-        quickEmoji: 1,
-        conversationBetween: 1,
-        admin: 1,
-        photo: 1,
-        members: 1,
       },
     );
-    // todo: try better way
 
     if (!chatbox) return null;
     const userIds = chatbox.admin
