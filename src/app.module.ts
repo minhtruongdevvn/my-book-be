@@ -1,6 +1,7 @@
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HeaderResolver } from 'nestjs-i18n';
@@ -22,10 +23,13 @@ import { NoSQLConfigService } from './database/nosql-config.service';
 import { SQLConfigService } from './database/sql-config.service';
 import { FilesModule } from './files/files.module';
 import { ForgotModule } from './forgot/forgot.module';
+import { FriendsModule } from './friends/friends.module';
 import { HomeModule } from './home/home.module';
 import { MailConfigService } from './mail/mail-config.service';
 import { MailModule } from './mail/mail.module';
 import { UsersModule } from './users/users.module';
+import { MongoExceptionFilter } from './utils/filters/mongo-exception.filter';
+import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter';
 
 @Module({
   imports: [
@@ -82,6 +86,17 @@ import { UsersModule } from './users/users.module';
     MailModule,
     HomeModule,
     ChatboxesModule,
+    FriendsModule,
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: MongoExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: TypeORMExceptionFilter,
+    },
   ],
 })
 export class AppModule {}

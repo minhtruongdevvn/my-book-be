@@ -6,17 +6,19 @@ In NestJS Boilerplate uses [TypeORM](https://www.npmjs.com/package/typeorm) and 
 
 ## Table of Contents
 
-- [Working with database schema](#working-with-database-schema)
-  - [Generate migration](#generate-migration)
-  - [Run migration](#run-migration)
-  - [Revert migration](#revert-migration)
-  - [Drop all tables in database](#drop-all-tables-in-database)
-- [Seeding](#seeding)
-  - [Creating seeds](#creating-seeds)
-  - [Run seed](#run-seed)
-- [Performance optimization](#performance-optimization)
-  - [Indexes and Foreign Keys](#indexes-and-foreign-keys)
-  - [Max connections](#max-connections)
+- [Work with database](#work-with-database)
+  - [Table of Contents](#table-of-contents)
+  - [Working with database schema](#working-with-database-schema)
+    - [Generate migration](#generate-migration)
+    - [Run migration](#run-migration)
+    - [Revert migration](#revert-migration)
+    - [Drop all tables in database](#drop-all-tables-in-database)
+  - [Seeding](#seeding)
+    - [Creating seeds](#creating-seeds)
+    - [Run seed](#run-seed)
+  - [Performance optimization](#performance-optimization)
+    - [Indexes and Foreign Keys](#indexes-and-foreign-keys)
+    - [Max connections](#max-connections)
 
 ---
 
@@ -26,34 +28,34 @@ In NestJS Boilerplate uses [TypeORM](https://www.npmjs.com/package/typeorm) and 
 
 1. Create entity file with extension `.entity.ts`. For example `post.entity.ts`:
 
-    ```ts
-    // /src/posts/entities/post.entity.ts
+   ```ts
+   // /src/posts/entities/post.entity.ts
 
-    import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-    import { EntityHelper } from 'src/utils/entity-helper';
+   import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+   import { EntityHelper } from 'src/utils/entity-helper';
 
-    @Entity()
-    export class Post extends EntityHelper {
-      @PrimaryGeneratedColumn()
-      id: number;
+   @Entity()
+   export class Post extends EntityHelper {
+     @PrimaryGeneratedColumn()
+     id: number;
 
-      @Column()
-      title: string;
+     @Column()
+     title: string;
 
-      @Column()
-      body: string;
+     @Column()
+     body: string;
 
-      // Here any fields what you need
-    }
-    ```
+     // Here any fields what you need
+   }
+   ```
 
-1. Next, generate migration file:
+2. Next, generate migration file:
 
-    ```bash
-    npm run migration:generate -- src/database/migrations/CreatePostTable
-    ```
+   ```bash
+   npm run migration:generate --name=CreatePostTable
+   ```
 
-1. Apply this migration to database via [npm run migration:run](#run-migration).
+3. Apply this migration to database via [npm run migration:run](#run-migration).
 
 ### Run migration
 
@@ -80,9 +82,9 @@ npm run schema:drop
 ### Creating seeds
 
 1. Create seed file with `npm run seed:create -- --name=Post`. Where `Post` is name of entity.
-1. Go to `src/database/seeds/post/post-seed.service.ts`.
-1. In `run` method extend your logic.
-1. Run [npm run seed:run](#run-seed)
+2. Go to `src/database/seeds/post/post-seed.service.ts`.
+3. In `run` method extend your logic.
+4. Run [npm run seed:run](#run-seed)
 
 ### Run seed
 

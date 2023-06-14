@@ -11,6 +11,7 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -90,6 +91,9 @@ export class User extends EntityHelper {
   @Index()
   @Exclude({ toPlainOnly: true })
   hash: string | null;
+
+  @ManyToMany(() => User)
+  friends: User[];
 
   @CreateDateColumn()
   createdAt: Date;
