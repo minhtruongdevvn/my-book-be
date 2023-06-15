@@ -22,6 +22,10 @@ export class MongoRepository<T extends BaseCollection>
     return (await created.save()).toObject();
   }
 
+  async insertMany(docs: T[]): Promise<void> {
+    await this.model.insertMany(docs);
+  }
+
   async find(
     filter?: FilterQuery<T>,
     projection?: ProjectionType<T> | null,

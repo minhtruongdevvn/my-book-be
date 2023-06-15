@@ -33,11 +33,15 @@ export function IsAlphaOrNumberWithSpecial(
           if (!special) {
             return (
               typeof value === 'string' &&
-              new RegExp(`^[a-zA-Z${allowNumber ? '0-9' : ''}]*$`).test(value)
+              new RegExp(
+                `^[a-zA-Z${allowNumber ? '0-9' : ''}\u00C0-\u1EF9]*$`,
+              ).test(value)
             );
           }
           const regex = new RegExp(
-            `^[a-zA-Z${allowNumber ? '0-9' : ''}${special.join('')}]*$`,
+            `^[a-zA-Z${allowNumber ? '0-9' : ''}${special.join(
+              '',
+            )}\u00C0-\u1EF9]*$`,
           );
 
           return typeof value === 'string' && regex.test(value);

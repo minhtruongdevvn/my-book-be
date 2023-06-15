@@ -32,8 +32,8 @@ export class AuthRegisterLoginDto {
   @IsNotEmpty()
   firstName: string;
 
-  @IsNotEmpty()
   @IsNumber()
+  @Transform((param) => +param.value)
   age: number;
 
   @ApiProperty({ example: 'Doe' })

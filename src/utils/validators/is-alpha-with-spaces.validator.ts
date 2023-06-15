@@ -14,7 +14,9 @@ export function IsAlphaWithSpaces(
         validate(value: any) {
           if (nullable && !value) return true;
           return (
-            !!value && typeof value === 'string' && /^[a-zA-Z\s]*$/.test(value)
+            !!value &&
+            typeof value === 'string' &&
+            /^[a-zA-Z\s\u00C0-\u1EF9]*$/.test(value)
           );
         },
         defaultMessage() {
