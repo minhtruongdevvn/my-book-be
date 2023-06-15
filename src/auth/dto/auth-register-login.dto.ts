@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { IsEmail, IsNotEmpty, MinLength, Validate } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  MinLength,
+  Validate,
+} from 'class-validator';
 import { lowerCaseTransformer } from 'src/utils/transformers/lower-case.transformer';
 import { IsAlphaOrNumberWithSpecial } from 'src/utils/validators/is-alpha-or-number-with-special.validator';
 import { IsNotExist } from 'src/utils/validators/is-not-exists.validator';
@@ -25,6 +31,10 @@ export class AuthRegisterLoginDto {
   @ApiProperty({ example: 'John' })
   @IsNotEmpty()
   firstName: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  age: number;
 
   @ApiProperty({ example: 'Doe' })
   @IsNotEmpty()

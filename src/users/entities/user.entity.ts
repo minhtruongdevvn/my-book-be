@@ -75,6 +75,9 @@ export class User extends EntityHelper {
   @Column({ default: 'unset' })
   address: string;
 
+  @Column({ default: 18 })
+  age: number;
+
   @ManyToOne(() => FileEntity, {
     eager: true,
   })
