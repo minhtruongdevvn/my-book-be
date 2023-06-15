@@ -50,40 +50,27 @@ export class UserSeedService {
     });
 
     if (!countUser) {
-      await this.repository.save(
-        this.repository.create({
-          firstName: 'Thorfinn',
-          lastName: 'Karlsefni',
-          email: 'test1@example.com',
-          password: 'string',
-          role: {
-            id: RoleEnum.user,
-            name: 'User',
-          },
-          alias: 'example:test1',
-          status: {
-            id: StatusEnum.active,
-            name: 'Active',
-          },
-        }),
-      );
-      await this.repository.save(
-        this.repository.create({
-          firstName: 'John',
-          lastName: 'Doe',
-          email: 'doe@example.com',
-          password: 'string',
-          role: {
-            id: RoleEnum.user,
-            name: 'User',
-          },
-          alias: 'example:doe',
-          status: {
-            id: StatusEnum.active,
-            name: 'Active',
-          },
-        }),
-      );
+      const seedUsers: Partial<User>[] = [
+        { firstName: 'Thorfinn', lastName: 'Karlsefni', alias: 'thor_karl' },
+        { firstName: 'John', lastName: 'Doe', alias: 'join_doe_46' },
+        { firstName: 'Anthony', lastName: 'Dev Foo', alias: 'Anthony_DEV' },
+        { firstName: 'Floyd', lastName: 'Oliver', alias: 'floyd_oliver' },
+        { firstName: 'Todd', lastName: 'Moody', alias: 'todd_pike_mill_554' },
+      ];
+
+      let count = 0;
+      for (const schemeUser of seedUsers) {
+        await this.repository.save(
+          this.repository.create({
+            ...schemeUser,
+            email: `user${count ? `_${count}` : ''}@mail.com`,
+            password: 'pass123',
+            role: { id: RoleEnum.user, name: 'User' },
+            status: { id: StatusEnum.active, name: 'Active' },
+          }),
+        );
+        count++;
+      }
     }
   }
 }
