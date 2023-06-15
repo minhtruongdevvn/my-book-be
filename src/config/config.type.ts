@@ -89,7 +89,7 @@ export type AllConfigType = {
   apple: AppleConfig;
   auth: AuthConfig;
   database: SQLDatabaseConfig;
-  cb_database: NoSQLDatabaseConfig;
+  helper_database: NoSQLDatabaseConfig;
   facebook: FacebookConfig;
   file: FileConfig;
   google: GoogleConfig;

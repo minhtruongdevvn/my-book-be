@@ -8,9 +8,10 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
+import { Response as ResponseType } from 'express';
 import { FilesService } from './files.service';
 
 @ApiTags('Files')
@@ -44,7 +45,7 @@ export class FilesController {
   }
 
   @Get(':path')
-  download(@Param('path') path, @Response() response) {
+  download(@Param('path') path: string, @Response() response: ResponseType) {
     return response.sendFile(path, { root: './files' });
   }
 }

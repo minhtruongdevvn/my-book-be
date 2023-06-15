@@ -12,7 +12,7 @@ import { UserSeedModule } from './user/user-seed.module';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
 import { MongooseModule } from '@nestjs/mongoose';
-import chatboxDatabaseConfig from 'src/config/chatbox-database.config';
+import chatboxDatabaseConfig from 'src/config/helper-database.config';
 import { NoSQLConfigService } from '../nosql-config.service';
 import { AddressSeedModule } from './address/address-seed.module';
 

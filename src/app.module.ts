@@ -8,16 +8,17 @@ import { HeaderResolver } from 'nestjs-i18n';
 import { I18nModule } from 'nestjs-i18n/dist/i18n.module';
 import * as path from 'path';
 import { DataSource, DataSourceOptions } from 'typeorm';
+import { AddressesModule } from './addresses/addresses.module';
 import { AuthGoogleModule } from './auth-google/auth-google.module';
 import { AuthModule } from './auth/auth.module';
 import { ChatboxesModule } from './chatboxes/chatboxes.module';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
-import chatboxDatabaseConfig from './config/chatbox-database.config';
 import { AllConfigType } from './config/config.type';
 import databaseConfig from './config/database.config';
 import fileConfig from './config/file.config';
 import googleConfig from './config/google.config';
+import chatboxDatabaseConfig from './config/helper-database.config';
 import mailConfig from './config/mail.config';
 import { NoSQLConfigService } from './database/nosql-config.service';
 import { SQLConfigService } from './database/sql-config.service';
@@ -30,7 +31,6 @@ import { MailModule } from './mail/mail.module';
 import { UsersModule } from './users/users.module';
 import { MongoExceptionFilter } from './utils/filters/mongo-exception.filter';
 import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter';
-import { AddressesModule } from './addresses/addresses.module';
 
 @Module({
   imports: [
