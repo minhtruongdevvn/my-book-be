@@ -10,10 +10,12 @@ import { getMessages, isValidChatboxOrThrow } from './utils/service.util';
 @Injectable()
 export class ConversationsService {
   constructor(private chatboxesRepository: ChatboxRepository) {}
+
   async getOrCreateConversation(user1Id: number, user2Id: number) {
     if (user1Id == user2Id) {
       throw new BadRequestException('users cannot be identical');
     }
+
     let conversation = await this.chatboxesRepository.findOne(
       {
         conversationBetween: { $all: [user1Id, user2Id] },
@@ -21,7 +23,7 @@ export class ConversationsService {
       { messages: 0 },
     );
 
-    if (conversation == null) {
+    if (!conversation) {
       conversation = new Chatbox();
       conversation.conversationBetween = [user1Id, user2Id];
       await this.chatboxesRepository.create(conversation);
@@ -44,7 +46,10 @@ export class ConversationsService {
           $elemMatch: { $eq: userId },
         },
       },
-      { messages: 0 },
+      {
+        conversationBetween: 1,
+        messages: { $arrayElemAt: ['$messages', -1] },
+      },
     );
   }
 
