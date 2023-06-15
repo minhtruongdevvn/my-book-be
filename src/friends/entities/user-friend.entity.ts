@@ -12,10 +12,10 @@ export class UserFriend extends EntityHelper {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   user1: User;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
   user2: User;
 
   @CreateDateColumn()
