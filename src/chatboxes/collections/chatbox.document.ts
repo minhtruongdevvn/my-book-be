@@ -12,7 +12,7 @@ export type ChatboxDocument = HydratedDocument<Chatbox>;
   },
 })
 export class Chatbox extends BaseCollection {
-  @Prop({ required: true })
+  @Prop()
   name: string;
 
   @Prop()
@@ -38,8 +38,11 @@ export class Chatbox extends BaseCollection {
 }
 
 const ChatboxSchema = SchemaFactory.createForClass(Chatbox);
-ChatboxSchema.index({ members: 1 }, { unique: true, background: false });
-ChatboxSchema.index({ 'messages.id': 1 }, { unique: true, background: false });
+ChatboxSchema.index({ members: 1 }, { background: false, sparse: true });
+ChatboxSchema.index(
+  { 'messages.id': 1 },
+  { unique: true, background: false, sparse: true },
+);
 
 const chatboxProjectionAll = { ...ChatboxSchema.obj };
 Object.keys(chatboxProjectionAll).forEach(function (key) {

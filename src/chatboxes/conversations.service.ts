@@ -16,7 +16,7 @@ export class ConversationsService {
     }
     let conversation = await this.chatboxesRepository.findOne(
       {
-        conversationBetween: { $in: [user1Id, user2Id] },
+        conversationBetween: { $all: [user1Id, user2Id] },
       },
       { messages: 0 },
     );
