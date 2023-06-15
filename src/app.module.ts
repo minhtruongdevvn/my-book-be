@@ -30,6 +30,7 @@ import { MailModule } from './mail/mail.module';
 import { UsersModule } from './users/users.module';
 import { MongoExceptionFilter } from './utils/filters/mongo-exception.filter';
 import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter';
+import { AddressesModule } from './addresses/addresses.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter
     HomeModule,
     ChatboxesModule,
     FriendsModule,
+    AddressesModule,
   ],
   providers: [
     {

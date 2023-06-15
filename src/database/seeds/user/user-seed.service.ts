@@ -65,6 +65,7 @@ export class UserSeedService {
             ...schemeUser,
             email: `user${count ? `_${count}` : ''}@mail.com`,
             password: 'pass123',
+            address: 'ho chi minh, binh thanh',
             role: { id: RoleEnum.user, name: 'User' },
             status: { id: StatusEnum.active, name: 'Active' },
           }),

@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ObjectId } from 'mongodb';
 import {
   FilterQuery,
+  HydratedDocument,
   Model,
   ProjectionType,
   QueryOptions,
@@ -18,20 +19,27 @@ export class MongoRepository<T extends BaseCollection>
 
   async create(doc: T): Promise<T> {
     const created = await this.model.create<T>(doc);
-    return await created.save();
+    return (await created.save()).toObject();
   }
 
   async find(
-    filter: FilterQuery<T>,
+    filter?: FilterQuery<T>,
     projection?: ProjectionType<T> | null,
     options?: QueryOptions<T> | null,
   ): Promise<T[]> {
-    if (filter['_id']) {
-      if (!ObjectId.isValid(filter['_id']))
-        throw new BadRequestException('id is invalid');
+    let result: HydratedDocument<T>[];
+
+    if (!filter) {
+      result = await this.model.find({}, projection, options).exec();
+    } else {
+      if (filter['_id']) {
+        if (!ObjectId.isValid(filter['_id']))
+          throw new BadRequestException('id is invalid');
+      }
+
+      result = await this.model.find(filter, projection, options).exec();
     }
 
-    const result = await this.model.find(filter, projection, options).exec();
     return result.map((e) => e.toObject());
   }
 
@@ -79,5 +87,10 @@ export class MongoRepository<T extends BaseCollection>
 
     const deleteResult = await this.model.deleteOne(filter, options).exec();
     return deleteResult.acknowledged && deleteResult.deletedCount > 0;
+  }
+
+  async exist(filter: FilterQuery<T>) {
+    const id = await this.model.exists(filter);
+    return !!id;
   }
 }

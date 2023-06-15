@@ -12,11 +12,13 @@ type SpecialCharacter =
   | '_'
   | '@'
   | ' '
+  | '/'
   | '#';
 
 export function IsAlphaOrNumberWithSpecial(
   special?: SpecialCharacter[],
   optional = false,
+  allowNumber = true,
   validationOptions?: ValidationOptions,
 ) {
   return function (object: object, propertyName: string) {
@@ -29,9 +31,15 @@ export function IsAlphaOrNumberWithSpecial(
         validate(value: any) {
           if (optional && !value) return true;
           if (!special) {
-            return typeof value === 'string' && /^[a-zA-Z0-9]*$/.test(value);
+            return (
+              typeof value === 'string' &&
+              new RegExp(`^[a-zA-Z${allowNumber ? '0-9' : ''}]*$`).test(value)
+            );
           }
-          const regex = new RegExp(`^[a-zA-Z0-9${special.join('')}]*$`);
+          const regex = new RegExp(
+            `^[a-zA-Z${allowNumber ? '0-9' : ''}${special.join('')}]*$`,
+          );
+
           return typeof value === 'string' && regex.test(value);
         },
         defaultMessage() {

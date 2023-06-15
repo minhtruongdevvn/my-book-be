@@ -95,6 +95,7 @@ export class AuthController {
         '$2:$1',
       );
     }
+
     return this.service.register(createUserDto);
   }
 

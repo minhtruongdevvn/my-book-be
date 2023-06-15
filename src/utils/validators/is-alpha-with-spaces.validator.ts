@@ -1,6 +1,9 @@
 import { ValidationOptions, registerDecorator } from 'class-validator';
 
-export function IsAlphaWithSpaces(validationOptions?: ValidationOptions) {
+export function IsAlphaWithSpaces(
+  nullable = false,
+  validationOptions?: ValidationOptions,
+) {
   return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isAlphaWithSpaces',
@@ -9,7 +12,10 @@ export function IsAlphaWithSpaces(validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: any) {
-          return typeof value === 'string' && /^[a-zA-Z\s]*$/.test(value);
+          if (nullable && !value) return true;
+          return (
+            !!value && typeof value === 'string' && /^[a-zA-Z\s]*$/.test(value)
+          );
         },
         defaultMessage() {
           return 'isAlphaWithSpaces';
