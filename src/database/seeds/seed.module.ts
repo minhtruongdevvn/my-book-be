@@ -16,8 +16,11 @@ import chatboxDatabaseConfig from 'src/config/helper-database.config';
 import { NoSQLConfigService } from '../nosql-config.service';
 import { AddressSeedModule } from './address/address-seed.module';
 
+import { InterestSeedModule } from './interest/interest-seed.module';
+
 @Module({
   imports: [
+    InterestSeedModule,
     AddressSeedModule,
     RoleSeedModule,
     StatusSeedModule,

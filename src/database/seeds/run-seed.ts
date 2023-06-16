@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { InterestSeedService } from './interest/interest-seed.service';
 import { AddressSeedService } from './address/address-seed.service';
 import { UserFriendSeedService } from './user-friend/user-friend-seed.service';
 import { RoleSeedService } from './role/role-seed.service';
@@ -16,6 +17,8 @@ const runSeed = async () => {
   await app.get(UserFriendSeedService).run();
 
   await app.get(AddressSeedService).run();
+
+  await app.get(InterestSeedService).run();
 
   await app.close();
 };

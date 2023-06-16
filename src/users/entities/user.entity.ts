@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcryptjs';
 import { Exclude, Expose } from 'class-transformer';
 import { AuthProvidersEnum } from 'src/auth/auth-providers.enum';
+import { Interest } from 'src/interests/entity/interest.entity';
 import { EntityHelper } from 'src/utils/entity-helper';
 import {
   AfterLoad,
@@ -100,6 +101,9 @@ export class User extends EntityHelper {
 
   @ManyToMany(() => User)
   friends: User[];
+
+  @ManyToMany(() => Interest, (interest) => interest.users)
+  interests: Interest[];
 
   @CreateDateColumn()
   createdAt: Date;

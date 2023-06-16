@@ -31,6 +31,7 @@ import { MailModule } from './mail/mail.module';
 import { UsersModule } from './users/users.module';
 import { MongoExceptionFilter } from './utils/filters/mongo-exception.filter';
 import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter';
+import { InterestsModule } from './interests/interests.module';
 
 @Module({
   imports: [
@@ -89,6 +90,7 @@ import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter
     ChatboxesModule,
     FriendsModule,
     AddressesModule,
+    InterestsModule,
   ],
   providers: [
     {

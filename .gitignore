@@ -38,6 +38,3 @@ lerna-debug.log*
 /files
 .env
 /ormconfig.json
-seed-data/**/*.json
-!seed-data/**/*raw.json
-seed-data/**/*.csv
