@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import * as fs from 'fs';
-import { AddressRepository } from 'src/addresses/addresses.repository';
+import { Model } from 'mongoose';
 import { Address } from 'src/addresses/collections/address.collection';
 
 interface SeedData {
@@ -10,17 +11,18 @@ interface SeedData {
 
 @Injectable()
 export class AddressSeedService {
-  constructor(private repository: AddressRepository) {}
+  constructor(@InjectModel(Address.name) private model: Model<Address>) {}
 
   run() {
     return new Promise<void>((resolve, reject) => {
       fs.readFile(
-        './seed-data/address-seed.json',
+        __dirname + '/../../../../seed-data/address/address-seed.json',
         'utf8',
         async (err, data) => {
           if (err) return reject(err);
 
           try {
+            await this.model.collection.drop();
             const seedData: SeedData[] = JSON.parse(data);
             const insertData: Address[] = [];
             for (const i of seedData) {
@@ -32,7 +34,8 @@ export class AddressSeedService {
               }
             }
 
-            await this.repository.insertMany(insertData);
+            await this.model.syncIndexes();
+            await this.model.insertMany(insertData);
             return resolve();
           } catch (e) {
             reject(e);
