@@ -17,6 +17,10 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@*": ["apps/main-app/src/*"],
+      "@friend-job": ["apps/friend-job/src/*"]
+    }
   }
 }
