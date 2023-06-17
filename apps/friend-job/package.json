@@ -24,5 +24,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "env-cmd jest --config ./apps/main-app/test/jest-e2e.json"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@tensorflow/tfjs": "^4.7.0",
+    "papaparse": "^5.4.1"
+  }
 }

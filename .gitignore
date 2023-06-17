@@ -35,6 +35,6 @@ lerna-debug.log*
 *.todo
 
 .data
-/files
+apps/main-app/files
 .env
 /ormconfig.json
