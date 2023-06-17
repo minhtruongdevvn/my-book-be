@@ -14,7 +14,7 @@ export class InterestSeedService {
   run() {
     return new Promise<void>((resolve, reject) => {
       fs.readFile(
-        __dirname + '/../../../../seed-data/interest/interest-raw.json',
+        __dirname + '/../seed-data/interest/interest-raw.json',
         'utf8',
         async (err, data) => {
           if (err) return reject(err);

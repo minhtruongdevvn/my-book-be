@@ -16,7 +16,7 @@ export class AddressSeedService {
   run() {
     return new Promise<void>((resolve, reject) => {
       fs.readFile(
-        __dirname + '/../../../../seed-data/address/address-seed.json',
+        __dirname + '/../seed-data/address/address-seed.json',
         'utf8',
         async (err, data) => {
           if (err) return reject(err);
