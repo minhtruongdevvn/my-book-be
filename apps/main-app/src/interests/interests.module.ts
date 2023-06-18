@@ -1,7 +1,6 @@
-import { User } from '@/users/entities/user.entity';
+import { Interest, User } from '@app/databases';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Interest } from './entity/interest.entity';
 import { InterestsController } from './interests.controller';
 import { InterestsService } from './interests.service';
 

@@ -1,11 +1,10 @@
 import { ForgotService } from '@/forgot/forgot.service';
 import { MailService } from '@/mail/mail.service';
-import { Role } from '@/roles/entities/role.entity';
 import { RoleEnum } from '@/roles/roles.enum';
 import { SocialInterface } from '@/social/interfaces/social.interface';
-import { Status } from '@/statuses/entities/status.entity';
 import { StatusEnum } from '@/statuses/statuses.enum';
 import { UsersService } from '@/users/users.service';
+import { Role, Status, User } from '@app/databases';
 import {
   HttpException,
   HttpStatus,
@@ -18,7 +17,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { plainToClass } from 'class-transformer';
 import * as crypto from 'crypto';
-import { User } from '../users/entities/user.entity';
 import { LoginResponseType } from '../utils/types/auth/login-response.type';
 import { NullableType } from '../utils/types/nullable.type';
 import { AuthProvidersEnum } from './auth-providers.enum';

@@ -1,6 +1,5 @@
 import { MinimalUser } from '@/users/dto/minimal-user';
-import { Chatbox } from '../collections/chatbox.collection';
-import { ChatboxMessage } from '../collections/message.collection';
+import { Chatbox, ChatboxMessage } from '@app/databases';
 
 export class ChatboxWithUser {
   constructor(chatbox: Chatbox, users: MinimalUser[]) {

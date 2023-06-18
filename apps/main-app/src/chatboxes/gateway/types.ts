@@ -1,5 +1,5 @@
+import { ChatboxMessage } from '@app/databases';
 import { Namespace, Socket } from 'socket.io';
-import { ChatboxMessage } from '../collections/message.collection';
 import { ChatboxWithUser } from '../dto/chatbox-with-user.dto';
 import { MessageEvents, UserEvents } from './events';
 

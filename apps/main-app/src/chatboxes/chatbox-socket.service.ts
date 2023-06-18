@@ -1,10 +1,9 @@
 import { UsersService } from '@/users/users.service';
+import { ChatboxMessage, chatboxProjectionAll } from '@app/databases';
 import { Injectable } from '@nestjs/common';
 import { ObjectId } from 'mongodb';
 import { Namespace } from 'socket.io';
 import { ChatboxRepository } from './chatboxes.repository';
-import { chatboxProjectionAll } from './collections/chatbox.collection';
-import { ChatboxMessage } from './collections/message.collection';
 import { ChatboxWithUser } from './dto/chatbox-with-user.dto';
 import { MessageEvents, UserEvents } from './gateway/events';
 import {

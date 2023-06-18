@@ -1,15 +1,13 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreateUserDto } from './create-user.dto';
 
-import { FileEntity } from '@/files/entities/file.entity';
-import { Status } from '@/statuses/entities/status.entity';
 import { lowerCaseTransformer } from '@/utils/transformers/lower-case.transformer';
 import { IsExist } from '@/utils/validators/is-exists.validator';
 import { IsNotExist } from '@/utils/validators/is-not-exists.validator';
+import { FileEntity, Role, Status } from '@app/databases';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsEmail, IsOptional, MinLength, Validate } from 'class-validator';
-import { Role } from '../../roles/entities/role.entity';
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {
   @ApiProperty({ example: 'test1@example.com' })

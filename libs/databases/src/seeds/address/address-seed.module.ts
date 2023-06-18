@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Address, AddressSchema } from '../../collections/address.collection';
+import { Address, AddressSchema } from '../.@app/databases';
 import { AddressSeedService } from './address-seed.service';
 import { AddressRepository } from './addresses.repository';
 

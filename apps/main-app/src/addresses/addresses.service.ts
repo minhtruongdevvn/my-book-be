@@ -1,7 +1,7 @@
+import { Address } from '@app/databases';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
 import { AddressRepository } from './addresses.repository';
-import { Address } from './collections/address.collection';
 import { UpdateAddressDto } from './dto/update-address.dto';
 
 @Injectable()

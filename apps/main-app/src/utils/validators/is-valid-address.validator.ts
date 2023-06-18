@@ -12,7 +12,7 @@ export function IsValidAddress(validationOptions?: ValidationOptions) {
   };
 }
 
-import { Address } from '@/addresses/collections/address.collection';
+import { Address } from '@app/databases';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {

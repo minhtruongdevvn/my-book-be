@@ -1,10 +1,9 @@
-import { User } from '@/users/entities/user.entity';
+import { Interest, User } from '@app/databases';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InterestCreateDto } from './dto/interest-create.dto';
 import { InterestUpdateDto } from './dto/interest-update.dto';
-import { Interest } from './entity/interest.entity';
 
 @Injectable()
 export class InterestsService {

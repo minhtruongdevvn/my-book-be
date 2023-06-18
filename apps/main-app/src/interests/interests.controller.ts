@@ -2,6 +2,7 @@ import { GetUser } from '@/auth/decorators/get-user.decorator';
 import { Roles } from '@/roles/roles.decorator';
 import { RoleEnum } from '@/roles/roles.enum';
 import { RolesGuard } from '@/roles/roles.guard';
+import { Interest } from '@app/databases';
 import {
   Body,
   Controller,
@@ -18,7 +19,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { InterestCreateDto } from './dto/interest-create.dto';
 import { InterestUpdateDto } from './dto/interest-update.dto';
-import { Interest } from './entity/interest.entity';
 import { InterestsService } from './interests.service';
 
 @ApiBearerAuth()

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as fs from 'fs';
 import { Model } from 'mongoose';
-import { Address } from '../../collections/address.collection';
+import { Address } from '../.@app/databases';
 
 interface SeedData {
   province: string;

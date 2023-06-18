@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserFriend } from '../../entities/user-friend.entity';
-import { User } from '../../entities/user.entity';
+import { User, UserFriend } from '../@app/databases';
 import { UserFriendSeedService } from './user-friend-seed.service';
 
 @Module({

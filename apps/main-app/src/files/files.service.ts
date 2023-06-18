@@ -1,9 +1,9 @@
 import { AllConfigType } from '@/config/config.type';
+import { FileEntity } from '@app/databases';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { FileEntity } from './entities/file.entity';
 
 @Injectable()
 export class FilesService {

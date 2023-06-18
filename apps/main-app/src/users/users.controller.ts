@@ -2,6 +2,7 @@ import { Roles } from '@/roles/roles.decorator';
 import { RoleEnum } from '@/roles/roles.enum';
 import { RolesGuard } from '@/roles/roles.guard';
 import { infinityPagination } from '@/utils/infinity-pagination';
+import { User } from '@app/databases';
 import {
   Body,
   Controller,
@@ -24,7 +25,6 @@ import { InfinityPaginationResultType } from '../utils/types/infinity-pagination
 import { NullableType } from '../utils/types/nullable.type';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
 @ApiBearerAuth()

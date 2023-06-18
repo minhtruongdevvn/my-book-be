@@ -1,16 +1,6 @@
 {
   "name": "main-app",
   "version": "0.0.1",
-  "scripts": {
-    "typeorm": "env-cmd -f ../../.env ts-node -r tsconfig-paths/register ../../node_modules/typeorm/cli.js",
-    "migration:generate": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:generate src/database/migrations/%npm_config_name%",
-    "migration:create": "npm run typeorm -- migration:create src/database/migrations/%npm_config_name%",
-    "migration:run": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:run",
-    "migration:revert": "npm run typeorm -- --dataSource=src/database/data-source.ts migration:revert",
-    "schema:drop": "npm run typeorm -- --dataSource=src/database/data-source.ts schema:drop",
-    "seed:create": "hygen seeds create",
-    "seed:run": "env-cmd -f ../../.env ts-node -r tsconfig-paths/register src/database/seeds/run-seed.ts"
-  },
   "dependencies": {
     "@aws-sdk/client-s3": "3.338.0",
     "@nestjs-modules/mailer": "1.8.1",

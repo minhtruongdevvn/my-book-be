@@ -1,4 +1,4 @@
-import { User } from '../../../users/entities/user.entity';
+import { User } from '@app/databases';
 
 export type JwtPayloadType = Pick<User, 'id' | 'role'> & {
   refresh: string;

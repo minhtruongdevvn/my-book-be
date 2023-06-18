@@ -1,4 +1,4 @@
-import { User } from '../../../users/entities/user.entity';
+import { User } from '@app/databases';
 
 export type LoginResponseType = Readonly<{
   token: string;

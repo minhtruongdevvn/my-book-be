@@ -1,8 +1,6 @@
-import { User } from '@/users/entities/user.entity';
+import { FriendRequest, User, UserFriend } from '@app/databases';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { FriendRequest } from './entities/friend-request.entity';
-import { UserFriend } from './entities/user-friend.entity';
 import { FriendsController } from './friends.controller';
 import { FriendsService } from './friends.service';
 

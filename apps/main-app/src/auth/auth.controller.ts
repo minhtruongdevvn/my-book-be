@@ -1,4 +1,5 @@
 import { HttpOnlyCookieInterceptor } from '@/utils/interceptors/http-only-cookie.interceptor';
+import { User } from '@app/databases';
 import {
   Body,
   Controller,
@@ -18,7 +19,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request as RequestType } from 'express';
-import { User } from '../users/entities/user.entity';
 import { LoginResponseType } from '../utils/types/auth/login-response.type';
 import { NullableType } from '../utils/types/nullable.type';
 import { AuthService } from './auth.service';

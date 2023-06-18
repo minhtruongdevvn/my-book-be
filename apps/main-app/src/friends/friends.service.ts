@@ -1,10 +1,8 @@
 import { MinimalUser } from '@/users/dto/minimal-user';
-import { User } from '@/users/entities/user.entity';
+import { FriendRequest, User, UserFriend } from '@app/databases';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository, WhereExpressionBuilder } from 'typeorm';
-import { FriendRequest } from './entities/friend-request.entity';
-import { UserFriend } from './entities/user-friend.entity';
 
 @Injectable()
 export class FriendsService {

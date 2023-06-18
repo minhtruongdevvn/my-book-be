@@ -1,4 +1,4 @@
-import { FileEntity } from '@/files/entities/file.entity';
+import { FileEntity } from '@app/databases';
 
 export class MinimalUser {
   id: number;
