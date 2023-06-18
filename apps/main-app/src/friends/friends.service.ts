@@ -2,7 +2,7 @@ import { MinimalUser } from '@/users/dto/minimal-user';
 import { User } from '@/users/entities/user.entity';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
+import { Brackets, Repository, WhereExpressionBuilder } from 'typeorm';
 import { FriendRequest } from './entities/friend-request.entity';
 import { UserFriend } from './entities/user-friend.entity';
 
@@ -76,88 +76,111 @@ export class FriendsService {
       throw new BadRequestException('request not found');
     }
 
-    const user1 = new User();
-    user1.id = friendRequest.senderId;
-    const user2 = new User();
-    user2.id = friendRequest.recipientId;
+    const [user1Id, user2Id] = this.getCorrectOrder(senderId, recipientId);
     const userFriend = new UserFriend();
-    userFriend.user1 = user1;
-    userFriend.user2 = user2;
+    userFriend.user1Id = user1Id;
+    userFriend.user2Id = user2Id;
     await this.userFriendRepository.save(userFriend);
 
     await this.cancelRequest(recipientId, senderId);
   }
 
-  getFriendsByUserId(
+  async getFriendsByUserId(
     userId: number,
     take?: number,
     skip?: number,
     searchTerm?: string,
   ): Promise<MinimalUser[]> {
-    let query = this.userRepository
-      .createQueryBuilder('user')
-      .innerJoin('user.friends', 'friend')
-      .where('user.id = :userId', { userId });
-
-    if (searchTerm) {
-      query = query.andWhere(
+    let query = this.userFriendRepository
+      .createQueryBuilder('uf')
+      .innerJoinAndSelect('uf.user1', 'user1', 'uf.user1 = user1.id')
+      .innerJoinAndSelect('uf.user2', 'user2', 'uf.user2 = user2.id')
+      .where(
         new Brackets((qb) =>
           qb
-            .where(
-              `CONCAT(friend.firstName, ' ', friend.lastName) LIKE :searchTerm`,
-              {
-                searchTerm: `%${searchTerm}%`,
-              },
-            )
-            .orWhere('friend.firstName LIKE :searchTerm', {
-              searchTerm: `%${searchTerm}%`,
+            .where('user1.id = :userId', {
+              userId,
             })
-            .orWhere('friend.lastName LIKE :searchTerm', {
-              searchTerm: `%${searchTerm}%`,
+            .orWhere('user2.id = :userId', {
+              userId,
             }),
         ),
       );
+    if (searchTerm) {
+      const addSearchConditions = (
+        qb: WhereExpressionBuilder,
+        friendAlias: string,
+      ) =>
+        qb.orWhere(`${friendAlias}.id != :userId`, { userId }).andWhere(
+          new Brackets((qb) =>
+            qb
+              .orWhere(
+                `CONCAT(${friendAlias}.firstName, ' ', ${friendAlias}.lastName) ILIKE :searchTerm`,
+                {
+                  searchTerm: `%${searchTerm}%`,
+                },
+              )
+              .orWhere(`${friendAlias}.firstName ILIKE :searchTerm`, {
+                searchTerm: `%${searchTerm}%`,
+              })
+              .orWhere(`${friendAlias}.lastName ILIKE :searchTerm`, {
+                searchTerm: `%${searchTerm}%`,
+              }),
+          ),
+        );
+
+      const searchCondition = new Brackets((qb) => {
+        addSearchConditions(qb, 'user1');
+        addSearchConditions(qb, 'user2');
+      });
+
+      query = query.andWhere(searchCondition);
     }
 
-    query = query
-      .select([
-        'friend.id',
-        'friend.firstName',
-        'friend.lastName',
-        'friend.photo',
-        'friend.alias',
-      ])
-      .orderBy('friend.createdAt', 'DESC')
+    const select = (n: number) => [
+      `uf.user${n}Id`,
+      `user${n}.id`,
+      `user${n}.firstName`,
+      `user${n}.lastName`,
+      `user${n}.photo`,
+      `user${n}.alias`,
+    ];
+    const uf = await query
+      .select([...select(1), ...select(2)])
+      .orderBy('uf.createdAt', 'DESC')
       .skip(skip)
-      .take(take);
+      .take(take)
+      .getMany();
 
-    return query.getMany();
+    return uf.map((e) => {
+      if (e.user1.id == userId) {
+        return e.user2;
+      } else {
+        return e.user1;
+      }
+    });
   }
 
-  unfriend(user1Id: number, user2Id: number) {
+  unfriend(u1: number, u2: number) {
+    const [user1Id, user2Id] = this.getCorrectOrder(u1, u2);
+
     return this.userFriendRepository
       .createQueryBuilder('uf')
       .delete()
       .from(UserFriend)
-      .where('user1.id = :user1Id AND user2.id = :user2Id', {
-        user1Id,
-        user2Id,
-      })
-      .orWhere('user1.id = :user2Id AND user2.id = :user1Id', {
+      .where('user1Id = :user1Id AND user2Id = :user2Id', {
         user1Id,
         user2Id,
       })
       .execute();
   }
 
-  private isAlreadyFriend(user1Id: number, user2Id: number) {
+  private isAlreadyFriend(u1: number, u2: number) {
+    const [user1Id, user2Id] = this.getCorrectOrder(u1, u2);
+
     return this.userFriendRepository
       .createQueryBuilder('uf')
-      .where('uf.user1.id = :user1Id AND uf.user2.id = :user2Id', {
-        user1Id,
-        user2Id,
-      })
-      .orWhere('uf.user1.id = :user2Id AND uf.user2.id = :user1Id', {
+      .where('uf.user1Id = :user1Id AND uf.user2Id = :user2Id', {
         user1Id,
         user2Id,
       })
@@ -179,5 +202,15 @@ export class FriendsService {
 
   private isReqExist(user1Id: number, user2Id: number) {
     return this.getRequestQueryByUsers(user1Id, user2Id).getExists();
+  }
+
+  private getCorrectOrder(user1Id: number, user2Id: number) {
+    if (user1Id > user2Id) {
+      const tmp = user1Id;
+      user1Id = user2Id;
+      user2Id = tmp;
+    }
+
+    return [user1Id, user2Id];
   }
 }

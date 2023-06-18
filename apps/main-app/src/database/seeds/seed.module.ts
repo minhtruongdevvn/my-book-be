@@ -29,7 +29,6 @@ import { InterestSeedModule } from './interest/interest-seed.module';
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, appConfig, chatboxDatabaseConfig],
-      envFilePath: ['.env'],
     }),
     TypeOrmModule.forRootAsync({
       useClass: SQLConfigService,

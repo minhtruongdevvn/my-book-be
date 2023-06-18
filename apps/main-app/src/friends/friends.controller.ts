@@ -50,7 +50,7 @@ export class FriendsController {
     @Param('peerUserId') peerUserId: number,
     @GetUser('id') userId: number,
   ) {
-    return this.friendService.acceptRequest(peerUserId, userId);
+    return this.friendService.acceptRequest(userId, peerUserId);
   }
 
   @Delete(':peerUserId')

@@ -3,19 +3,25 @@ import { EntityHelper } from '@/utils/entity-helper';
 import {
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
 } from 'typeorm';
 
 @Entity()
 export class UserFriend extends EntityHelper {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  user1Id: number;
 
-  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
+  @PrimaryColumn()
+  user2Id: number;
+
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user1Id' })
   user1: User;
 
-  @ManyToOne(() => User, (user) => user.id, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'user2Id' })
   user2: User;
 
   @CreateDateColumn()
