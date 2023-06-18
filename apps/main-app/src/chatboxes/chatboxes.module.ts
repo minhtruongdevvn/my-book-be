@@ -5,7 +5,7 @@ import { ChatboxSocketService } from './chatbox-socket.service';
 import { ChatboxesController } from './chatboxes.controller';
 import { ChatboxRepository } from './chatboxes.repository';
 import { ChatboxesService } from './chatboxes.service';
-import { Chatbox, ChatboxSchema } from './collections/chatbox.document';
+import { Chatbox, ChatboxSchema } from './collections/chatbox.collection';
 import { ConversationsController } from './conversations.controller';
 import { ConversationsService } from './conversations.service';
 import { ChatboxGateway } from './gateway';

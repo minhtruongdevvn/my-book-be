@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatboxRepository } from './chatboxes.repository';
-import { Chatbox } from './collections/chatbox.document';
-import { ChatboxMessage } from './collections/message.document';
+import { Chatbox } from './collections/chatbox.collection';
+import { ChatboxMessage } from './collections/message.collection';
 import { CreateChatboxDto } from './dto/create-group.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';

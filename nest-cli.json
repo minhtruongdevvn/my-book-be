@@ -34,6 +34,16 @@
         "tsConfigPath": "apps/friend-job/tsconfig.app.json",
         "webpack": false
       }
+    },
+    "databases": {
+      "type": "library",
+      "root": "libs/databases",
+      "entryFile": "index",
+      "sourceRoot": "libs/databases/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/databases/tsconfig.lib.json",
+        "webpack": false
+      }
     }
   }
 }

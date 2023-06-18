@@ -20,7 +20,8 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@/*": ["apps/main-app/src/*"],
-      "@friend-job/*": ["apps/friend-job/src/*"]
+      "@friend-job/*": ["apps/friend-job/src/*"],
+      "@app/databases": ["libs/databases/src"]
     }
   }
 }

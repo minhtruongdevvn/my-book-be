@@ -1,4 +1,3 @@
-import appConfig from '@/config/app.config';
 import databaseConfig from '@/config/database.config';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -11,7 +10,7 @@ import { UserSeedModule } from './user/user-seed.module';
 
 import { DataSource, DataSourceOptions } from 'typeorm';
 
-import chatboxDatabaseConfig from '@/config/helper-database.config';
+import helperDatabaseConfig from '@/config/helper-database.config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NoSQLConfigService } from '../nosql-config.service';
 import { AddressSeedModule } from './address/address-seed.module';
@@ -28,7 +27,7 @@ import { InterestSeedModule } from './interest/interest-seed.module';
     UserFriendSeedModule,
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, appConfig, chatboxDatabaseConfig],
+      load: [databaseConfig, helperDatabaseConfig],
     }),
     TypeOrmModule.forRootAsync({
       useClass: SQLConfigService,

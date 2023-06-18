@@ -6,7 +6,8 @@
   "private": true,
   "license": "MIT",
   "workspaces": [
-    "./apps/*"
+    "./apps/*",
+    "./libs/*"
   ],
   "scripts": {
     "prebuild": "rimraf dist",
@@ -98,8 +99,12 @@
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "roots": [
-      "<rootDir>/apps/"
-    ]
+      "<rootDir>/apps/",
+      "<rootDir>/libs/"
+    ],
+    "moduleNameMapper": {
+      "^@app/databases(|/.*)$": "<rootDir>/libs/databases/src/$1"
+    }
   },
   "engines": {
     "node": ">=16.0.0"

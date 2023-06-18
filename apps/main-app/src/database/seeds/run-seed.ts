@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { InterestSeedService } from './interest/interest-seed.service';
 import { AddressSeedService } from './address/address-seed.service';
-import { UserFriendSeedService } from './user-friend/user-friend-seed.service';
+import { InterestSeedService } from './interest/interest-seed.service';
 import { RoleSeedService } from './role/role-seed.service';
 import { SeedModule } from './seed.module';
 import { StatusSeedService } from './status/status-seed.service';
+import { UserFriendSeedService } from './user-friend/user-friend-seed.service';
 import { UserSeedService } from './user/user-seed.service';
 
 const runSeed = async () => {

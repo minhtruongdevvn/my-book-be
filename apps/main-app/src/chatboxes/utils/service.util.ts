@@ -1,7 +1,7 @@
 import { MongoRepository } from '@/utils/mongo/mongo-repository';
 import { BadRequestException } from '@nestjs/common';
 import { FilterQuery, ProjectionType } from 'mongoose';
-import { Chatbox } from '../collections/chatbox.document';
+import { Chatbox } from '../collections/chatbox.collection';
 
 export async function getMessages(
   repo: MongoRepository<Chatbox>,

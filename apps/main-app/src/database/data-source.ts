@@ -1,4 +1,3 @@
-import { User } from '@/users/entities/user.entity';
 import 'reflect-metadata';
 import { DataSource, DataSourceOptions } from 'typeorm';
 
@@ -16,7 +15,7 @@ export const AppDataSource = new DataSource({
   dropSchema: false,
   keepConnectionAlive: true,
   logging: process.env.NODE_ENV !== 'production',
-  entities: [__dirname + '/../**/*.entity{.ts,.js}', User],
+  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
   cli: {
     entitiesDir: 'src',

@@ -1,24 +1,15 @@
+import { DatabasesModule } from '@app/databases';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { DataSource, DataSourceOptions } from 'typeorm';
-import { NoSQLConfig } from './NoSQLConfig';
-import { SQLConfig } from './SQLConfig';
+import { ConfigModule } from '@nestjs/config';
+import { DatasetModule } from './dataset/dataset.module';
+import { RecommendationModule } from './recommendation/recommendation.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
-      useClass: SQLConfig,
-      dataSourceFactory: async (options: DataSourceOptions) => {
-        return new DataSource(options).initialize();
-      },
-    }),
-    MongooseModule.forRootAsync({
-      useClass: NoSQLConfig,
-      inject: [ConfigService],
-    }),
+    DatabasesModule.forRootAsync({ isGlobal: true }),
+    RecommendationModule,
+    DatasetModule,
   ],
 })
 export class FriendJobModule {}
