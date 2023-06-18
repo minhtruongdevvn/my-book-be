@@ -21,7 +21,7 @@ import { FilesService } from './files.service';
         const storages = {
           local: () =>
             diskStorage({
-              destination: './files',
+              destination: './apps/main-app/files',
               filename: (request, file, callback) => {
                 callback(
                   null,

@@ -1,1 +1,1 @@
-apps/**/src/database/migrations/**
+libs/databases/src/migrations/**
