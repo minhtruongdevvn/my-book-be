@@ -26,12 +26,32 @@ export class NoSQLConfigService implements MongooseOptionsFactory {
     const name = this.configService.get(`helper_database.name`, {
       infer: true,
     });
+    const ssl = this.configService.get('database.sslEnabled', { infer: true });
 
     return {
       uri: `mongodb://${username}:${password}@${host}:${port}/${name}`,
-      ca: this.configService.get(`helper_database.ca`, { infer: true }),
-      cert: this.configService.get(`helper_database.cert`, { infer: true }),
-      key: this.configService.get(`helper_database.key`, { infer: true }),
+      maxPoolSize:
+        this.configService.get('database.maxConnections', {
+          infer: true,
+        }) ?? 100,
+      rejectUnauthorized: this.configService.get(
+        'database.rejectUnauthorized',
+        { infer: true },
+      ),
+      ssl,
+      ...(ssl
+        ? {
+            sslCA:
+              this.configService.get('database.ca', { infer: true }) ??
+              undefined,
+            sslCert:
+              this.configService.get('database.cert', { infer: true }) ??
+              undefined,
+            sslKey:
+              this.configService.get('database.key', { infer: true }) ??
+              undefined,
+          }
+        : {}),
     };
   }
 }

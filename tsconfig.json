@@ -19,8 +19,8 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "@*": ["apps/main-app/src/*"],
-      "@friend-job": ["apps/friend-job/src/*"]
+      "@/*": ["apps/main-app/src/*"],
+      "@friend-job/*": ["apps/friend-job/src/*"]
     }
   }
 }

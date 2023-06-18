@@ -29,6 +29,7 @@ export class AddressesController {
     return this.addressService.add(dto.province, dto.subProvince);
   }
 
+  @Roles(RoleEnum.user)
   @Get()
   getProvinces(
     @Query('search') searchTerm: string | undefined,
@@ -38,6 +39,7 @@ export class AddressesController {
     return this.addressService.getProvinces(searchTerm, skip, take);
   }
 
+  @Roles(RoleEnum.user)
   @Get(':province')
   getSubProvinces(
     @Param('province') province: string,

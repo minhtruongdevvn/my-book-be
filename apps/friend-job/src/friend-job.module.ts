@@ -1,10 +1,24 @@
 import { Module } from '@nestjs/common';
-import { FriendRecommenderController } from './friend-job.controller';
-import { FriendRecommenderService } from './friend-job.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { NoSQLConfig } from './NoSQLConfig';
+import { SQLConfig } from './SQLConfig';
 
 @Module({
-  imports: [],
-  controllers: [FriendRecommenderController],
-  providers: [FriendRecommenderService],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRootAsync({
+      useClass: SQLConfig,
+      dataSourceFactory: async (options: DataSourceOptions) => {
+        return new DataSource(options).initialize();
+      },
+    }),
+    MongooseModule.forRootAsync({
+      useClass: NoSQLConfig,
+      inject: [ConfigService],
+    }),
+  ],
 })
-export class FriendRecommenderModule {}
+export class FriendJobModule {}

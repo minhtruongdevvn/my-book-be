@@ -6,15 +6,23 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const roles = this.reflector.getAllAndOverride<number[]>('roles', [
-      context.getClass(),
-      context.getHandler(),
-    ]);
-    if (!roles?.length) {
-      return true;
-    }
-    const request = context.switchToHttp().getRequest();
+    const set = new Set<number>(
+      this.reflector.getAllAndOverride<number[]>('roles', [
+        context.getClass(),
+      ]) ?? [],
+    );
 
-    return roles.includes(request.user?.role?.id);
+    (
+      this.reflector.getAllAndOverride<number[]>('roles', [
+        context.getHandler(),
+      ]) ?? []
+    ).forEach((e) => {
+      set.add(e);
+    });
+
+    if (set.size == 0) return true;
+
+    const request = context.switchToHttp().getRequest();
+    return set.has(request.user?.role?.id);
   }
 }
