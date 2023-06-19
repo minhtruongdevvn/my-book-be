@@ -5,9 +5,8 @@ import {
   UpdateQuery,
   UpdateWithAggregationPipeline,
 } from 'mongoose';
-import { BaseCollection } from '../collections/base.collection';
 
-export interface MongoRepositoryInterface<T extends BaseCollection> {
+export interface MongoRepositoryInterface<T> {
   create(doc: T): Promise<T>;
   find(
     filter?: FilterQuery<T>,

@@ -9,12 +9,9 @@ import {
   UpdateQuery,
   UpdateWithAggregationPipeline,
 } from 'mongoose';
-import { BaseCollection } from '../collections/base.collection';
 import { MongoRepositoryInterface } from './mongo-repository.interface';
 
-export class MongoRepository<T extends BaseCollection>
-  implements MongoRepositoryInterface<T>
-{
+export class MongoRepository<T> implements MongoRepositoryInterface<T> {
   constructor(private readonly model: Model<T>) {}
 
   async create(doc: T): Promise<T> {

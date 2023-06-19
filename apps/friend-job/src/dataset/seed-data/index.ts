@@ -38,8 +38,8 @@ for (let i = 0; i < numRows; i++) {
   if (ageDifference <= 5) target += 0.05;
   if (ageDifference <= 3) target += 0.15;
 
-  if (commonInterest > 5) target += 0.1;
-  if (commonInterest > 10) target += 0.125;
+  if (commonInterest > 5) target += 0.15;
+  if (commonInterest > 10) target += 0.175;
 
   target = target >= 0.5 ? 1 : 0;
 

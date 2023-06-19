@@ -1,6 +1,7 @@
 import {
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -9,6 +10,8 @@ import { EntityHelper } from '../utils/entity-helper';
 import { User } from './user.entity';
 
 @Entity()
+@Index(['user1Id'])
+@Index(['user2Id'])
 export class UserFriend extends EntityHelper {
   @PrimaryColumn()
   user1Id: number;

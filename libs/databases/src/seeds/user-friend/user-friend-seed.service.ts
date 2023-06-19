@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { User, UserFriend } from '../../entities';
 import { RoleEnum } from '../../enum/roles.enum';
-import { User, UserFriend } from '../@app/databases';
 
 @Injectable()
 export class UserFriendSeedService {

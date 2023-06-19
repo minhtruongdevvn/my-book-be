@@ -38,3 +38,4 @@ lerna-debug.log*
 apps/main-app/files
 .env
 /ormconfig.json
+*.csv
