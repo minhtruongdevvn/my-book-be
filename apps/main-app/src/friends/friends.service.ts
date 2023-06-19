@@ -144,7 +144,7 @@ export class FriendsService {
       `user${n}.alias`,
     ];
     const uf = await query
-      .select([...select(1), ...select(2)])
+      .select([...select(1), ...select(2), `uf.createdAt`])
       .orderBy('uf.createdAt', 'DESC')
       .skip(skip)
       .take(take)
