@@ -16,7 +16,7 @@ export class MongoRepository<T> implements MongoRepositoryInterface<T> {
 
   async create(doc: T): Promise<T> {
     const created = await this.model.create<T>(doc);
-    doc._id = (await created.save()).toObject()._id;
+    doc['_id'] = (await created.save()).toObject()._id;
     return doc;
   }
 
