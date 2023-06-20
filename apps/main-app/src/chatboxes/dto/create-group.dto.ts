@@ -11,4 +11,8 @@ export class CreateChatboxDto {
   @IsOptional()
   @ApiProperty()
   photo?: string;
+
+  @IsOptional()
+  @ApiProperty()
+  memberIds?: number[];
 }

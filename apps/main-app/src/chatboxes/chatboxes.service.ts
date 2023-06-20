@@ -7,6 +7,7 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateChatboxDto } from './dto/update-chatbox.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { getMessages, isValidChatboxOrThrow } from './utils/service.util';
+import { GroupCreatedResponse } from './dto/group-created-response';
 
 @Injectable()
 export class ChatboxesService {
@@ -35,7 +36,24 @@ export class ChatboxesService {
     chatbox.admin = userId;
     await this.chatboxesRepository.create(chatbox);
 
-    return chatbox;
+    const response = new GroupCreatedResponse(chatbox);
+
+    // add initial members
+    if (chatbox.id && dto.memberIds) {
+      const addMemberActions = dto.memberIds.map((memberId) =>
+        this.addMember(chatbox.id!, userId, memberId),
+      );
+      const result = await Promise.allSettled(addMemberActions);
+
+      result.forEach(({ status }, index) => {
+        const key: keyof GroupCreatedResponse =
+          status === 'fulfilled' ? 'successMemberIds' : 'failedMemberIds';
+
+        response[key] = [...(response[key] ?? []), dto.memberIds![index]];
+      });
+    }
+
+    return response;
   }
 
   async removeGroup(id: string, userId: number) {
