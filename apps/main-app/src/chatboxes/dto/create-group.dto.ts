@@ -4,7 +4,6 @@ import { IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreateChatboxDto {
   @IsNotEmpty()
-  @IsAlphaWithSpaces()
   @ApiProperty()
   name: string;
 

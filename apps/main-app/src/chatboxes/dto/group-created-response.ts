@@ -11,7 +11,7 @@ export class GroupCreatedResponse {
     failedMemberIds?: number[],
   ) {
     this.id = chatbox.id ?? '';
-    this.name = chatbox.name ?? '';
+    this.name = chatbox.name;
     this.admin = chatbox.admin ?? -1;
     this.photo = chatbox.photo;
     this.successMemberIds = successMemberIds;
