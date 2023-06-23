@@ -99,9 +99,6 @@ export class User extends EntityHelper {
   @Exclude({ toPlainOnly: true })
   hash: string | null;
 
-  @ManyToMany(() => User)
-  friends: User[];
-
   @ManyToMany(() => Interest, (interest) => interest.users)
   interests: Interest[];
 

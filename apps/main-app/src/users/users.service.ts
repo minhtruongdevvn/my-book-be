@@ -4,9 +4,9 @@ import { User } from '@app/databases';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, In, Repository } from 'typeorm';
+import { MinimalUserDto } from '../../../../libs/common/src/dto/minimal-user.dto';
 import { NullableType } from '../utils/types/nullable.type';
 import { CreateUserDto } from './dto/create-user.dto';
-import { MinimalUser } from './dto/minimal-user';
 
 @Injectable()
 export class UsersService {
@@ -36,7 +36,7 @@ export class UsersService {
     });
   }
 
-  getUserByRangeId(userIds: number[]): Promise<MinimalUser[]> {
+  getUserByRangeId(userIds: number[]): Promise<MinimalUserDto[]> {
     return this.usersRepository
       .createQueryBuilder('user')
       .where({ id: In(userIds) })

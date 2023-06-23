@@ -9,10 +9,7 @@ import { NoSQLConfigService } from './config/nosql-config.service';
 import { SQLConfigService } from './config/sql-config.service';
 
 export class DatabasesModule {
-  static forRootAsync(options: { isGlobal?: boolean }): DynamicModule {
-    const global = options.isGlobal
-      ? Global
-      : (target = () => undefined) => target;
+  static forRoot(): DynamicModule {
     const imports = [
       ConfigModule.forRoot({
         load: [databaseConfig, helperDatabaseConfig],
@@ -32,7 +29,7 @@ export class DatabasesModule {
       }),
     ];
 
-    @global()
+    @Global()
     @Module({
       imports,
     })

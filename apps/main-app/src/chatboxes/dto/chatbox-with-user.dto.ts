@@ -1,8 +1,8 @@
-import { MinimalUser } from '@/users/dto/minimal-user';
+import { MinimalUserDto } from '@app/common';
 import { Chatbox, ChatboxMessage } from '@app/databases';
 
 export class ChatboxWithUser {
-  constructor(chatbox: Chatbox, users: MinimalUser[]) {
+  constructor(chatbox: Chatbox, users: MinimalUserDto[]) {
     this.id = chatbox._id?.toString() ?? '';
     if (chatbox.admin) chatbox.members = [];
     else chatbox.conversationBetween = [];
@@ -17,8 +17,8 @@ export class ChatboxWithUser {
   theme?: string;
   quickEmoji?: string;
   messages?: ChatboxMessage[];
-  conversationBetween?: MinimalUser[];
+  conversationBetween?: MinimalUserDto[];
   admin?: number;
   photo?: string;
-  members?: MinimalUser[];
+  members?: MinimalUserDto[];
 }

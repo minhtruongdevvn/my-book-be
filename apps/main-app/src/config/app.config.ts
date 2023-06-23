@@ -7,6 +7,8 @@ export default registerAs<AppConfig>('app', () => ({
   workingDirectory: process.env.PWD || process.cwd(),
   frontendDomain: process.env.FRONTEND_DOMAIN,
   backendDomain: process.env.BACKEND_DOMAIN ?? 'http://localhost',
+  workerPort: Number(process.env.WORKER_PORT) ?? 6379,
+  workerHost: process.env.WORKER_HOST ?? 'localhost',
   port: process.env.APP_PORT
     ? parseInt(process.env.APP_PORT, 10)
     : process.env.PORT

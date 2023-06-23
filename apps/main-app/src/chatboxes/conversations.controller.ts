@@ -1,6 +1,6 @@
 import { GetUser } from '@/auth/decorators/get-user.decorator';
-import { MinimalUser } from '@/users/dto/minimal-user';
 import { UsersService } from '@/users/users.service';
+import { MinimalUserDto } from '@app/common';
 import {
   Body,
   Controller,
@@ -56,7 +56,7 @@ export class ConversationsController {
     );
     if (!chatboxes) return;
 
-    const users = new Map<number, MinimalUser | undefined>();
+    const users = new Map<number, MinimalUserDto | undefined>();
     for (const chatbox of chatboxes) {
       if (
         !chatbox.conversationBetween ||

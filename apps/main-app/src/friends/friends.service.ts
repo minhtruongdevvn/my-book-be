@@ -1,214 +1,172 @@
-import { MinimalUser } from '@/users/dto/minimal-user';
-import { FriendRequest, User, UserFriend } from '@app/databases';
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository, WhereExpressionBuilder } from 'typeorm';
+import { MinimalUserDto } from '@app/common';
+import { FriendRequest } from '@app/databases';
+import { ClientProvider } from '@app/microservices';
+import {
+  ADD_RELATIONSHIP,
+  GetFriend,
+  GET_FRIEND,
+  GET_USER,
+  IS_FRIEND,
+  PREPARE_REQ,
+  REMOVE_RELATIONSHIP,
+  UserToUser,
+} from '@app/microservices/friend';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { FRIEND_CLIENT } from './friend-client';
+import { FriendRequestRepository } from './friend-request.repository';
 
 @Injectable()
 export class FriendsService {
   constructor(
-    @InjectRepository(FriendRequest)
-    private friendsReqRepository: Repository<FriendRequest>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
-    @InjectRepository(UserFriend)
-    private userFriendRepository: Repository<UserFriend>,
+    private friendReqRepository: FriendRequestRepository,
+    @Inject(FRIEND_CLIENT) private readonly client: ClientProvider,
   ) {}
+
+  async getRequestsBySender(
+    senderId: number,
+    skip?: number,
+    take?: number,
+  ): Promise<(MinimalUserDto & { mutualCount: number })[]> {
+    const requests = await this.friendReqRepository.find(
+      { senderId },
+      undefined,
+      {
+        skip,
+        limit: take,
+      },
+    );
+
+    const users = await this.getUserByIds(requests.map((e) => e.recipientId));
+
+    return requests.flatMap((e) => {
+      const user = users.get(e.recipientId);
+      if (user) return [{ ...user, mutualCount: e.mutualCount }];
+      return [];
+    });
+  }
+
+  async getRequestsByRecipient(
+    recipientId: number,
+    skip?: number,
+    take?: number,
+  ): Promise<(MinimalUserDto & { mutualCount: number })[]> {
+    const requests = await this.friendReqRepository.find(
+      { recipientId },
+      undefined,
+      {
+        skip,
+        limit: take,
+      },
+    );
+
+    const users = await this.getUserByIds(requests.map((e) => e.senderId));
+
+    return requests.flatMap((e) => {
+      const user = users.get(e.senderId);
+      if (user) return [{ ...user, mutualCount: e.mutualCount }];
+      return [];
+    });
+  }
 
   async createRequest(senderId: number, recipientId: number) {
     if (senderId == recipientId)
       throw new BadRequestException('you cannot add friend with yourself');
-
-    const isExist = await this.isReqExist(senderId, recipientId);
-    if (isExist) {
+    if (await this.isReqExist(recipientId, senderId)) {
       throw new BadRequestException('request has been created');
     }
 
-    const isFriend = await this.isAlreadyFriend(senderId, recipientId);
+    const isFriend = await this.client.sendAndReceive<boolean, UserToUser>(
+      IS_FRIEND,
+      {
+        user1Id: senderId,
+        user2Id: recipientId,
+      },
+    );
     if (isFriend) {
       throw new BadRequestException('already friend');
     }
 
-    const friendRequest = new FriendRequest();
-    friendRequest.senderId = senderId;
-    friendRequest.recipientId = recipientId;
-    await this.friendsReqRepository.save(friendRequest);
+    const friendReq = new FriendRequest();
+    friendReq.senderId = senderId;
+    friendReq.recipientId = recipientId;
+    friendReq.mutualCount = await this.client.sendAndReceive<
+      number,
+      UserToUser
+    >(PREPARE_REQ, {
+      user1Id: senderId,
+      user2Id: recipientId,
+    });
 
-    return friendRequest;
+    await this.friendReqRepository.create(friendReq);
+    return friendReq;
   }
 
   async cancelRequest(user1Id: number, user2Id: number) {
-    const isExist = this.isReqExist(user1Id, user2Id);
-    if (!isExist) {
+    if (!(await this.isReqExist(user1Id, user2Id))) {
       throw new BadRequestException('request not found');
     }
 
-    const result = await this.friendsReqRepository
-      .createQueryBuilder()
-      .delete()
-      .from(FriendRequest)
-      .where('senderId = :user1Id AND recipientId = :user2Id', {
-        user1Id,
-        user2Id,
-      })
-      .orWhere('senderId = :user2Id AND recipientId = :user1Id', {
-        user1Id,
-        user2Id,
-      })
-      .execute();
-    return result.affected && result.affected > 0;
+    return await this.friendReqRepository.deleteOne({
+      $or: [
+        { senderId: user1Id, recipientId: user2Id },
+        { senderId: user2Id, recipientId: user1Id },
+      ],
+    });
   }
 
   async acceptRequest(senderId: number, recipientId: number) {
-    const friendRequest = await this.friendsReqRepository
-      .createQueryBuilder('fq')
-      .innerJoinAndSelect('fq.sender', 'sender')
-      .innerJoinAndSelect('fq.recipient', 'recipient')
-      .where('fq.senderId = :senderId AND fq.recipientId = :recipientId', {
-        senderId,
-        recipientId,
-      })
-      .getOne();
+    const friendRequest = await this.friendReqRepository.findOne({
+      senderId,
+      recipientId,
+    });
 
     if (!friendRequest) {
       throw new BadRequestException('request not found');
     }
 
-    const [user1Id, user2Id] = this.getCorrectOrder(senderId, recipientId);
-    const userFriend = new UserFriend();
-    userFriend.user1Id = user1Id;
-    userFriend.user2Id = user2Id;
-    await this.userFriendRepository.save(userFriend);
-
+    await this.client.sendWithoutReceive<UserToUser>(ADD_RELATIONSHIP, {
+      user1Id: senderId,
+      user2Id: recipientId,
+    });
     await this.cancelRequest(recipientId, senderId);
   }
 
-  async getFriendsByUserId(
+  getFriendsByUserId(
     userId: number,
     take?: number,
     skip?: number,
-    searchTerm?: string,
-  ): Promise<MinimalUser[]> {
-    let query = this.userFriendRepository
-      .createQueryBuilder('uf')
-      .innerJoinAndSelect('uf.user1', 'user1', 'uf.user1 = user1.id')
-      .innerJoinAndSelect('uf.user2', 'user2', 'uf.user2 = user2.id')
-      .where(
-        new Brackets((qb) =>
-          qb
-            .where('user1.id = :userId', {
-              userId,
-            })
-            .orWhere('user2.id = :userId', {
-              userId,
-            }),
-        ),
-      );
-    if (searchTerm) {
-      const addSearchConditions = (
-        qb: WhereExpressionBuilder,
-        friendAlias: string,
-      ) =>
-        qb.orWhere(`${friendAlias}.id != :userId`, { userId }).andWhere(
-          new Brackets((qb) =>
-            qb
-              .orWhere(
-                `CONCAT(${friendAlias}.firstName, ' ', ${friendAlias}.lastName) ILIKE :searchTerm`,
-                {
-                  searchTerm: `%${searchTerm}%`,
-                },
-              )
-              .orWhere(`${friendAlias}.firstName ILIKE :searchTerm`, {
-                searchTerm: `%${searchTerm}%`,
-              })
-              .orWhere(`${friendAlias}.lastName ILIKE :searchTerm`, {
-                searchTerm: `%${searchTerm}%`,
-              }),
-          ),
-        );
-
-      const searchCondition = new Brackets((qb) => {
-        addSearchConditions(qb, 'user1');
-        addSearchConditions(qb, 'user2');
-      });
-
-      query = query.andWhere(searchCondition);
-    }
-
-    const select = (n: number) => [
-      `uf.user${n}Id`,
-      `user${n}.id`,
-      `user${n}.firstName`,
-      `user${n}.lastName`,
-      `user${n}.photo`,
-      `user${n}.alias`,
-    ];
-    const uf = await query
-      .select([...select(1), ...select(2), `uf.createdAt`])
-      .orderBy('uf.createdAt', 'DESC')
-      .skip(skip)
-      .take(take)
-      .getMany();
-
-    return uf.map((e) => {
-      if (e.user1.id == userId) {
-        return e.user2;
-      } else {
-        return e.user1;
-      }
+    search?: string,
+  ) {
+    return this.client.sendAndReceive<MinimalUserDto[], GetFriend>(GET_FRIEND, {
+      userId,
+      filter: { skip, take, search },
     });
   }
 
-  unfriend(u1: number, u2: number) {
-    const [user1Id, user2Id] = this.getCorrectOrder(u1, u2);
-
-    return this.userFriendRepository
-      .createQueryBuilder('uf')
-      .delete()
-      .from(UserFriend)
-      .where('user1Id = :user1Id AND user2Id = :user2Id', {
-        user1Id,
-        user2Id,
-      })
-      .execute();
-  }
-
-  private isAlreadyFriend(u1: number, u2: number) {
-    const [user1Id, user2Id] = this.getCorrectOrder(u1, u2);
-
-    return this.userFriendRepository
-      .createQueryBuilder('uf')
-      .where('uf.user1Id = :user1Id AND uf.user2Id = :user2Id', {
-        user1Id,
-        user2Id,
-      })
-      .getExists();
-  }
-
-  private getRequestQueryByUsers(user1Id: number, user2Id: number) {
-    return this.friendsReqRepository
-      .createQueryBuilder('fq')
-      .where('fq.senderId = :user1Id AND fq.recipientId = :user2Id', {
-        user1Id,
-        user2Id,
-      })
-      .orWhere('fq.senderId = :user2Id AND fq.recipientId = :user1Id', {
-        user1Id,
-        user2Id,
-      });
+  unfriend(user1Id: number, user2Id: number) {
+    return this.client.sendWithoutReceive<UserToUser>(REMOVE_RELATIONSHIP, {
+      user1Id,
+      user2Id,
+    });
   }
 
   private isReqExist(user1Id: number, user2Id: number) {
-    return this.getRequestQueryByUsers(user1Id, user2Id).getExists();
+    return this.friendReqRepository.exist({
+      $or: [
+        { senderId: user1Id, recipientId: user2Id },
+        { senderId: user2Id, recipientId: user1Id },
+      ],
+    });
   }
 
-  private getCorrectOrder(user1Id: number, user2Id: number) {
-    if (user1Id > user2Id) {
-      const tmp = user1Id;
-      user1Id = user2Id;
-      user2Id = tmp;
-    }
-
-    return [user1Id, user2Id];
+  private async getUserByIds(userIds: number[]) {
+    return new Map<number, MinimalUserDto>(
+      (
+        await this.client.sendAndReceive<MinimalUserDto[], number[]>(
+          GET_USER,
+          userIds,
+        )
+      ).map((e) => [e.id, e]),
+    );
   }
 }

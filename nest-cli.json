@@ -44,6 +44,33 @@
         "tsConfigPath": "libs/databases/tsconfig.lib.json",
         "webpack": false
       }
+    },
+    "storage-worker": {
+      "type": "library",
+      "root": "libs/storage-worker",
+      "entryFile": "index",
+      "sourceRoot": "libs/storage-worker/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/storage-worker/tsconfig.lib.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
+      }
+    },
+    "microservices": {
+      "type": "library",
+      "root": "libs/microservices",
+      "entryFile": "index",
+      "sourceRoot": "libs/microservices/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/microservices/tsconfig.lib.json"
+      }
     }
   }
 }

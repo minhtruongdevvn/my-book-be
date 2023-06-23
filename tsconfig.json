@@ -1,4 +1,5 @@
 {
+  "exclude": ["junk/*"],
   "compilerOptions": {
     "lib": ["ES6"],
     "module": "commonjs",
@@ -21,7 +22,11 @@
     "paths": {
       "@/*": ["apps/main-app/src/*"],
       "@friend-job/*": ["apps/friend-job/src/*"],
-      "@app/databases": ["libs/databases/src"]
+      "@app/databases": ["libs/databases/src"],
+      "@app/storage-worker": ["libs/storage-worker/src"],
+      "@app/common": ["libs/common/src"],
+      "@app/microservices": ["libs/microservices/src/commons"],
+      "@app/microservices/*": ["libs/microservices/src/*"]
     }
   }
 }

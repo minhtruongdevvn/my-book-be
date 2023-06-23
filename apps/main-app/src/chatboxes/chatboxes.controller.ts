@@ -1,6 +1,6 @@
 import { GetUser } from '@/auth/decorators/get-user.decorator';
-import { MinimalUser } from '@/users/dto/minimal-user';
 import { UsersService } from '@/users/users.service';
+import { MinimalUserDto } from '@app/common';
 import {
   Body,
   Controller,
@@ -57,7 +57,7 @@ export class ChatboxesController {
     const chatboxes = await this.chatboxService.getByUserId(userId);
     if (!chatboxes) return null;
 
-    const users = new Map<number, MinimalUser | undefined>();
+    const users = new Map<number, MinimalUserDto | undefined>();
     for (const chatbox of chatboxes) {
       for (const uId of chatbox.members ?? []) {
         users.set(uId, undefined);

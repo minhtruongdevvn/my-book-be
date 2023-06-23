@@ -14,6 +14,10 @@ import { MongoRepositoryInterface } from './mongo-repository.interface';
 export class MongoRepository<T> implements MongoRepositoryInterface<T> {
   constructor(private readonly model: Model<T>) {}
 
+  startSession() {
+    return this.model.startSession();
+  }
+
   async create(doc: T): Promise<T> {
     const created = await this.model.create<T>(doc);
     doc['_id'] = (await created.save()).toObject()._id;
@@ -34,10 +38,7 @@ export class MongoRepository<T> implements MongoRepositoryInterface<T> {
     if (!filter) {
       result = await this.model.find({}, projection, options).exec();
     } else {
-      if (filter['_id']) {
-        if (!ObjectId.isValid(filter['_id']))
-          throw new BadRequestException('id is invalid');
-      }
+      this.validateObjectId(filter);
 
       result = await this.model.find(filter, projection, options).exec();
     }
@@ -50,10 +51,7 @@ export class MongoRepository<T> implements MongoRepositoryInterface<T> {
     projection?: ProjectionType<T> | null,
     options?: QueryOptions<T> | null,
   ): Promise<T | null> {
-    if (filter && filter['_id']) {
-      if (!ObjectId.isValid(filter['_id']))
-        throw new BadRequestException('id is invalid');
-    }
+    this.validateObjectId(filter);
 
     const result = await this.model.findOne(filter, projection, options).exec();
     return result?.toObject() ?? null;
@@ -64,10 +62,7 @@ export class MongoRepository<T> implements MongoRepositoryInterface<T> {
     update?: UpdateQuery<T> | UpdateWithAggregationPipeline,
     options?: QueryOptions<T> | null,
   ): Promise<boolean> {
-    if (filter && filter['_id']) {
-      if (!ObjectId.isValid(filter['_id']))
-        throw new BadRequestException('id is invalid');
-    }
+    this.validateObjectId(filter);
 
     const updateResult = await this.model
       .updateOne(filter, update, options)
@@ -78,14 +73,21 @@ export class MongoRepository<T> implements MongoRepositoryInterface<T> {
     );
   }
 
+  async updateMany(
+    filter?: FilterQuery<T>,
+    update?: UpdateQuery<T> | UpdateWithAggregationPipeline,
+    options?: QueryOptions<T> | null,
+  ) {
+    this.validateObjectId(filter);
+
+    await this.model.updateMany(filter, update, options);
+  }
+
   async deleteOne(
     filter?: FilterQuery<T>,
     options?: QueryOptions<T>,
   ): Promise<boolean> {
-    if (filter && filter['_id']) {
-      if (!ObjectId.isValid(filter['_id']))
-        throw new BadRequestException('id is invalid');
-    }
+    this.validateObjectId(filter);
 
     const deleteResult = await this.model.deleteOne(filter, options).exec();
     return deleteResult.acknowledged && deleteResult.deletedCount > 0;
@@ -94,5 +96,12 @@ export class MongoRepository<T> implements MongoRepositoryInterface<T> {
   async exist(filter: FilterQuery<T>) {
     const id = await this.model.exists(filter);
     return !!id;
+  }
+
+  private validateObjectId(filter?: FilterQuery<T>) {
+    if (filter && filter['_id']) {
+      if (!ObjectId.isValid(filter['_id']))
+        throw new BadRequestException('id is invalid');
+    }
   }
 }

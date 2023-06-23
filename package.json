@@ -29,24 +29,27 @@
     "test:e2e": "env-cmd jest --config ./apps/main-app/test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/common": "9.4.2",
+    "@nestjs/common": "^9.4.3",
     "@nestjs/config": "2.3.2",
     "@nestjs/core": "9.4.2",
+    "@nestjs/microservices": "^9.4.3",
     "@nestjs/mongoose": "^9.2.2",
     "@nestjs/platform-express": "9.4.2",
     "@nestjs/typeorm": "9.0.1",
     "class-transformer": "0.5.1",
     "class-validator": "0.14.0",
+    "ioredis": "^5.3.2",
     "mongodb": "^5.6.0",
     "mongoose": "^7.2.3",
-    "rxjs": "7.8.1",
-    "typeorm": "0.3.16",
-    "uuidv4": "^6.2.13",
     "nestjs-i18n": "10.2.6",
+    "pg": "8.11.0",
+    "redis": "^4.6.7",
     "reflect-metadata": "0.1.13",
     "rimraf": "5.0.1",
+    "rxjs": "7.8.1",
     "source-map-support": "0.5.21",
-    "pg": "8.11.0"
+    "typeorm": "0.3.16",
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
     "@nestjs/cli": "9.5.0",
@@ -80,7 +83,7 @@
     "ts-node": "10.9.1",
     "tsconfig-paths": "4.2.0",
     "tslib": "2.5.2",
-    "typescript": "5.0.4"
+    "typescript": "^4.9.4"
   },
   "jest": {
     "moduleFileExtensions": [
@@ -103,7 +106,10 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
-      "^@app/databases(|/.*)$": "<rootDir>/libs/databases/src/$1"
+      "^@app/databases(|/.*)$": "<rootDir>/libs/databases/src/$1",
+      "^@app/storage-worker(|/.*)$": "<rootDir>/libs/storage-worker/src/$1",
+      "^@app/common(|/.*)$": "<rootDir>/libs/common/src/$1",
+      "^@app/microservices(|/.*)$": "<rootDir>/libs/microservices/src/$1"
     }
   },
   "engines": {

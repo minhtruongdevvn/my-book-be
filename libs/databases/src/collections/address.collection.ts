@@ -17,12 +17,9 @@ export class Address extends BaseCollection {
 }
 
 const AddressSchema = SchemaFactory.createForClass(Address);
-AddressSchema.index(
-  { province: 1, subProvince: 1 },
-  { unique: true, background: false },
-);
-AddressSchema.index({ province: 1 }, { background: false });
-AddressSchema.index({ subProvince: 1 }, { background: false });
+AddressSchema.index({ province: 1, subProvince: 1 }, { unique: true });
+AddressSchema.index({ province: 1 });
+AddressSchema.index({ subProvince: 1 });
 
 AddressSchema.set('toObject', {
   virtuals: true,

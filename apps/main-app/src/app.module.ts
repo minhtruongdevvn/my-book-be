@@ -12,10 +12,8 @@ import { ChatboxesModule } from './chatboxes/chatboxes.module';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import { AllConfigType } from './config/config.type';
-import databaseConfig from './config/database.config';
 import fileConfig from './config/file.config';
 import googleConfig from './config/google.config';
-import helperDatabaseConfig from './config/helper-database.config';
 import mailConfig from './config/mail.config';
 import { FilesModule } from './files/files.module';
 import { ForgotModule } from './forgot/forgot.module';
@@ -32,18 +30,10 @@ import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [
-        databaseConfig,
-        authConfig,
-        appConfig,
-        mailConfig,
-        fileConfig,
-        googleConfig,
-        helperDatabaseConfig,
-      ],
+      load: [authConfig, appConfig, mailConfig, fileConfig, googleConfig],
       envFilePath: ['.env'],
     }),
-    DatabasesModule.forRootAsync({ isGlobal: true }),
+    DatabasesModule.forRoot(),
     MailerModule.forRootAsync({
       useClass: MailConfigService,
     }),

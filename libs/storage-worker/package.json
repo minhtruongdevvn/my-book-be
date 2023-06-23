@@ -1,0 +1,7 @@
+{
+  "name": "storage-worker",
+  "version": "0.0.1",
+  "dependencies": {
+    "@nestjs-modules/ioredis": "^1.0.1"
+  }
+}
