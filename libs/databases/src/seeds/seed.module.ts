@@ -5,7 +5,6 @@ import databaseConfig from '../config/database.config';
 import { SQLConfigService } from '../config/sql-config.service';
 import { RoleSeedModule } from './role/role-seed.module';
 import { StatusSeedModule } from './status/status-seed.module';
-import { UserFriendSeedModule } from './user-friend/user-friend-seed.module';
 import { UserSeedModule } from './user/user-seed.module';
 
 import { DataSource, DataSourceOptions } from 'typeorm';
@@ -24,7 +23,6 @@ import { InterestSeedModule } from './interest/interest-seed.module';
     RoleSeedModule,
     StatusSeedModule,
     UserSeedModule,
-    UserFriendSeedModule,
     ConfigModule.forRoot({
       isGlobal: true,
       load: [databaseConfig, helperDatabaseConfig],
