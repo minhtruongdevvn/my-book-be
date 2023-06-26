@@ -4,6 +4,11 @@ import { RoleEnum } from '@/roles/roles.enum';
 import { RolesGuard } from '@/roles/roles.guard';
 import { Interest } from '@app/databases';
 import {
+  ClientProvider,
+  InjectAppClient,
+  USER_INTEREST_CHANGED_EVENT,
+} from '@app/microservices';
+import {
   Body,
   Controller,
   Delete,
@@ -25,7 +30,10 @@ import { InterestsService } from './interests.service';
 @UseGuards(AuthGuard('jwt'), RolesGuard)
 @Controller('interests')
 export class InterestsController {
-  constructor(private readonly interestsService: InterestsService) {}
+  constructor(
+    private readonly interestsService: InterestsService,
+    @InjectAppClient() private readonly client: ClientProvider,
+  ) {}
 
   @Roles(RoleEnum.admin)
   @Post()
@@ -72,6 +80,7 @@ export class InterestsController {
     @Body() interestIds: number[],
     @GetUser('id') userId: number,
   ) {
+    this.client.emit(USER_INTEREST_CHANGED_EVENT, userId);
     return this.interestsService.addUserInterests(userId, interestIds);
   }
 
@@ -80,6 +89,7 @@ export class InterestsController {
     @Body() interestIds: number[],
     @GetUser('id') userId: number,
   ) {
+    this.client.emit(USER_INTEREST_CHANGED_EVENT, userId);
     return this.interestsService.removeUserInterests(userId, interestIds);
   }
 }

@@ -1,11 +1,18 @@
-import { USER_CHANGED_EVENT } from '@app/microservices';
+import {
+  USER_CHANGED_EVENT,
+  USER_INTEREST_CHANGED_EVENT,
+} from '@app/microservices';
 import { GET_FRIEND_RECO } from '@app/microservices/friend';
 import { FriendGraphService } from '@friend-job/friend/friend-graph.service';
 import { InjectQueue } from '@nestjs/bull';
 import { Controller } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { Queue } from 'bull';
-import { FRIEND_RECO_QUEUE_KEY, USER_INFO_CHANGED_JOB } from './jobs';
+import {
+  FRIEND_RECO_QUEUE_KEY,
+  USER_INFO_CHANGED_JOB,
+  USER_INTEREST_CHANGED_JOB,
+} from './jobs';
 import { RecommendationService } from './recommendation.service';
 
 @Controller()
@@ -19,6 +26,11 @@ export class RecommendationController {
   @EventPattern(USER_CHANGED_EVENT)
   async syncUser(payload: number) {
     await this.friendQueue.add(USER_INFO_CHANGED_JOB, payload);
+  }
+
+  @EventPattern(USER_INTEREST_CHANGED_EVENT)
+  async syncUserInterest(payload: number) {
+    await this.friendQueue.add(USER_INTEREST_CHANGED_JOB, payload);
   }
 
   @MessagePattern(GET_FRIEND_RECO)
