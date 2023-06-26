@@ -1,5 +1,6 @@
 import {
   USER_CHANGED_EVENT,
+  USER_DELETED_EVENT,
   USER_INTEREST_CHANGED_EVENT,
 } from '@app/microservices';
 import { GET_FRIEND_RECO } from '@app/microservices/friend';
@@ -10,6 +11,7 @@ import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { Queue } from 'bull';
 import {
   FRIEND_RECO_QUEUE_KEY,
+  USER_DELETE_JOB,
   USER_INFO_CHANGED_JOB,
   USER_INTEREST_CHANGED_JOB,
 } from './jobs';
@@ -31,6 +33,11 @@ export class RecommendationController {
   @EventPattern(USER_INTEREST_CHANGED_EVENT)
   async syncUserInterest(payload: number) {
     await this.friendQueue.add(USER_INTEREST_CHANGED_JOB, payload);
+  }
+
+  @EventPattern(USER_DELETED_EVENT)
+  async syncUserDeleted(payload: number) {
+    await this.friendQueue.add(USER_DELETE_JOB, payload, { lifo: false });
   }
 
   @MessagePattern(GET_FRIEND_RECO)

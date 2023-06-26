@@ -65,11 +65,20 @@ export class RecommendationService implements OnApplicationBootstrap {
   }
 
   async getRecommendation(userId: number): Promise<MinimalUserDto[]> {
-    const result = await this.model
-      .aggregate([{ $match: { userId } }, { $sample: { size: 20 } }])
+    const queryResult = await this.model
+      .aggregate([{ $match: { userId } }, { $sample: { size: 25 } }])
       .exec();
+    const recommendedUsers: MinimalUserDto[] = queryResult[0]
+      ? queryResult[0]['recommendation']
+      : [];
 
-    return result[0] ? result[0]['recommendation'] : [];
+    const map = new Map<number, MinimalUserDto>();
+    for (const recoUser of recommendedUsers) {
+      if (map.has(recoUser.id)) continue;
+      map.set(recoUser.id, recoUser);
+    }
+
+    return [...map.values()];
   }
 
   async generateRecommendation(userId: number) {
@@ -99,6 +108,10 @@ export class RecommendationService implements OnApplicationBootstrap {
       { userId },
       { recommendation: saveData, modifiedCount: 0 },
     );
+  }
+
+  onUserDeleted(userId: number) {
+    return this.model.deleteOne({ userId });
   }
 
   private getUsersMutualFriend(userId: number) {

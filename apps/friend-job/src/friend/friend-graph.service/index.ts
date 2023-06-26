@@ -54,6 +54,19 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     user2.friendIds.add(user1Id);
   }
 
+  deleteUser(userId: number) {
+    const userToDelete = this.graph.get(userId);
+    if (!userToDelete) return;
+
+    for (const friendId of userToDelete.friendIds) {
+      const friend = this.graph.get(friendId);
+      if (!friend) continue;
+      friend.friendIds.delete(userId);
+    }
+
+    this.graph.delete(userId);
+  }
+
   hasUser(userId: number) {
     return this.graph.has(userId);
   }

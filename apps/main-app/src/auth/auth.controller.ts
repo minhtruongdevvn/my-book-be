@@ -4,6 +4,7 @@ import {
   ClientProvider,
   InjectAppClient,
   USER_CHANGED_EVENT,
+  USER_DELETED_EVENT,
 } from '@app/microservices';
 import {
   Body,
@@ -164,6 +165,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
   public async delete(@Request() request): Promise<void> {
-    return this.service.softDelete(request.user);
+    this.client.emit(USER_DELETED_EVENT, request.user.id);
+    await this.service.softDelete(request.user);
   }
 }

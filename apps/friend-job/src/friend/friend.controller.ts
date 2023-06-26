@@ -1,4 +1,4 @@
-import { USER_CHANGED_EVENT } from '@app/microservices';
+import { USER_CHANGED_EVENT, USER_DELETED_EVENT } from '@app/microservices';
 import {
   ADD_RELATIONSHIP,
   GetFriend,
@@ -52,6 +52,11 @@ export class FriendController {
   @EventPattern(USER_CHANGED_EVENT)
   async syncUser(payload: number) {
     await this.friendGraphService.syncUser(payload);
+  }
+
+  @EventPattern(USER_DELETED_EVENT)
+  syncUserDeleted(payload: number) {
+    this.friendGraphService.deleteUser(payload);
   }
 
   @MessagePattern(GET_FRIEND)

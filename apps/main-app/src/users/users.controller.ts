@@ -7,6 +7,7 @@ import {
   ClientProvider,
   InjectAppClient,
   USER_CHANGED_EVENT,
+  USER_DELETED_EVENT,
 } from '@app/microservices';
 import {
   Body,
@@ -103,6 +104,7 @@ export class UsersController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number): Promise<void> {
+    this.client.emit(USER_DELETED_EVENT, id);
     return this.usersService.softDelete(id);
   }
 }
