@@ -4,6 +4,7 @@ const GET_FRIEND = { friend: 'get_friend' };
 const IS_FRIEND = { friend: 'is_friend' };
 const PREPARE_REQ = { friend: 'prepare_req' };
 const GET_USER = { friend: 'get_user' };
+const GET_FRIEND_RECO = { friend: 'get_friend_reco' };
 
 export {
   ADD_RELATIONSHIP,
@@ -12,4 +13,5 @@ export {
   IS_FRIEND,
   PREPARE_REQ,
   GET_USER,
+  GET_FRIEND_RECO,
 };

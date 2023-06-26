@@ -23,7 +23,6 @@ async function bootstrap() {
   });
 
   app.enableShutdownHooks();
-
   await app.listen().then(() => logger.log('Microservice is listening'));
 }
 void bootstrap();

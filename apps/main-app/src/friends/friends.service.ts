@@ -1,26 +1,33 @@
 import { MinimalUserDto } from '@app/common';
 import { FriendRequest } from '@app/databases';
-import { ClientProvider } from '@app/microservices';
+import { ClientProvider, InjectAppClient } from '@app/microservices';
 import {
   ADD_RELATIONSHIP,
   GetFriend,
   GET_FRIEND,
+  GET_FRIEND_RECO,
   GET_USER,
   IS_FRIEND,
   PREPARE_REQ,
   REMOVE_RELATIONSHIP,
   UserToUser,
 } from '@app/microservices/friend';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { FRIEND_CLIENT } from './friend-client';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { FriendRequestRepository } from './friend-request.repository';
 
 @Injectable()
 export class FriendsService {
   constructor(
     private friendReqRepository: FriendRequestRepository,
-    @Inject(FRIEND_CLIENT) private readonly client: ClientProvider,
+    @InjectAppClient() private readonly client: ClientProvider,
   ) {}
+
+  getFriendReco(userId: number) {
+    return this.client.sendAndReceive<MinimalUserDto[], number>(
+      GET_FRIEND_RECO,
+      userId,
+    );
+  }
 
   async getRequestsBySender(
     senderId: number,

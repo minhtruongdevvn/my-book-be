@@ -19,6 +19,11 @@ import { FriendsService } from './friends.service';
 export class FriendsController {
   constructor(private readonly friendService: FriendsService) {}
 
+  @Get('recommendations')
+  getRecommendations(@GetUser('id') userId: number) {
+    return this.friendService.getFriendReco(userId);
+  }
+
   @Get()
   get(
     @GetUser('id') userId: number,

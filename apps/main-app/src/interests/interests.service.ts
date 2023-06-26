@@ -55,7 +55,7 @@ export class InterestsService {
     await this.usersRepository
       .createQueryBuilder()
       .insert()
-      .into('user_interests')
+      .into('user_interest')
       .values(values)
       .execute();
 
@@ -66,7 +66,7 @@ export class InterestsService {
     await this.usersRepository
       .createQueryBuilder()
       .delete()
-      .from('user_interests')
+      .from('user_interest')
       .where('userId = :userId AND interestId IN (:...interestIds)', {
         userId,
         interestIds,

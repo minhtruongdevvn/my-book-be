@@ -1,6 +1,11 @@
 import { HttpOnlyCookieInterceptor } from '@/utils/interceptors/http-only-cookie.interceptor';
 import { User } from '@app/databases';
 import {
+  ClientProvider,
+  InjectAppClient,
+  USER_CHANGED_EVENT,
+} from '@app/microservices';
+import {
   Body,
   Controller,
   Delete,
@@ -35,7 +40,10 @@ import { AuthUpdateDto } from './dto/auth-update.dto';
   version: '1',
 })
 export class AuthController {
-  constructor(private readonly service: AuthService) {}
+  constructor(
+    private readonly service: AuthService,
+    @InjectAppClient() private readonly client: ClientProvider,
+  ) {}
 
   @UseInterceptors(
     new HttpOnlyCookieInterceptor([['refresh_token', 'refresh']]),
@@ -142,11 +150,13 @@ export class AuthController {
   @Patch('me')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  public update(
+  async update(
     @Request() request,
     @Body() userDto: AuthUpdateDto,
   ): Promise<NullableType<User>> {
-    return this.service.update(request.user, userDto);
+    const user = await this.service.update(request.user, userDto);
+    this.client.emit(USER_CHANGED_EVENT, request.user.id);
+    return user;
   }
 
   @ApiBearerAuth()

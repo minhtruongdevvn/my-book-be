@@ -4,6 +4,11 @@ import { RolesGuard } from '@/roles/roles.guard';
 import { infinityPagination } from '@/utils/infinity-pagination';
 import { User } from '@app/databases';
 import {
+  ClientProvider,
+  InjectAppClient,
+  USER_CHANGED_EVENT,
+} from '@app/microservices';
+import {
   Body,
   Controller,
   DefaultValuePipe,
@@ -36,7 +41,10 @@ import { UsersService } from './users.service';
   version: '1',
 })
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    @InjectAppClient() private readonly client: ClientProvider,
+  ) {}
 
   @SerializeOptions({
     groups: ['admin'],
@@ -83,11 +91,13 @@ export class UsersController {
   })
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  update(
+  async update(
     @Param('id') id: number,
     @Body() updateProfileDto: UpdateUserDto,
   ): Promise<User> {
-    return this.usersService.update(id, updateProfileDto);
+    const user = await this.usersService.update(id, updateProfileDto);
+    this.client.emit(USER_CHANGED_EVENT, id);
+    return user;
   }
 
   @Delete(':id')

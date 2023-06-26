@@ -1,4 +1,5 @@
 import { DatabasesModule } from '@app/databases';
+import { AppClientModules } from '@app/microservices';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -56,6 +57,7 @@ import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter
       imports: [ConfigModule],
       inject: [ConfigService],
     }),
+    AppClientModules.forRoot(),
     UsersModule,
     FilesModule,
     AuthModule,

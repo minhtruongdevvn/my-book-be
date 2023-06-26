@@ -2,19 +2,15 @@
 import { MinimalUserDto } from '@app/common';
 import { User } from '@app/databases';
 import { QueryFilter } from '@app/microservices/friend';
-import {
-  Injectable,
-  OnApplicationShutdown,
-  OnModuleInit,
-} from '@nestjs/common';
-import { RpcException } from '@nestjs/microservices';
+import { RpcControlledException } from '@friend-job/utils/exceptions/rpc-controlled.exception';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IFriendGraphStorage, InjectStorage } from '../friend-graph-storage';
 import { Person } from './person';
 
 @Injectable()
-export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
+export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
   private graph = new Map<number, Person>();
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -36,7 +32,7 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
       });
 
       if (users.length != userQuery.length)
-        throw new RpcException('users not found');
+        throw new RpcControlledException('users not found');
 
       for (const user of users) {
         const add = Person.fromUser(user);
@@ -47,12 +43,12 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
 
   async addRelationship(user1Id: number, user2Id: number) {
     if (user1Id == user2Id)
-      throw new RpcException('cannot add friend with yourself');
+      throw new RpcControlledException('cannot add friend with yourself');
     await this.ensureUser(user1Id, user2Id);
 
     let user1 = this.graph.get(user1Id);
     let user2 = this.graph.get(user2Id);
-    if (!user1 || !user2) throw new RpcException('users not found');
+    if (!user1 || !user2) throw new RpcControlledException('users not found');
 
     user1.friendIds.add(user2Id);
     user2.friendIds.add(user1Id);
@@ -60,6 +56,13 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
 
   hasUser(userId: number) {
     return this.graph.has(userId);
+  }
+
+  getPersonById(id: number) {
+    const person = this.graph.get(id);
+    return person
+      ? { ...person, friendIds: new Set<number>(person.friendIds) }
+      : undefined;
   }
 
   getUserByIds(...userIds: number[]) {
@@ -81,7 +84,7 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
       }),
     );
 
-    if (!user) throw new RpcException('user not found');
+    if (!user) throw new RpcControlledException('user not found');
 
     const oldUser = this.graph.get(userId);
     if (oldUser) user.setFriendIds(oldUser.friendIds);
@@ -92,7 +95,7 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
   removeRelationship(user1Id: number, user2Id: number) {
     const user1 = this.graph.get(user1Id);
     const user2 = this.graph.get(user2Id);
-    if (!user1 || !user2) throw new RpcException('users not found');
+    if (!user1 || !user2) throw new RpcControlledException('users not found');
 
     user1.friendIds.delete(user2Id);
     user2.friendIds.delete(user1Id);
@@ -133,7 +136,7 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
     const result: { userId: number; count: number }[] = [];
 
     for (const peerId of peerIds) {
-      const peer = this.graph.get(userId);
+      const peer = this.graph.get(peerId);
 
       let count = 0;
       if (peer) {
@@ -148,21 +151,26 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
     return result;
   }
 
-  getMutualFriendsOfUser(userId: number, filter?: QueryFilter) {
-    const user = this.getUserOrThrow(userId);
+  getMutualFriendsOfUser(userId: number, filter?: QueryFilter, min?: number) {
+    const user = this.graph.get(userId);
+    if (!user) return [];
     let { skip, take, search } = this.defaultFilter(filter);
 
     const friendOfFriends = new Set<number>();
-    for (const friend of user.friendIds) {
-      friendOfFriends.add(friend);
-      for (const i of user.friendIds) {
+    for (const friendId of user.friendIds) {
+      const friend = this.graph.get(friendId);
+      if (!friend) continue;
+
+      for (const i of friend.friendIds) {
         friendOfFriends.add(i);
       }
     }
+
     friendOfFriends.delete(userId);
 
-    const result: { user: Person; count: number }[] = [];
+    const result: MinimalUserDto[] = [];
     for (const friendId of friendOfFriends) {
+      if (user.friendIds.has(friendId)) continue;
       const friend = this.graph.get(friendId);
 
       if (!friend || !this.includeName(friend, search)) continue;
@@ -177,7 +185,13 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
       for (const i of friend.friendIds) {
         if (user.friendIds.has(i)) count++;
       }
-      result.push({ user: friend, count });
+      if (min && count < min) continue;
+      const { id, firstName, lastName, alias, photoId, photoPath } = friend;
+      const item = new MinimalUserDto(id, firstName, lastName, alias);
+      if (photoId && photoPath) item.photo = { id: photoId, path: photoPath };
+      item.metadata = { mutualFriendCount: count };
+
+      result.push(item);
     }
 
     return result;
@@ -199,7 +213,7 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
 
   private getUserOrThrow(userId: number) {
     const user = this.graph.get(userId);
-    if (!user) throw new RpcException('user not found:' + userId);
+    if (!user) throw new RpcControlledException('user not found:' + userId);
     return user;
   }
 
@@ -218,7 +232,7 @@ export class FriendGraphService implements OnApplicationShutdown, OnModuleInit {
   async onModuleInit() {
     this.graph = await this.storage.load();
   }
-  async onApplicationShutdown() {
+  async onModuleDestroy() {
     await this.storage.save(this.graph);
   }
 }

@@ -1,10 +1,4 @@
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity()
@@ -15,7 +9,9 @@ export class Interest {
   @Column({ unique: true })
   name: string;
 
+  @ManyToMany(() => User)
+  friends: User[];
+
   @ManyToMany(() => User, (user) => user.interests)
-  @JoinTable({ name: 'user_interests' })
   users: User[];
 }

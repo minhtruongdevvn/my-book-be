@@ -9,13 +9,22 @@ import {
   REMOVE_RELATIONSHIP,
   UserToUser,
 } from '@app/microservices/friend';
+import {
+  FRIEND_RECO_QUEUE_KEY,
+  RELATIONSHIP_CHANGED_JOB,
+} from '@friend-job/recommendation/jobs';
+import { InjectQueue } from '@nestjs/bull';
 import { Controller } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
+import { Queue } from 'bull';
 import { FriendGraphService } from './friend-graph.service';
 
 @Controller()
 export class FriendController {
-  constructor(private readonly friendGraphService: FriendGraphService) {}
+  constructor(
+    private readonly friendGraphService: FriendGraphService,
+    @InjectQueue(FRIEND_RECO_QUEUE_KEY) private friendQueue: Queue,
+  ) {}
 
   @MessagePattern(GET_USER)
   getUserByIds(payload: number[]) {
@@ -23,19 +32,21 @@ export class FriendController {
   }
 
   @MessagePattern(ADD_RELATIONSHIP)
-  addRelationship(payload: UserToUser) {
-    return this.friendGraphService.addRelationship(
+  async addRelationship(payload: UserToUser) {
+    await this.friendGraphService.addRelationship(
       payload.user1Id,
       payload.user2Id,
     );
+    await this.friendQueue.add(RELATIONSHIP_CHANGED_JOB, payload);
   }
 
   @MessagePattern(REMOVE_RELATIONSHIP)
-  removeRelationship(payload: UserToUser) {
-    return this.friendGraphService.removeRelationship(
+  async removeRelationship(payload: UserToUser) {
+    this.friendGraphService.removeRelationship(
       payload.user1Id,
       payload.user2Id,
     );
+    await this.friendQueue.add(RELATIONSHIP_CHANGED_JOB, payload);
   }
 
   @EventPattern(USER_CHANGED_EVENT)

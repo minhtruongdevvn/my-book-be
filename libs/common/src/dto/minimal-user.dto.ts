@@ -1,11 +1,12 @@
 import { FileEntity } from '@app/databases';
 
+type Photo = Pick<FileEntity, 'id' | 'path'>;
 export class MinimalUserDto {
   readonly id: number;
   firstName: string | null = null;
   lastName: string | null = null;
   alias: string;
-  photo?: FileEntity | null = undefined;
+  photo?: Photo | null;
   photoId?: string;
   photoPath?: string;
   metadata?: { isActive?: boolean; [key: string]: any };
@@ -21,14 +22,14 @@ export class MinimalUserDto {
     firstName: string | null,
     lastName: string | null,
     alias: string,
-    photo: FileEntity,
+    photo?: Photo | null,
   );
   constructor(
     id: number,
     alias: string,
     firstName: string | null,
     lastName: string | null,
-    photo?: FileEntity,
+    photo?: Photo,
     photoId?: string,
     photoPath?: string,
   ) {
