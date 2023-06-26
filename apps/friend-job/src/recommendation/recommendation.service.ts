@@ -22,6 +22,7 @@ export class RecommendationService implements OnApplicationBootstrap {
   private readonly model: Model<any>;
   minCommonInterest = 25;
   minMutualFriendCount = 7;
+  maxModifiedCount = 5;
   constructor(
     @InjectConnection() private readonly connection: Connection,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -71,9 +72,9 @@ export class RecommendationService implements OnApplicationBootstrap {
     return result[0] ? result[0]['recommendation'] : [];
   }
 
-  async saveRecommendation(userId: number) {
+  async generateRecommendation(userId: number) {
     const user = await this.userRepo.findOneBy({ id: userId });
-    if (!user) return;
+    if (!user) return [];
     const ug = this.friendGraphService.getPersonById(userId);
     const data1 = this.getUsersMutualFriend(userId);
     const data2 = this.excludeAlreadyFriend(
@@ -84,8 +85,20 @@ export class RecommendationService implements OnApplicationBootstrap {
       ])),
     );
 
-    const saveData = this.removeDuplicate(data1, data2);
+    return this.removeDuplicate(data1, data2);
+  }
+
+  async saveRecommendation(userId: number) {
+    const saveData = this.generateRecommendation(userId);
     await this.model.create({ userId, recommendation: saveData });
+  }
+
+  async updateRecommendation(userId: number) {
+    const saveData = this.generateRecommendation(userId);
+    await this.model.updateOne(
+      { userId },
+      { recommendation: saveData, modifiedCount: 0 },
+    );
   }
 
   private getUsersMutualFriend(userId: number) {
@@ -225,13 +238,26 @@ export class RecommendationService implements OnApplicationBootstrap {
     data: MinimalUserDto[],
     type: RecommendationType,
   ) {
+    const { modifiedCount } = await this.model.findOne(
+      { userId },
+      { modifiedCount: 1 },
+    );
+
+    if (modifiedCount && modifiedCount > this.maxModifiedCount) {
+      await this.updateRecommendation(userId);
+      return;
+    }
+
     await this.model.deleteMany({
       'metadata.type': type,
     });
 
     await this.model.updateOne(
       { userId },
-      { $push: { recommendation: { $each: data } } },
+      {
+        $push: { recommendation: { $each: data } },
+        $inc: { modifiedCount: 1 },
+      },
     );
   }
 }
