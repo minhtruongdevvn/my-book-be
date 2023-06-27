@@ -4,6 +4,7 @@ import {
   ClientProvider,
   InjectAppClient,
   USER_CHANGED_EVENT,
+  USER_CREATED_EVENT,
   USER_DELETED_EVENT,
 } from '@app/microservices';
 import {
@@ -104,8 +105,8 @@ export class AuthController {
         '$2:$1',
       );
     }
-
-    return this.service.register(createUserDto);
+    const created = await this.service.register(createUserDto);
+    this.client.emit(USER_CREATED_EVENT, created.id);
   }
 
   @Post('email/confirm')

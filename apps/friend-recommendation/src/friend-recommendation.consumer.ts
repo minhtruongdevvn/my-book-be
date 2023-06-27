@@ -9,6 +9,7 @@ import {
   FRIEND_RECO_QUEUE_KEY,
   INIT_JOB,
   RELATIONSHIP_CHANGED_JOB,
+  USER_CREATED_JOB,
   USER_DELETE_JOB,
   USER_INFO_CHANGED_JOB,
   USER_INTEREST_CHANGED_JOB,
@@ -54,5 +55,10 @@ export class FriendRecommendationConsumer {
   @Process(USER_DELETE_JOB)
   async onUserDeleted(job: Job<number>) {
     await this.recoService.onUserDeleted(job.data);
+  }
+
+  @Process(USER_CREATED_JOB)
+  async onUserCreated(job: Job<number>) {
+    await this.recoService.saveRecommendation(job.data);
   }
 }

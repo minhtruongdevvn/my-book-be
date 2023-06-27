@@ -322,14 +322,16 @@ export class FriendRecommendationService implements OnApplicationBootstrap {
       { modifiedCount: 1 },
     );
 
-    if (modifiedCount && modifiedCount > this.maxModifiedCount) {
+    if (modifiedCount && modifiedCount >= this.maxModifiedCount) {
       await this.updateRecommendation(userId);
       return;
     }
 
-    await this.model.deleteMany({
-      'metadata.type': type,
-    });
+    await this.model.updateMany(
+      { userId },
+      { $pull: { recommendation: { 'metadata.type': type } } },
+      { multi: true },
+    );
 
     await this.model.updateOne(
       { userId },

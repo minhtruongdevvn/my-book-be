@@ -215,13 +215,13 @@ export class AuthService {
     return await this.getCredentialData(user);
   }
 
-  async register(dto: AuthRegisterLoginDto): Promise<void> {
+  async register(dto: AuthRegisterLoginDto): Promise<User> {
     const hash = crypto
       .createHash('sha256')
       .update(randomStringGenerator())
       .digest('hex');
 
-    await this.usersService.create({
+    const created = await this.usersService.create({
       ...dto,
       email: dto.email,
       role: {
@@ -239,6 +239,8 @@ export class AuthService {
         hash,
       },
     });
+
+    return created;
   }
 
   async confirmEmail(hash: string): Promise<void> {

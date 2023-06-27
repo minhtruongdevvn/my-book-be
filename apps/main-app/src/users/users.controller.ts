@@ -7,6 +7,7 @@ import {
   ClientProvider,
   InjectAppClient,
   USER_CHANGED_EVENT,
+  USER_CREATED_EVENT,
   USER_DELETED_EVENT,
 } from '@app/microservices';
 import {
@@ -52,8 +53,10 @@ export class UsersController {
   })
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createProfileDto: CreateUserDto): Promise<User> {
-    return this.usersService.create(createProfileDto);
+  async create(@Body() createProfileDto: CreateUserDto): Promise<User> {
+    const created = await this.usersService.create(createProfileDto);
+    this.client.emit(USER_CREATED_EVENT, created.id);
+    return created;
   }
 
   @SerializeOptions({

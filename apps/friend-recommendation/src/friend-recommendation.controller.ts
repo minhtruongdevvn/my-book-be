@@ -1,5 +1,6 @@
 import {
   USER_CHANGED_EVENT,
+  USER_CREATED_EVENT,
   USER_DELETED_EVENT,
   USER_INTEREST_CHANGED_EVENT,
 } from '@app/microservices';
@@ -16,6 +17,7 @@ import { FriendRecommendationService } from './friend-recommendation.service';
 import {
   FRIEND_RECO_QUEUE_KEY,
   RELATIONSHIP_CHANGED_JOB,
+  USER_CREATED_JOB,
   USER_DELETE_JOB,
   USER_INFO_CHANGED_JOB,
   USER_INTEREST_CHANGED_JOB,
@@ -46,6 +48,11 @@ export class FriendRecommendationController {
   @EventPattern(USER_DELETED_EVENT)
   async syncUserDeleted(payload: number) {
     await this.friendQueue.add(USER_DELETE_JOB, payload, { lifo: false });
+  }
+
+  @EventPattern(USER_CREATED_EVENT)
+  async syncUserCreated(payload: number) {
+    await this.friendQueue.add(USER_CREATED_JOB, payload, { lifo: false });
   }
 
   @MessagePattern(GET_FRIEND_RECO)
