@@ -22,7 +22,7 @@ export class FriendsService {
     @InjectAppClient() private readonly client: ClientProvider,
   ) {}
 
-  getFriendReco(userId: number) {
+  async getFriendReco(userId: number) {
     return this.client.sendAndReceive<MinimalUserDto[], number>(
       GET_FRIEND_RECO,
       userId,

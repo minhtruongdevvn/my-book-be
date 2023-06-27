@@ -1,5 +1,5 @@
+import { Person } from '@app/microservices/friend';
 import * as fs from 'fs';
-import { Person } from '../friend-graph.service/person';
 import { IFriendGraphStorage } from './friend-graph-storage.interface';
 
 type Data = Omit<Person, 'friendIds' | 'internalFriendIds'> & {

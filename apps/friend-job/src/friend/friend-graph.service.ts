@@ -1,13 +1,17 @@
 /* eslint-disable prefer-const */
 import { MinimalUserDto } from '@app/common';
 import { User } from '@app/databases';
-import { QueryFilter } from '@app/microservices/friend';
-import { RpcControlledException } from '@friend-job/utils/exceptions/rpc-controlled.exception';
+import { RpcControlledException } from '@app/microservices';
+import {
+  GetUserMutualFriend,
+  GetUserMutualFriendFromList,
+  Person,
+  QueryFilter,
+} from '@app/microservices/friend';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IFriendGraphStorage, InjectStorage } from '../friend-graph-storage';
-import { Person } from './person';
+import { IFriendGraphStorage, InjectStorage } from './friend-graph-storage';
 
 @Injectable()
 export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
@@ -71,7 +75,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     return this.graph.has(userId);
   }
 
-  getPersonById(id: number) {
+  getUserById(id: number) {
     const person = this.graph.get(id);
     return person
       ? { ...person, friendIds: new Set<number>(person.friendIds) }
@@ -144,8 +148,10 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     );
   }
 
-  getMutualFriendsOfUserWithUsers(userId: number, peerIds: number[]) {
-    const user = this.getUserOrThrow(userId);
+  getMutualFriendsOfUserWithUsers(payload: GetUserMutualFriendFromList) {
+    const { userId, peerIds } = payload;
+    const user = this.graph.get(userId);
+    if (!user) return peerIds.map((e) => ({ userId: e, count: 0 }));
     const result: { userId: number; count: number }[] = [];
 
     for (const peerId of peerIds) {
@@ -164,7 +170,8 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     return result;
   }
 
-  getMutualFriendsOfUser(userId: number, filter?: QueryFilter, min?: number) {
+  getMutualFriendsOfUser(payload: GetUserMutualFriend) {
+    const { userId, filter, min } = payload;
     const user = this.graph.get(userId);
     if (!user) return [];
     let { skip, take, search } = this.defaultFilter(filter);

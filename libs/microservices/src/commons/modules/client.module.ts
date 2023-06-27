@@ -13,10 +13,10 @@ import { ServiceResponse } from '../types';
 const APP_CLIENT_TOKEN = 'app_client_token';
 export const InjectAppClient = () => Inject(APP_CLIENT_TOKEN);
 
-export class AppClientModules {
+export class AppClientModule {
   static forRoot(): DynamicModule {
     return {
-      module: AppClientModules,
+      module: AppClientModule,
       global: true,
       providers: [
         {
@@ -47,6 +47,7 @@ export class ClientProvider {
     const response = await this.lastValueFrom(
       this.client.send<ServiceResponse<TResult>, TInput>(pattern, input),
     );
+
     return response.data as TResult;
   }
 

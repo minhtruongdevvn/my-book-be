@@ -1,4 +1,4 @@
-import { Person } from '../friend-graph.service/person';
+import { Person } from '@app/microservices/friend';
 import { IFriendGraphStorage } from './friend-graph-storage.interface';
 
 export class FriendGraphCloudStorage implements IFriendGraphStorage {

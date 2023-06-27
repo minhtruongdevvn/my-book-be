@@ -1,6 +1,4 @@
 import { User } from '@app/databases';
-import { FRIEND_RECO_QUEUE_KEY } from '@friend-job/recommendation/jobs';
-import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,12 +15,7 @@ import { FriendService } from './friend.service';
 export const FRIEND_GRAPH_KEY = 'friend-graph';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User]),
-    BullModule.registerQueue({
-      name: FRIEND_RECO_QUEUE_KEY,
-    }),
-  ],
+  imports: [TypeOrmModule.forFeature([User])],
   providers: [
     FriendService,
     FriendGraphService,

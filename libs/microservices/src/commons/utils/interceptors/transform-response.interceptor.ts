@@ -1,4 +1,3 @@
-import { ServiceResponse } from '@app/microservices';
 import {
   CallHandler,
   ExecutionContext,
@@ -6,6 +5,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { map, Observable } from 'rxjs';
+import { ServiceResponse } from '../../types';
 
 @Injectable()
 export class TransformResponseInterceptor

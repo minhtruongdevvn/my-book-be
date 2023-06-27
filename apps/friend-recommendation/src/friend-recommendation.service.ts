@@ -1,7 +1,14 @@
 import { MinimalUserDto } from '@app/common';
 import { User } from '@app/databases';
-import { FriendGraphService } from '@friend-job/friend/friend-graph.service';
-import { Person } from '@friend-job/friend/friend-graph.service/person';
+import { ClientProvider, InjectAppClient } from '@app/microservices';
+import {
+  GetUserMutualFriend,
+  GetUserMutualFriendFromList,
+  GET_USER,
+  GET_USER_MUTUAL_FRIEND,
+  GET_USER_MUTUAL_FRIEND_FROM_LIST,
+  Person,
+} from '@app/microservices/friend';
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
@@ -17,18 +24,27 @@ enum RecommendationType {
   commonInterest = 'commonInterest',
 }
 
+type UserGraph = Omit<
+  Person,
+  'internalFriendIds' | 'setFriendIds' | 'friendIds'
+> & {
+  friendIds: number[];
+};
+
 @Injectable()
-export class RecommendationService implements OnApplicationBootstrap {
+export class FriendRecommendationService implements OnApplicationBootstrap {
   private readonly model: Model<any>;
-  minCommonInterest = 25;
-  minMutualFriendCount = 7;
-  maxModifiedCount = 5;
+  readonly minCommonInterest = 25;
+  readonly minMutualFriendCount = 7;
+  readonly maxModifiedCount = 5;
+  readonly maxRecommendationResult = 25;
+
   constructor(
     @InjectConnection() private readonly connection: Connection,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectEntityManager()
     private readonly manager: EntityManager,
-    private readonly friendGraphService: FriendGraphService,
+    @InjectAppClient() private readonly client: ClientProvider,
     @InjectQueue(FRIEND_RECO_QUEUE_KEY) private friendQueue: Queue,
   ) {
     const schema = new Schema({}, { strict: false });
@@ -45,9 +61,9 @@ export class RecommendationService implements OnApplicationBootstrap {
     }
   }
 
-  onUserRelationChange(userId: number) {
+  async onUserRelationChange(userId: number) {
     const type = RecommendationType.mutualCount;
-    const changedData = this.getUsersMutualFriend(userId);
+    const changedData = await this.getUsersMutualFriend(userId);
     return this.onUserChange(userId, changedData, type);
   }
 
@@ -66,10 +82,48 @@ export class RecommendationService implements OnApplicationBootstrap {
 
   async getRecommendation(userId: number): Promise<MinimalUserDto[]> {
     const queryResult = await this.model
-      .aggregate([{ $match: { userId } }, { $sample: { size: 25 } }])
+      .aggregate([
+        { $match: { userId } },
+        {
+          $project: {
+            recommendation: 1,
+            maxStartIndex: {
+              $add: [
+                {
+                  $max: [
+                    {
+                      $subtract: [
+                        { $size: '$recommendation' },
+                        this.maxRecommendationResult,
+                      ],
+                    },
+                    0,
+                  ],
+                },
+                1,
+              ],
+            },
+          },
+        },
+        {
+          $project: {
+            selectedElements: {
+              $slice: [
+                '$recommendation',
+                {
+                  $floor: {
+                    $multiply: ['$maxStartIndex', Math.random()],
+                  },
+                },
+                this.maxRecommendationResult,
+              ],
+            },
+          },
+        },
+      ])
       .exec();
     const recommendedUsers: MinimalUserDto[] = queryResult[0]
-      ? queryResult[0]['recommendation']
+      ? queryResult[0]['selectedElements']
       : [];
 
     const map = new Map<number, MinimalUserDto>();
@@ -84,9 +138,12 @@ export class RecommendationService implements OnApplicationBootstrap {
   async generateRecommendation(userId: number) {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) return [];
-    const ug = this.friendGraphService.getPersonById(userId);
-    const data1 = this.getUsersMutualFriend(userId);
-    const data2 = this.excludeAlreadyFriend(
+    const ug = await this.client.sendAndReceive<UserGraph, number>(
+      GET_USER,
+      userId,
+    );
+    const data1 = await this.getUsersMutualFriend(userId);
+    const data2 = await this.excludeAlreadyFriend(
       ug,
       ...(await Promise.all([
         this.getUsersCommonInterest(userId),
@@ -98,12 +155,12 @@ export class RecommendationService implements OnApplicationBootstrap {
   }
 
   async saveRecommendation(userId: number) {
-    const saveData = this.generateRecommendation(userId);
+    const saveData = await this.generateRecommendation(userId);
     await this.model.create({ userId, recommendation: saveData });
   }
 
   async updateRecommendation(userId: number) {
-    const saveData = this.generateRecommendation(userId);
+    const saveData = await this.generateRecommendation(userId);
     await this.model.updateOne(
       { userId },
       { recommendation: saveData, modifiedCount: 0 },
@@ -114,13 +171,16 @@ export class RecommendationService implements OnApplicationBootstrap {
     return this.model.deleteOne({ userId });
   }
 
-  private getUsersMutualFriend(userId: number) {
+  private async getUsersMutualFriend(userId: number) {
     const take = 50;
-    const userFriends = this.friendGraphService.getMutualFriendsOfUser(
+    const userFriends = await this.client.sendAndReceive<
+      MinimalUserDto[],
+      GetUserMutualFriend
+    >(GET_USER_MUTUAL_FRIEND, {
       userId,
-      { take },
-      this.minMutualFriendCount,
-    );
+      filter: { take },
+      min: this.minMutualFriendCount,
+    });
     for (const uf of userFriends) {
       if (uf.metadata) uf.metadata.type = RecommendationType.mutualCount;
       else uf.metadata = { type: RecommendationType.mutualCount };
@@ -219,23 +279,29 @@ export class RecommendationService implements OnApplicationBootstrap {
     return [...map.values()];
   }
 
-  private excludeAlreadyFriend(
-    userGraph: Omit<Person, 'internalFriendIds' | 'setFriendIds'> | undefined,
+  private async excludeAlreadyFriend(
+    userGraph: UserGraph | undefined,
     ...arrays: MinimalUserDto[][]
   ) {
+    const friendIds = new Set<number>(userGraph?.friendIds);
     const result: MinimalUserDto[] = [];
     for (const arr of arrays) {
       for (const i of arr) {
-        if (userGraph && userGraph.friendIds.has(i.id)) continue;
+        if (friendIds.has(i.id)) continue;
         let mutualFriendCount = 0;
         if (userGraph) {
-          const mutualCount =
-            this.friendGraphService.getMutualFriendsOfUserWithUsers(
-              userGraph.id,
-              [i.id],
-            )[0];
+          const mutualCount = await this.client.sendAndReceive<
+            {
+              userId: number;
+              count: number;
+            }[],
+            GetUserMutualFriendFromList
+          >(GET_USER_MUTUAL_FRIEND_FROM_LIST, {
+            userId: userGraph.id,
+            peerIds: [i.id],
+          });
 
-          mutualFriendCount = mutualCount?.count;
+          mutualFriendCount = mutualCount[0]?.count;
         }
         if (i.metadata) i.metadata.mutualFriendCount = mutualFriendCount;
         else i.metadata = { mutualFriendCount };

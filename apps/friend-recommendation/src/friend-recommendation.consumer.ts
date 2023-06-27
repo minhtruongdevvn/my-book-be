@@ -4,6 +4,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from 'bull';
 import { Repository } from 'typeorm';
+import { FriendRecommendationService } from './friend-recommendation.service';
 import {
   FRIEND_RECO_QUEUE_KEY,
   INIT_JOB,
@@ -12,12 +13,11 @@ import {
   USER_INFO_CHANGED_JOB,
   USER_INTEREST_CHANGED_JOB,
 } from './jobs';
-import { RecommendationService } from './recommendation.service';
 
 @Processor(FRIEND_RECO_QUEUE_KEY)
-export class RecommendationConsumer {
+export class FriendRecommendationConsumer {
   constructor(
-    private readonly recoService: RecommendationService,
+    private readonly recoService: FriendRecommendationService,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
 

@@ -5,6 +5,11 @@ const IS_FRIEND = { friend: 'is_friend' };
 const PREPARE_REQ = { friend: 'prepare_req' };
 const GET_USER = { friend: 'get_user' };
 const GET_FRIEND_RECO = { friend: 'get_friend_reco' };
+const GET_USERS = { friend: 'get_users' };
+const GET_USER_MUTUAL_FRIEND = { friend: 'get_user_mutual_fiend' };
+const GET_USER_MUTUAL_FRIEND_FROM_LIST = {
+  friend: 'get_user_mutual_friend_from_list',
+};
 
 export {
   ADD_RELATIONSHIP,
@@ -14,4 +19,7 @@ export {
   PREPARE_REQ,
   GET_USER,
   GET_FRIEND_RECO,
+  GET_USERS,
+  GET_USER_MUTUAL_FRIEND,
+  GET_USER_MUTUAL_FRIEND_FROM_LIST,
 };

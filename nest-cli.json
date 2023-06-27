@@ -71,6 +71,15 @@
       "compilerOptions": {
         "tsConfigPath": "libs/microservices/tsconfig.lib.json"
       }
+    },
+    "friend-recommendation": {
+      "type": "application",
+      "root": "apps/friend-recommendation",
+      "entryFile": "main",
+      "sourceRoot": "apps/friend-recommendation/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/friend-recommendation/tsconfig.app.json"
+      }
     }
   }
 }

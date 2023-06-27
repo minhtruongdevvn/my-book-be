@@ -1,0 +1,8 @@
+{
+  "name": "friend-recommendation",
+  "version": "0.0.1",
+  "dependencies": {
+    "@nestjs/bull": "^10.0.0",
+    "bull": "^4.10.4"
+  }
+}

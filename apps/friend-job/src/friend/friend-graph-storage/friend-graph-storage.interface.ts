@@ -1,4 +1,4 @@
-import { Person } from '../friend-graph.service/person';
+import { Person } from '@app/microservices/friend';
 
 export interface IFriendGraphStorage {
   save(graph: Map<number, Person>): void | Promise<void>;

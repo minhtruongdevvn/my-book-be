@@ -1,8 +1,8 @@
-import { ServiceResponse } from '@app/microservices';
 import { ArgumentsHost, Catch, RpcExceptionFilter } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import { BaseRpcExceptionFilter } from '@nestjs/microservices/exceptions/base-rpc-exception-filter';
 import { Observable, throwError } from 'rxjs';
+import { ServiceResponse } from '../../types';
 
 @Catch(RpcException)
 export class ExceptionFilter
