@@ -1,4 +1,4 @@
-import { ValidationOptions, registerDecorator } from 'class-validator';
+import { registerDecorator, ValidationOptions } from 'class-validator';
 
 export function IsValidAddress(validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
@@ -45,6 +45,6 @@ export class IsValidAddressProvider implements ValidatorConstraintInterface {
   }
 
   defaultMessage(): string {
-    return 'isValidAddress: make sure follow format province/subProvince';
+    return 'address is not available or not follow format province/subProvince';
   }
 }

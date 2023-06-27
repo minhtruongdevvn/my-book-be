@@ -1,4 +1,4 @@
-import { ValidationOptions, registerDecorator } from 'class-validator';
+import { registerDecorator, ValidationOptions } from 'class-validator';
 
 type SpecialCharacter =
   | '<'
