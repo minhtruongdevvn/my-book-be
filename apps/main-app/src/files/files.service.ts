@@ -1,6 +1,7 @@
 import { AllConfigType } from '@/config/config.type';
+import { ClientError, ClientErrorException } from '@app/common';
 import { FileEntity } from '@app/databases';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,15 +18,10 @@ export class FilesService {
     file: Express.Multer.File | Express.MulterS3.File,
   ): Promise<FileEntity> {
     if (!file) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            file: 'selectFile',
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new ClientErrorException({
+        name: ClientError.InvalidPayload,
+        description: 'invalid file',
+      });
     }
 
     const path = {

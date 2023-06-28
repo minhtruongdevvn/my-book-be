@@ -1,5 +1,5 @@
+import { ClientError, ClientErrorException } from '@app/common';
 import {
-  HttpException,
   HttpStatus,
   ValidationError,
   ValidationPipeOptions,
@@ -10,21 +10,16 @@ const validationOptions: ValidationPipeOptions = {
   whitelist: true,
   errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
   exceptionFactory: (errors: ValidationError[]) => {
-    return new HttpException(
-      {
-        status: HttpStatus.UNPROCESSABLE_ENTITY,
-        errors: errors.reduce(
-          (accumulator, currentValue) => ({
-            ...accumulator,
-            [currentValue.property]: Object.values(
-              currentValue.constraints ?? {},
-            ).join(', '),
-          }),
-          {},
-        ),
-      },
-      HttpStatus.UNPROCESSABLE_ENTITY,
-    );
+    return new ClientErrorException({
+      name: ClientError.InvalidPayload,
+      description: errors.reduce(
+        (prev, curr) => ({
+          ...prev,
+          [curr.property]: Object.values(curr.constraints ?? {}).join(', '),
+        }),
+        {},
+      ),
+    });
   },
 };
 

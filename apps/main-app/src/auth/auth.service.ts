@@ -4,13 +4,9 @@ import { RoleEnum } from '@/roles/roles.enum';
 import { SocialInterface } from '@/social/interfaces/social.interface';
 import { StatusEnum } from '@/statuses/statuses.enum';
 import { UsersService } from '@/users/users.service';
+import { ClientError, ClientErrorException } from '@app/common';
 import { Role, Status, User } from '@app/databases';
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -58,15 +54,10 @@ export class AuthService {
         id: user as number,
       });
       if (queryResult == null) {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            errors: {
-              email: 'notFound',
-            },
-          },
-          HttpStatus.UNPROCESSABLE_ENTITY,
-        );
+        throw new ClientErrorException({
+          name: ClientError.NotFound,
+          description: `user with id: ${user} not found`,
+        });
       }
       user = queryResult;
     }
@@ -111,27 +102,14 @@ export class AuthService {
           user.role.id,
         ))
     ) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            email: 'notFound',
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new ClientErrorException({ name: ClientError.NotFound });
     }
 
     if (user.provider !== AuthProvidersEnum.email) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            email: `needLoginViaProvider:${user.provider}`,
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new ClientErrorException({
+        name: ClientError.UnprocessableEntity,
+        description: `need login via provider: ${user.provider}`,
+      });
     }
 
     const isValidPassword = await bcrypt.compare(
@@ -140,15 +118,7 @@ export class AuthService {
     );
 
     if (!isValidPassword) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            password: 'incorrectPassword',
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new UnauthorizedException('incorrect password');
     }
 
     return await this.getCredentialData(user);
@@ -201,15 +171,10 @@ export class AuthService {
     }
 
     if (!user) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            user: 'userNotFound',
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new ClientErrorException({
+        name: ClientError.NotFound,
+        description: 'user not found',
+      });
     }
 
     return await this.getCredentialData(user);
@@ -249,13 +214,10 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: `notFound`,
-        },
-        HttpStatus.NOT_FOUND,
-      );
+      throw new ClientErrorException({
+        name: ClientError.NotFound,
+        description: 'user not found',
+      });
     }
 
     user.hash = null;
@@ -271,15 +233,10 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            email: 'emailNotExists',
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new ClientErrorException({
+        name: ClientError.NotFound,
+        description: 'email not exists',
+      });
     }
 
     const hash = crypto
@@ -307,15 +264,10 @@ export class AuthService {
     });
 
     if (!forgot) {
-      throw new HttpException(
-        {
-          status: HttpStatus.UNPROCESSABLE_ENTITY,
-          errors: {
-            hash: `notFound`,
-          },
-        },
-        HttpStatus.UNPROCESSABLE_ENTITY,
-      );
+      throw new ClientErrorException({
+        name: ClientError.NotFound,
+        description: 'hash not exist',
+      });
     }
 
     const user = forgot.user;
@@ -342,15 +294,10 @@ export class AuthService {
         });
 
         if (!currentUser) {
-          throw new HttpException(
-            {
-              status: HttpStatus.UNPROCESSABLE_ENTITY,
-              errors: {
-                user: 'userNotFound',
-              },
-            },
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
+          throw new ClientErrorException({
+            name: ClientError.NotFound,
+            description: 'user not found',
+          });
         }
 
         const isValidOldPassword = await bcrypt.compare(
@@ -359,26 +306,16 @@ export class AuthService {
         );
 
         if (!isValidOldPassword) {
-          throw new HttpException(
-            {
-              status: HttpStatus.UNPROCESSABLE_ENTITY,
-              errors: {
-                oldPassword: 'incorrectOldPassword',
-              },
-            },
-            HttpStatus.UNPROCESSABLE_ENTITY,
-          );
+          throw new ClientErrorException({
+            name: ClientError.UnprocessableEntity,
+            description: 'old password is not correct',
+          });
         }
       } else {
-        throw new HttpException(
-          {
-            status: HttpStatus.UNPROCESSABLE_ENTITY,
-            errors: {
-              oldPassword: 'missingOldPassword',
-            },
-          },
-          HttpStatus.UNPROCESSABLE_ENTITY,
-        );
+        throw new ClientErrorException({
+          name: ClientError.InvalidPayload,
+          description: 'missing old password',
+        });
       }
     }
 

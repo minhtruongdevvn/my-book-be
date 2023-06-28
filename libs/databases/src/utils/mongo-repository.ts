@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ClientError, ClientErrorException } from '@app/common';
 import { ObjectId } from 'mongodb';
 import {
   FilterQuery,
@@ -101,7 +101,10 @@ export class MongoRepository<T> implements MongoRepositoryInterface<T> {
   private validateObjectId(filter?: FilterQuery<T>) {
     if (filter && filter['_id']) {
       if (!ObjectId.isValid(filter['_id']))
-        throw new BadRequestException('id is invalid');
+        throw new ClientErrorException({
+          name: ClientError.InvalidPayload,
+          description: 'id is invalid',
+        });
     }
   }
 }

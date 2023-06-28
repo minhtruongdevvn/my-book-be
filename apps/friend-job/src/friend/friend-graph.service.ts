@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { MinimalUserDto } from '@app/common';
+import { ClientError, MinimalUserDto } from '@app/common';
 import { User } from '@app/databases';
 import { RpcControlledException } from '@app/microservices';
 import {
@@ -36,7 +36,10 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
       });
 
       if (users.length != userQuery.length)
-        throw new RpcControlledException('users not found');
+        throw new RpcControlledException({
+          name: ClientError.NotFound,
+          description: 'user not found',
+        });
 
       for (const user of users) {
         const add = Person.fromUser(user);
@@ -47,12 +50,19 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
 
   async addRelationship(user1Id: number, user2Id: number) {
     if (user1Id == user2Id)
-      throw new RpcControlledException('cannot add friend with yourself');
+      throw new RpcControlledException({
+        name: ClientError.InvalidPayload,
+        description: 'cannot add friend with your self',
+      });
     await this.ensureUser(user1Id, user2Id);
 
     let user1 = this.graph.get(user1Id);
     let user2 = this.graph.get(user2Id);
-    if (!user1 || !user2) throw new RpcControlledException('users not found');
+    if (!user1 || !user2)
+      throw new RpcControlledException({
+        name: ClientError.NotFound,
+        description: 'user not found',
+      });
 
     user1.friendIds.add(user2Id);
     user2.friendIds.add(user1Id);
@@ -101,7 +111,11 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
       }),
     );
 
-    if (!user) throw new RpcControlledException('user not found');
+    if (!user)
+      throw new RpcControlledException({
+        name: ClientError.NotFound,
+        description: 'user not found',
+      });
 
     const oldUser = this.graph.get(userId);
     if (oldUser) user.setFriendIds(oldUser.friendIds);
@@ -112,7 +126,11 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
   removeRelationship(user1Id: number, user2Id: number) {
     const user1 = this.graph.get(user1Id);
     const user2 = this.graph.get(user2Id);
-    if (!user1 || !user2) throw new RpcControlledException('users not found');
+    if (!user1 || !user2)
+      throw new RpcControlledException({
+        name: ClientError.NotFound,
+        description: 'user not found',
+      });
 
     user1.friendIds.delete(user2Id);
     user2.friendIds.delete(user1Id);
@@ -233,7 +251,11 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
 
   private getUserOrThrow(userId: number) {
     const user = this.graph.get(userId);
-    if (!user) throw new RpcControlledException('user not found:' + userId);
+    if (!user)
+      throw new RpcControlledException({
+        name: ClientError.NotFound,
+        description: 'user not found:' + userId,
+      });
     return user;
   }
 

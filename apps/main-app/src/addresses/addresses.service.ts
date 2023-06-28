@@ -1,5 +1,6 @@
+import { ClientError, ClientErrorException } from '@app/common';
 import { Address } from '@app/databases';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
 import { AddressRepository } from './addresses.repository';
 import { UpdateAddressDto } from './dto/update-address.dto';
@@ -10,7 +11,12 @@ export class AddressesService {
 
   async add(province: string, subProvince: string) {
     const isExist = await this.isExist(province, subProvince);
-    if (isExist) throw new BadRequestException('address is exist');
+    if (isExist)
+      throw new ClientErrorException({
+        name: ClientError.Existed,
+        description: 'address is exist',
+      });
+
     const address = new Address();
     address.province = province;
     address.subProvince = subProvince;

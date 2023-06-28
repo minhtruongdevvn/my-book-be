@@ -1,4 +1,5 @@
-import { BadRequestException, DynamicModule, Inject } from '@nestjs/common';
+import { ClientErrorException, ClientErrorResponse } from '@app/common';
+import { DynamicModule, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   ClientProxy,
@@ -67,8 +68,8 @@ export class ClientProvider {
     config?: LastValueFromConfig<T>,
   ) {
     source = source.pipe(
-      catchError((err) => {
-        throw new BadRequestException(err);
+      catchError((err: ClientErrorResponse) => {
+        throw new ClientErrorException(err);
       }),
     );
 

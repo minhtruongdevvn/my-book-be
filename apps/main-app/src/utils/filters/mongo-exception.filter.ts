@@ -1,3 +1,4 @@
+import { ClientError, ClientErrorResponse } from '@app/common';
 import {
   ArgumentsHost,
   Catch,
@@ -27,21 +28,17 @@ export class MongoExceptionFilter implements ExceptionFilter {
       console.log(exception);
       httpAdapter.reply(
         ctx.getResponse(),
-        {
-          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: 'Internal server error',
-        },
+        undefined,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
 
       return;
     }
 
-    const response = {
-      error: 'DB_CONSTRAINT',
-      statusCode: HttpStatus.BAD_REQUEST,
-      errorCode,
+    const response: ClientErrorResponse = {
+      name: ClientError.UnprocessableEntity,
+      description: errorCode,
     };
-    httpAdapter.reply(ctx.getResponse(), response, response.statusCode);
+    httpAdapter.reply(ctx.getResponse(), response, HttpStatus.BAD_REQUEST);
   }
 }

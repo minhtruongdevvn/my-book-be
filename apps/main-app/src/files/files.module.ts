@@ -1,7 +1,8 @@
 import { AllConfigType } from '@/config/config.type';
+import { ClientError, ClientErrorException } from '@app/common';
 import { FileEntity } from '@app/databases';
 import { S3Client } from '@aws-sdk/client-s3';
-import { HttpException, HttpStatus, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MulterModule } from '@nestjs/platform-express';
@@ -70,15 +71,10 @@ import { FilesService } from './files.service';
           fileFilter: (request, file, callback) => {
             if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
               return callback(
-                new HttpException(
-                  {
-                    status: HttpStatus.UNPROCESSABLE_ENTITY,
-                    errors: {
-                      file: `cantUploadFileType`,
-                    },
-                  },
-                  HttpStatus.UNPROCESSABLE_ENTITY,
-                ),
+                new ClientErrorException({
+                  name: ClientError.InvalidPayload,
+                  description: 'invalid file type',
+                }),
                 false,
               );
             }

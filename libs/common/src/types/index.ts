@@ -1,1 +1,1 @@
-export * from './error-response.type';
+export * from './client-error-response.type';

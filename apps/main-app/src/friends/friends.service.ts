@@ -1,4 +1,4 @@
-import { MinimalUserDto } from '@app/common';
+import { ClientError, ClientErrorException, MinimalUserDto } from '@app/common';
 import { FriendRequest } from '@app/databases';
 import { ClientProvider, InjectAppClient } from '@app/microservices';
 import {
@@ -12,7 +12,7 @@ import {
   REMOVE_RELATIONSHIP,
   UserToUser,
 } from '@app/microservices/friend';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FriendRequestRepository } from './friend-request.repository';
 
 @Injectable()
@@ -77,9 +77,15 @@ export class FriendsService {
 
   async createRequest(senderId: number, recipientId: number) {
     if (senderId == recipientId)
-      throw new BadRequestException('you cannot add friend with yourself');
+      throw new ClientErrorException({
+        name: ClientError.InvalidPayload,
+        description: 'you cannot add friend with yourself',
+      });
     if (await this.isReqExist(recipientId, senderId)) {
-      throw new BadRequestException('request has been created');
+      throw new ClientErrorException({
+        name: ClientError.Existed,
+        description: 'request has been created',
+      });
     }
 
     const isFriend = await this.client.sendAndReceive<boolean, UserToUser>(
@@ -90,7 +96,10 @@ export class FriendsService {
       },
     );
     if (isFriend) {
-      throw new BadRequestException('already friend');
+      throw new ClientErrorException({
+        name: ClientError.Existed,
+        description: 'relationship existed',
+      });
     }
 
     const friendReq = new FriendRequest();
@@ -110,7 +119,10 @@ export class FriendsService {
 
   async cancelRequest(user1Id: number, user2Id: number) {
     if (!(await this.isReqExist(user1Id, user2Id))) {
-      throw new BadRequestException('request not found');
+      throw new ClientErrorException({
+        name: ClientError.NotFound,
+        description: 'request not found',
+      });
     }
 
     return await this.friendReqRepository.deleteOne({
@@ -128,7 +140,10 @@ export class FriendsService {
     });
 
     if (!friendRequest) {
-      throw new BadRequestException('request not found');
+      throw new ClientErrorException({
+        name: ClientError.NotFound,
+        description: 'request not found',
+      });
     }
 
     await this.client.sendWithoutReceive<UserToUser>(ADD_RELATIONSHIP, {

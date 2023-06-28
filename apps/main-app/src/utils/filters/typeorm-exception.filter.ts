@@ -1,3 +1,4 @@
+import { ClientError, ClientErrorResponse } from '@app/common';
 import {
   ArgumentsHost,
   Catch,
@@ -19,12 +20,11 @@ export class TypeORMExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     let message = exception['detail'];
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    console.log(exception);
     switch (exception.constructor) {
       case QueryFailedError:
       case EntityNotFoundError:
       case CannotCreateEntityIdMapError:
-        status = HttpStatus.UNPROCESSABLE_ENTITY;
+        status = HttpStatus.BAD_REQUEST;
         message =
           exception['detail']?.replace(/table|"\w+"|[. ]$|\(|\)/g, '').trim() ??
           '';
@@ -33,9 +33,17 @@ export class TypeORMExceptionFilter implements ExceptionFilter {
         status = HttpStatus.INTERNAL_SERVER_ERROR;
     }
 
-    response.status(status).json({
-      statusCode: status,
-      message,
-    });
+    if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+      console.log(exception);
+      response.status(status);
+      return;
+    }
+
+    const errResponse: ClientErrorResponse = {
+      name: ClientError.UnprocessableEntity,
+      description: message,
+    };
+
+    response.status(status).json(errResponse);
   }
 }

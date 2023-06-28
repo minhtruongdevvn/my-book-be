@@ -1,9 +1,6 @@
-import { ErrorResponse } from '@app/common';
+import { ClientErrorResponse } from '@app/common';
 
-export type ServiceResponse<
-  TData = any,
-  TError extends ErrorResponse = ErrorResponse,
-> = {
+export type ServiceResponse<TData = any> = {
   data?: TData;
-  error?: TError;
+  error?: ClientErrorResponse;
 };

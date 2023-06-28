@@ -16,7 +16,7 @@ export class ExceptionFilter
     }
 
     const response: ServiceResponse = {
-      error: { message: err['error'] },
+      error: err['error'],
     };
     return throwError(() => response);
   }
