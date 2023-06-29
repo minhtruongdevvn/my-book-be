@@ -4,20 +4,24 @@ import { BaseRpcExceptionFilter } from '@nestjs/microservices/exceptions/base-rp
 import { Observable, throwError } from 'rxjs';
 import { ServiceResponse } from '../../types';
 
-@Catch(RpcException)
+@Catch()
 export class ExceptionFilter
   extends BaseRpcExceptionFilter
   implements RpcExceptionFilter<RpcException>
 {
-  catch(exception: RpcException, host: ArgumentsHost): Observable<any> {
-    const err = exception.getError();
-    if (!err['controlled']) {
-      return super.catch(exception, host);
+  catch(exception: any, host: ArgumentsHost): Observable<any> {
+    if (exception instanceof RpcException) {
+      const err = exception.getError();
+      if (!err['controlled']) {
+        return super.catch(exception, host);
+      }
+
+      const response: ServiceResponse = {
+        error: err['error'],
+      };
+      return throwError(() => response);
     }
 
-    const response: ServiceResponse = {
-      error: err['error'],
-    };
-    return throwError(() => response);
+    return super.catch(exception, host);
   }
 }

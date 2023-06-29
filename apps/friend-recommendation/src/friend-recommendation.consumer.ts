@@ -1,6 +1,6 @@
 import { User } from '@app/databases';
 import { UserToUser } from '@app/microservices/friend';
-import { Process, Processor } from '@nestjs/bull';
+import { OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from 'bull';
 import { Repository } from 'typeorm';
@@ -23,6 +23,14 @@ export class FriendRecommendationConsumer {
     private readonly processor: FriendRecommendationProcessor,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
+
+  // error handler
+  // only local since there only 1 processor
+  @OnQueueFailed()
+  onJobFailed(job: Job, error: Error) {
+    console.log(`An error occurs when processing job: ${job.name}\n`);
+    console.log(error);
+  }
 
   @Process(INIT_JOB)
   async init() {

@@ -6,7 +6,7 @@ import {
   GetFriend,
   GET_FRIEND,
   GET_FRIEND_RECO,
-  GET_USER,
+  GET_USERS,
   IS_FRIEND,
   PREPARE_REQ,
   REMOVE_RELATIONSHIP,
@@ -185,7 +185,7 @@ export class FriendsService {
     return new Map<number, MinimalUserDto>(
       (
         await this.client.sendAndReceive<MinimalUserDto[], number[]>(
-          GET_USER,
+          GET_USERS,
           userIds,
         )
       ).map((e) => [e.id, e]),

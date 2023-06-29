@@ -1,5 +1,9 @@
-import { ClientErrorException, ClientErrorResponse } from '@app/common';
-import { DynamicModule, Inject } from '@nestjs/common';
+import { ClientError, ClientErrorException } from '@app/common';
+import {
+  DynamicModule,
+  Inject,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   ClientProxy,
@@ -68,8 +72,12 @@ export class ClientProvider {
     config?: LastValueFromConfig<T>,
   ) {
     source = source.pipe(
-      catchError((err: ClientErrorResponse) => {
-        throw new ClientErrorException(err);
+      catchError((err: ServiceResponse & { status?: string }) => {
+        if (err.status && err.status === 'error')
+          throw new InternalServerErrorException();
+        throw new ClientErrorException(
+          err.error ?? { name: ClientError.UnprocessableEntity },
+        );
       }),
     );
 
