@@ -12,6 +12,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Response as ResponseType } from 'express';
+import * as path from 'path';
 import { FilesService } from './files.service';
 
 @ApiTags('Files')
@@ -45,7 +46,8 @@ export class FilesController {
   }
 
   @Get(':path')
-  download(@Param('path') path: string, @Response() response: ResponseType) {
-    return response.sendFile(path, { root: './files' });
+  download(@Param('path') id: string, @Response() response: ResponseType) {
+    const root = path.join(__dirname, 'file-storage');
+    return response.sendFile(id, { root });
   }
 }

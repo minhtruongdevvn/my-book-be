@@ -24,19 +24,32 @@ export class FilesService {
       });
     }
 
-    const path = {
-      local: `/${this.configService.get('app.apiPrefix', { infer: true })}/v1/${
-        file.path
-      }`,
-      s3: (file as Express.MulterS3.File).location,
-    };
-
     return this.fileRepository.save(
       this.fileRepository.create({
-        path: path[
-          this.configService.getOrThrow('file.driver', { infer: true })
-        ],
+        path: this.generatePath(file),
       }),
     );
+  }
+
+  private generatePath(file: Express.Multer.File | Express.MulterS3.File) {
+    const adapters = {
+      local: () => {
+        const domain = this.configService.getOrThrow('app.backendDomain', {
+          infer: true,
+        });
+        const apiPrefix = this.configService.getOrThrow('app.apiPrefix', {
+          infer: true,
+        });
+
+        return `${domain}/${apiPrefix}/v1/files/${file.filename}`;
+      },
+      s3: () => (file as Express.MulterS3.File).location,
+    };
+
+    const driver = this.configService.getOrThrow('file.driver', {
+      infer: true,
+    });
+
+    return adapters[driver]();
   }
 }

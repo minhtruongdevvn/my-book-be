@@ -12,46 +12,9 @@ export type AppConfig = {
   workerHost: string;
 };
 
-export type AppleConfig = {
-  appAudience: string[];
-};
-
 export type AuthConfig = {
   secret?: string;
   expires?: string;
-};
-
-export type SQLDatabaseConfig = {
-  url?: string;
-  type?: string;
-  host?: string;
-  port?: number;
-  password?: string;
-  name?: string;
-  username?: string;
-  synchronize?: boolean;
-  maxConnections: number;
-  sslEnabled?: boolean;
-  rejectUnauthorized?: boolean;
-  ca?: string;
-  key?: string;
-  cert?: string;
-};
-
-export type NoSQLDatabaseConfig = {
-  name?: string;
-  username?: string;
-  password?: string;
-  host?: string;
-  port?: number;
-  ca?: string;
-  key?: string;
-  cert?: string;
-};
-
-export type FacebookConfig = {
-  appId?: string;
-  appSecret?: string;
 };
 
 export type FileConfig = {
@@ -81,20 +44,10 @@ export type MailConfig = {
   requireTLS: boolean;
 };
 
-export type TwitterConfig = {
-  consumerKey?: string;
-  consumerSecret?: string;
-};
-
 export type AllConfigType = {
   app: AppConfig;
-  apple: AppleConfig;
   auth: AuthConfig;
-  database: SQLDatabaseConfig;
-  helper_database: NoSQLDatabaseConfig;
-  facebook: FacebookConfig;
   file: FileConfig;
   google: GoogleConfig;
   mail: MailConfig;
-  twitter: TwitterConfig;
 };
