@@ -4,7 +4,6 @@ import { Process, Processor } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from 'bull';
 import { Repository } from 'typeorm';
-import { FriendRecommendationService } from './friend-recommendation.service';
 import {
   FRIEND_RECO_QUEUE_KEY,
   INIT_JOB,
@@ -14,11 +13,14 @@ import {
   USER_INFO_CHANGED_JOB,
   USER_INTEREST_CHANGED_JOB,
 } from './jobs';
+import { FriendRecommendationProcessor } from './services/friend-recommendation.processor';
+import { FriendRecommendationService } from './services/friend-recommendation.service';
 
 @Processor(FRIEND_RECO_QUEUE_KEY)
 export class FriendRecommendationConsumer {
   constructor(
     private readonly recoService: FriendRecommendationService,
+    private readonly processor: FriendRecommendationProcessor,
     @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
 
@@ -37,24 +39,24 @@ export class FriendRecommendationConsumer {
   @Process(RELATIONSHIP_CHANGED_JOB)
   onRelationshipChanged(job: Job<UserToUser>) {
     return Promise.all([
-      this.recoService.onUserRelationChange(job.data.user1Id),
-      this.recoService.onUserRelationChange(job.data.user2Id),
+      this.processor.onUserRelationChange(job.data.user1Id),
+      this.processor.onUserRelationChange(job.data.user2Id),
     ]);
   }
 
   @Process(USER_INFO_CHANGED_JOB)
   onUserInfoChanged(job: Job<number>) {
-    return this.recoService.onUserInfoChange(job.data);
+    return this.processor.onUserInfoChange(job.data);
   }
 
   @Process(USER_INTEREST_CHANGED_JOB)
   onUserInterestChanged(job: Job<number>) {
-    return this.recoService.onUserInterestChange(job.data);
+    return this.processor.onUserInterestChange(job.data);
   }
 
   @Process(USER_DELETE_JOB)
   async onUserDeleted(job: Job<number>) {
-    await this.recoService.onUserDeleted(job.data);
+    await this.processor.onUserDeleted(job.data);
   }
 
   @Process(USER_CREATED_JOB)

@@ -8,9 +8,11 @@ import {
   Person,
   QueryFilter,
 } from '@app/microservices/friend';
+import { MutualFriendsOfUserWithUsers } from '@app/microservices/friend/payload-type/mutual-friend-of-user-with-users';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { defaultFilter, includeName } from './friend-graph-service.helper';
 import { IFriendGraphStorage, InjectStorage } from './friend-graph-storage';
 
 @Injectable()
@@ -139,13 +141,13 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
   getFriendsByUserId(user1Id: number, filter?: QueryFilter) {
     const user = this.graph.get(user1Id);
     if (!user) return [];
-    let { skip, take, search } = this.defaultFilter(filter);
+    let { skip, take, search } = defaultFilter(filter);
 
     const result: MinimalUserDto[] = [];
     for (const friendId of user.friendIds) {
       const friend = this.graph.get(friendId);
 
-      if (!friend || !this.includeName(friend, search)) continue;
+      if (!friend || includeName(friend, search)) continue;
       if (skip > 0) {
         skip--;
         continue;
@@ -170,7 +172,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     const { userId, peerIds } = payload;
     const user = this.graph.get(userId);
     if (!user) return peerIds.map((e) => ({ userId: e, count: 0 }));
-    const result: { userId: number; count: number }[] = [];
+    const result: MutualFriendsOfUserWithUsers[] = [];
 
     for (const peerId of peerIds) {
       const peer = this.graph.get(peerId);
@@ -192,7 +194,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     const { userId, filter, min } = payload;
     const user = this.graph.get(userId);
     if (!user) return [];
-    let { skip, take, search } = this.defaultFilter(filter);
+    let { skip, take, search } = defaultFilter(filter);
 
     const friendOfFriends = new Set<number>();
     for (const friendId of user.friendIds) {
@@ -211,7 +213,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
       if (user.friendIds.has(friendId)) continue;
       const friend = this.graph.get(friendId);
 
-      if (!friend || !this.includeName(friend, search)) continue;
+      if (!friend || !includeName(friend, search)) continue;
       if (skip > 0) {
         skip--;
         continue;
@@ -233,42 +235,6 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     }
 
     return result;
-  }
-
-  private defaultFilter(
-    filter?: QueryFilter,
-    defaultQuery?: QueryFilter,
-  ): Required<QueryFilter> {
-    const defaultSkip = 0;
-    const defaultTake = 20;
-
-    return {
-      skip: filter?.skip ?? defaultQuery?.skip ?? defaultSkip,
-      take: filter?.take ?? defaultQuery?.take ?? defaultTake,
-      search: filter?.search ?? defaultQuery?.search ?? '',
-    };
-  }
-
-  private getUserOrThrow(userId: number) {
-    const user = this.graph.get(userId);
-    if (!user)
-      throw new RpcControlledException({
-        name: ClientError.NotFound,
-        description: 'user not found:' + userId,
-      });
-    return user;
-  }
-
-  private includeName(person: Person, search: string) {
-    search = search.toLowerCase();
-    return (
-      person.alias.toLowerCase().includes(search) ||
-      (person.firstName ?? '').toLowerCase().includes(search) ||
-      (person.lastName ?? '').toLowerCase().includes(search) ||
-      `${person.firstName ?? ''} ${person.lastName ?? ''}`
-        .toLowerCase()
-        .includes(search)
-    );
   }
 
   async onModuleInit() {

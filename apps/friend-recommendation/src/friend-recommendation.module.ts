@@ -8,11 +8,20 @@ import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { getConnectionToken } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Connection, Schema } from 'mongoose';
 import { FriendRecommendationConsumer } from './friend-recommendation.consumer';
 import { FriendRecommendationController } from './friend-recommendation.controller';
-import { FriendRecommendationService } from './friend-recommendation.service';
 import { FRIEND_RECO_QUEUE_KEY } from './jobs';
+import {
+  UserCommonInterestProvider,
+  UserMutualFriendProvider,
+  UserProvinceProvider,
+} from './recommendation-data-providers';
+import { FriendRecommendationProcessor } from './services/friend-recommendation.processor';
+import { FriendRecommendationService } from './services/friend-recommendation.service';
+import { RECO_STORAGE_KEY } from './storage-key';
 
 @Module({
   imports: [
@@ -37,10 +46,22 @@ import { FRIEND_RECO_QUEUE_KEY } from './jobs';
   ],
   controllers: [FriendRecommendationController],
   providers: [
+    {
+      provide: RECO_STORAGE_KEY,
+      useFactory: (connection: Connection) => {
+        const schema = new Schema({}, { strict: false });
+        return connection.model(RECO_STORAGE_KEY, schema);
+      },
+      inject: [getConnectionToken()],
+    },
     FriendRecommendationService,
+    FriendRecommendationProcessor,
     FriendRecommendationConsumer,
     { provide: APP_INTERCEPTOR, useClass: TransformResponseInterceptor },
     { provide: APP_FILTER, useClass: ExceptionFilter },
+    UserCommonInterestProvider,
+    UserMutualFriendProvider,
+    UserProvinceProvider,
   ],
 })
 export class FriendRecommendationModule {}

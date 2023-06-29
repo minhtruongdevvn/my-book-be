@@ -10,14 +10,12 @@ import { FriendGraphCloudStorage } from './friend-graph-storage/friend-graph-clo
 import { FriendGraphService } from './friend-graph.service';
 
 import { FriendController } from './friend.controller';
-import { FriendService } from './friend.service';
 
 export const FRIEND_GRAPH_KEY = 'friend-graph';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
   providers: [
-    FriendService,
     FriendGraphService,
     {
       provide: FRIEND_GRAPH_STORAGE,

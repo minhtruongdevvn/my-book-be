@@ -36,7 +36,7 @@ export class User extends EntityHelper {
   password: string;
 
   @Exclude({ toPlainOnly: true })
-  public previousPassword: string;
+  previousPassword?: string;
 
   @AfterLoad()
   public loadPreviousPassword(): void {
@@ -46,7 +46,7 @@ export class User extends EntityHelper {
   @BeforeInsert()
   @BeforeUpdate()
   async setPassword() {
-    if (this.previousPassword !== this.password && this.password) {
+    if (this.password && this.previousPassword !== this.password) {
       const salt = await bcrypt.genSalt();
       this.password = await bcrypt.hash(this.password, salt);
     }

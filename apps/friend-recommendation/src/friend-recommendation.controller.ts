@@ -13,7 +13,6 @@ import { InjectQueue } from '@nestjs/bull';
 import { Controller } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { Queue } from 'bull';
-import { FriendRecommendationService } from './friend-recommendation.service';
 import {
   FRIEND_RECO_QUEUE_KEY,
   RELATIONSHIP_CHANGED_JOB,
@@ -22,6 +21,7 @@ import {
   USER_INFO_CHANGED_JOB,
   USER_INTEREST_CHANGED_JOB,
 } from './jobs';
+import { FriendRecommendationService } from './services/friend-recommendation.service';
 
 @Controller()
 export class FriendRecommendationController {

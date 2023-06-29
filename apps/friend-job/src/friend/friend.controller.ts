@@ -49,6 +49,7 @@ export class FriendController {
   @MessagePattern(GET_USER)
   getUserById(payload: number) {
     const result = this.friendGraphService.getUserById(payload);
+    if (!result) return undefined;
     return { ...result, friendIds: Array.from(result?.friendIds ?? []) };
   }
 
