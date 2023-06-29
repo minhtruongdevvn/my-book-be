@@ -34,7 +34,7 @@ services:
   maildev:
     build:
       context: .
-      dockerfile: maildev.Dockerfile
+      dockerfile: ./docker-files/maildev.Dockerfile
     ports:
       - ${MAIL_CLIENT_PORT}:1080
       - ${MAIL_PORT}:1025
@@ -57,9 +57,37 @@ services:
     volumes:
       - ./.data/db:/var/lib/redisinsight/data
 
-  api:
+  friend-reco:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./docker-files/friend-reco.Dockerfile
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - friend-job
+    command: npm run friend-reco:prod
+
+  friend-job:
+    build:
+      context: .
+      dockerfile: ./docker-files/friend-job.Dockerfile
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+    command: npm run friend-job:prod
+
+  main-app:
+    build:
+      context: .
+      dockerfile: ./docker-files/main.Dockerfile
     ports:
       - ${APP_PORT}:${APP_PORT}
+    depends_on:
+      - friend-job
+      - postgres
+      - mongo
+      - redis
+      - friend-reco
+    command: npm run main:prod
