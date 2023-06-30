@@ -6,6 +6,7 @@ import { UsersModule } from '@/users/users.module';
 //   PairedConversationSchema,
 // } from '@app/databases';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 // import { MongooseModule } from '@nestjs/mongoose';
 
 import { ChatSocketService } from './chat-socket.service';
@@ -22,6 +23,7 @@ import { ConversationGateway } from './gateway';
 @Module({
   imports: [
     UsersModule,
+    ConfigModule.forRoot({ isGlobal: true }),
     // MongooseModule.forFeature([
     //   { name: GroupConversation.name, schema: GroupConversationSchema },
     //   { name: PairedConversation.name, schema: PairedConversationSchema },

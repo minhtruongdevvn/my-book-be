@@ -1,5 +1,10 @@
 {
   "name": "conversation",
   "version": "0.0.1",
-  "dependencies": {}
+  "dependencies": {
+    "@nestjs/platform-socket.io": "^10.0.4",
+    "@nestjs/websockets": "^10.0.4",
+    "@socket.io/redis-adapter": "^8.2.1",
+    "socket.io": "^4.7.1"
+  }
 }

@@ -50,6 +50,11 @@ services:
     ports:
       - 6379:6379
 
+  chat-redis:
+    image: redis:7-alpine
+    ports:
+      - 6380:6379
+
   redisinsight:
     image: redislabs/redisinsight:latest
     ports:
@@ -91,3 +96,16 @@ services:
       - redis
       - friend-reco
     command: npm run main:prod
+
+  conversation:
+    build:
+      context: .
+      dockerfile: ./docker-files/conversation.Dockerfile
+    ports:
+      - ${CHAT_PORT}:${CHAT_PORT}
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - chat-redis
+    command: npm run conversation:prod

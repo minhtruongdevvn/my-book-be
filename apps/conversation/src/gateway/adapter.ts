@@ -1,11 +1,14 @@
+import { verifyJWToken } from '@/conversation/common/utils';
 import { INestApplicationContext } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
 import { IncomingMessage } from 'http';
+import { createClient } from 'redis';
 import { Server, ServerOptions } from 'socket.io';
-import { verifyJWToken } from '@/conversation/common/utils';
 
 export class ChatboxSocketIOAdapter extends IoAdapter {
+  private adapterConstructor: ReturnType<typeof createAdapter>;
   constructor(
     app: INestApplicationContext,
     private readonly configService: ConfigService,
@@ -13,12 +16,22 @@ export class ChatboxSocketIOAdapter extends IoAdapter {
     super(app);
   }
 
+  async connectToRedis(): Promise<void> {
+    const port = this.configService.getOrThrow<number>('CHAT_REDIS_PORT');
+    const host = this.configService.getOrThrow<string>('CHAT_REDIS_HOST');
+
+    const pubClient = createClient({ url: `redis://${host}:${port}` });
+    const subClient = pubClient.duplicate();
+
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+
+    this.adapterConstructor = createAdapter(pubClient, subClient);
+  }
+
   createIOServer(port: number, options?: ServerOptions) {
     const clientPort =
       this.configService.getOrThrow<string>('app.frontendDomain');
-    const cors = {
-      origin: [clientPort],
-    };
+    const cors = { origin: [clientPort] };
     const chatboxOption: Partial<ServerOptions> = {
       ...(options ?? {}),
       cors,
@@ -26,6 +39,7 @@ export class ChatboxSocketIOAdapter extends IoAdapter {
     };
 
     const server: Server = super.createIOServer(port, chatboxOption);
+    server.adapter(this.adapterConstructor);
     return server;
   }
 }
