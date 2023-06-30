@@ -1,10 +1,4 @@
 {
   "name": "friend-job",
-  "version": "0.0.1",
-  "dependencies": {
-    "@tensorflow/tfjs": "^4.7.0",
-    "linked-list-typescript": "^1.0.15",
-    "papaparse": "^5.4.1",
-    "queue-typescript": "^1.0.1"
-  }
+  "version": "0.0.1"
 }

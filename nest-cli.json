@@ -84,6 +84,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/friend-recommendation/tsconfig.app.json"
       }
+    },
+    "conversation": {
+      "type": "application",
+      "root": "apps/conversation",
+      "entryFile": "main",
+      "sourceRoot": "apps/conversation/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/conversation/tsconfig.app.json"
+      }
     }
   }
 }
