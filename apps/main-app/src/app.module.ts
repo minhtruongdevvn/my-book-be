@@ -9,7 +9,6 @@ import { I18nModule } from 'nestjs-i18n/dist/i18n.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { AuthGoogleModule } from './auth-google/auth-google.module';
 import { AuthModule } from './auth/auth.module';
-// import { ChatboxesModule } from './chatboxes/chatboxes.module';
 // import { ConversationModule } from './conversation/conversation.module';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
