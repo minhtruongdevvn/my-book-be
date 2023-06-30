@@ -10,14 +10,10 @@ import { Message as MessageEntity } from '@app/databases';
 export declare namespace ChatSocketEmitter {
   namespace User {
     /** User connects to the server successfully. */
-    const CONNECT_SUCCESS = 'user_connect_success';
-    type ConnectSuccess = Util.User.ActiveUserPayload & {
+    const CONNECT = 'user_connect';
+    type Connect = Util.User.ActiveUserPayload & {
       conversation: ConversationDto;
     };
-
-    /** User fails to connect to the server. */
-    const CONNECT_FAILURE = 'user_connect_failure';
-    type ConnectFailure = Util.User.FailurePayload;
 
     /** User joins a conversation. */
     const JOIN_CHAT = 'user_join_chat';
@@ -60,8 +56,7 @@ export declare namespace ChatSocketEmitter {
 
   /** Type that maps event names to their corresponding payload types. */
   type Events = MapEventPayloadActions<{
-    [User.CONNECT_SUCCESS]: User.ConnectSuccess;
-    [User.CONNECT_FAILURE]: User.ConnectFailure;
+    [User.CONNECT]: User.Connect;
 
     [User.JOIN_CHAT]: User.JoinChat;
     [User.LEAVE_CHAT]: User.LeaveChat;

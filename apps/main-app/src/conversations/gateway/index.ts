@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ClassSerializerInterceptor,
-  HttpException,
   InternalServerErrorException,
   UseFilters,
   UseInterceptors,
@@ -50,38 +49,33 @@ export class ConversationGateway
   afterInit = (server: Namespace) => this.socketService.setServer(server);
 
   async handleConnection(client: ChatSocket) {
-    try {
-      const userId = getIdByJWToken(client.handshake.headers.authorization);
-      client.data.userId = userId;
+    const userId = getIdByJWToken(client.handshake.headers.authorization);
+    client.data.userId = userId;
 
-      const { conversationId } = this.#strictExtractSocketHandShakeQuery(
-        client.handshake.query,
-      );
+    const { conversationId } = this.#strictExtractSocketHandShakeQuery(
+      client.handshake.query,
+    );
 
-      const convo = await this.socketService.getConversationById(
-        conversationId,
-        userId,
-      );
+    const convo = await this.socketService.getConversationById(
+      conversationId,
+      userId,
+    );
 
-      // Disconnect when socket client is invalid
-      if (!convo || !userId) {
-        client.disconnect(true);
-        return;
-      }
-
-      await client.join(convo.id);
-
-      const activeUserIds = this.socketService.getActiveUserIdsById(convo.id);
-
-      client.broadcast.emit(Emitter.User.JOIN_CHAT, { id: userId });
-      client.emit(Emitter.User.CONNECT_SUCCESS, {
-        conversation: convo,
-        activeUserIds,
-      });
-    } catch (error) {
-      const msg = error instanceof HttpException ? error.message : undefined;
-      client.emit(Emitter.User.CONNECT_FAILURE, { message: msg });
+    // Disconnect when socket client is invalid
+    if (!convo || !userId) {
+      client.disconnect(true);
+      return;
     }
+
+    await client.join(convo.id);
+
+    const activeUserIds = this.socketService.getActiveUserIdsById(convo.id);
+
+    client.broadcast.emit(Emitter.User.JOIN_CHAT, { id: userId });
+    client.emit(Emitter.User.CONNECT, {
+      conversation: convo,
+      activeUserIds,
+    });
   }
 
   handleDisconnect(client: ChatSocket) {
