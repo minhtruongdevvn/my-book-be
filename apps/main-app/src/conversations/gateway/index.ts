@@ -97,26 +97,17 @@ export class ConversationGateway
     const { userId } = client.data;
     const convoId = client.id;
 
-    try {
-      this.#validateUserSocket(userId);
+    this.#validateUserSocket(userId);
 
-      const response = await this.convoService.addMessage(
-        convoId,
-        userId,
-        payload,
-      );
-      if (!response) throw new BadRequestException('Invalid content!');
+    const response = await this.convoService.addMessage(
+      convoId,
+      userId,
+      payload,
+    );
+    if (!response) throw new BadRequestException('Invalid content!');
 
-      client.emit(Emitter.Message.SEND_SUCCESS, response);
-      client.broadcast.emit(Emitter.Message.RECEIVE, response);
-    } catch (error) {
-      const msg = error instanceof HttpException ? error.message : undefined;
-
-      client.emit(Emitter.Message.SEND_FAILURE, {
-        request: payload,
-        message: msg,
-      });
-    }
+    client.emit(Emitter.Message.SEND_SUCCESS, response);
+    client.broadcast.emit(Emitter.Message.RECEIVE, response);
   }
 
   @SubscribeMessage(Listener.Message.SEEN)
@@ -149,35 +140,26 @@ export class ConversationGateway
     const convoId = client.id;
     const messageId = payload.id;
 
-    try {
-      this.#validateUserSocket(userId);
+    this.#validateUserSocket(userId);
 
-      const success = await this.convoService.updateMessage(
-        convoId,
-        userId,
-        payload,
-      );
-      if (!success) throw new BadRequestException('Invalid message!');
+    const success = await this.convoService.updateMessage(
+      convoId,
+      userId,
+      payload,
+    );
+    if (!success) throw new BadRequestException('Invalid message!');
 
-      const updatedMesage = await this.convoService.getMessageById(
-        userId,
-        messageId,
-      );
-      if (!updatedMesage) {
-        throw new InternalServerErrorException('Something went wrong!');
-      }
-
-      // emits
-      client.emit(Emitter.Message.UPDATE_SUCCESS, updatedMesage);
-      client.broadcast.emit(Emitter.Message.UPDATE_NOTIFY, updatedMesage);
-    } catch (error) {
-      const msg = error instanceof HttpException ? error.message : undefined;
-
-      client.emit(Emitter.Message.UPDATE_FAILURE, {
-        request: payload,
-        message: msg,
-      });
+    const updatedMesage = await this.convoService.getMessageById(
+      userId,
+      messageId,
+    );
+    if (!updatedMesage) {
+      throw new InternalServerErrorException('Something went wrong!');
     }
+
+    // emits
+    client.emit(Emitter.Message.UPDATE_SUCCESS, updatedMesage);
+    client.broadcast.emit(Emitter.Message.UPDATE_NOTIFY, updatedMesage);
   }
 
   @SubscribeMessage(Listener.Message.DELETE)
@@ -189,27 +171,18 @@ export class ConversationGateway
     const convoId = client.id;
     const messageId = payload.id;
 
-    try {
-      this.#validateUserSocket(userId);
+    this.#validateUserSocket(userId);
 
-      const success = await this.convoService.removeMessage(
-        convoId,
-        userId,
-        messageId,
-      );
-      if (!success) throw new BadRequestException('Invalid message!');
+    const success = await this.convoService.removeMessage(
+      convoId,
+      userId,
+      messageId,
+    );
+    if (!success) throw new BadRequestException('Invalid message!');
 
-      // emits
-      client.emit(Emitter.Message.DELETE_SUCCESS, { id: messageId });
-      client.broadcast.emit(Emitter.Message.DELETE_NOTIFY, { id: messageId });
-    } catch (error) {
-      const msg = error instanceof HttpException ? error.message : undefined;
-
-      client.emit(Emitter.Message.DELETE_FAILURE, {
-        request: payload,
-        message: msg,
-      });
-    }
+    // emits
+    client.emit(Emitter.Message.DELETE_SUCCESS, { id: messageId });
+    client.broadcast.emit(Emitter.Message.DELETE_NOTIFY, { id: messageId });
   }
 
   #validateUserSocket(userId: number | undefined): asserts userId is number {

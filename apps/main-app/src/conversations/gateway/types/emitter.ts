@@ -41,17 +41,9 @@ export declare namespace ChatSocketEmitter {
     const SEND_SUCCESS = 'message_send_success';
     type SendSuccess = Util.Message.Payload;
 
-    /** When a message fails to send. */
-    const SEND_FAILURE = 'message_send_failure';
-    type SendFailure = Util.Message.FailurePayload;
-
     /** When a message is successfully updated. */
     const UPDATE_SUCCESS = 'message_update_success';
     type UpdateSuccess = Util.Message.Payload;
-
-    /** When a message fails to update. */
-    const UPDATE_FAILURE = 'message_update_failure';
-    type UpdateFailure = Util.Message.FailurePayload;
 
     /** To notify clients that a message has been updated. */
     const UPDATE_NOTIFY = 'message_update_notify';
@@ -60,10 +52,6 @@ export declare namespace ChatSocketEmitter {
     /** When a message is successfully deleted. */
     const DELETE_SUCCESS = 'message_delete_success';
     type DeleteSuccess = Util.Message.WithKeys<'id'>;
-
-    /** When a message fails to delete. */
-    const DELETE_FAILURE = 'message_delete_failure';
-    type DeleteFailure = Util.Message.FailurePayload;
 
     /** Notify clients that a message has been deleted. */
     const DELETE_NOTIFY = 'message_delete_notify';
@@ -78,19 +66,16 @@ export declare namespace ChatSocketEmitter {
     [User.JOIN_CHAT]: User.JoinChat;
     [User.LEAVE_CHAT]: User.LeaveChat;
 
+    [Message.SEND_SUCCESS]: Message.SendSuccess;
+
     [Message.RECEIVE]: Message.Receive;
     [Message.READ_RECEIPT]: Message.ReadReceipt;
 
     [Message.DELETE_NOTIFY]: Message.DeleteNotify;
     [Message.DELETE_SUCCESS]: Message.DeleteSuccess;
-    [Message.DELETE_FAILURE]: Message.DeleteFailure;
 
     [Message.UPDATE_NOTIFY]: Message.UpdateNotify;
     [Message.UPDATE_SUCCESS]: Message.UpdateSuccess;
-    [Message.UPDATE_FAILURE]: Message.UpdateFailure;
-
-    [Message.SEND_SUCCESS]: Message.SendSuccess;
-    [Message.SEND_FAILURE]: Message.SendFailure;
   }>;
 }
 export default ChatSocketEmitter;
@@ -115,11 +100,5 @@ declare namespace Util {
     type Payload = MessageEntity;
     /** Base picker */
     type WithKeys<T extends keyof Payload> = Pick<Payload, T>;
-
-    /** Expose error with message to the client. */
-    type FailurePayload = {
-      request: Partial<Payload> | object;
-      message?: string;
-    };
   }
 }
