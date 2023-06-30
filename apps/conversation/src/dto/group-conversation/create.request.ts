@@ -12,5 +12,5 @@ export class CreateRequest {
 
   @IsOptional()
   @ApiProperty()
-  memberIds?: number[];
+  participants?: number[];
 }

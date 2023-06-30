@@ -2,13 +2,13 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { Transport } from '@nestjs/microservices';
-import { ConversationModule } from './conversation.module';
-import { ChatboxSocketIOAdapter } from './gateway/adapter';
+import { ConversationsModule } from './conversations.module';
+import { ConversationSocketIOAdapter } from './gateway/adapter';
 
 const logger = new Logger('Conversation');
 
 async function bootstrap() {
-  const app = await NestFactory.create(ConversationModule);
+  const app = await NestFactory.create(ConversationsModule);
   const config = app.get(ConfigService);
 
   app.connectMicroservice({
@@ -19,7 +19,7 @@ async function bootstrap() {
     },
   });
 
-  const chatAdapter = new ChatboxSocketIOAdapter(app, config);
+  const chatAdapter = new ConversationSocketIOAdapter(app, config);
   await chatAdapter.connectToRedis();
   app.useWebSocketAdapter(chatAdapter);
 

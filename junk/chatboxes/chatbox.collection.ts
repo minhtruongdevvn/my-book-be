@@ -1,7 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { BaseCollection } from './base.collection';
-import { ChatboxMessage, ChatboxMessageSchema } from './message.collection';
+import { BaseCollection } from '../../libs/databases/src/collections/base.collection';
+import {
+  ChatboxMessage,
+  ChatboxMessageSchema,
+} from '../../libs/databases/src/collections/message.collection';
 
 export type ChatboxDocument = HydratedDocument<Chatbox>;
 

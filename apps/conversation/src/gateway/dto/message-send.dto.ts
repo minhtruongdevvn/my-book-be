@@ -1,7 +1,6 @@
-import { IsNotEmpty, IsString, IsDate } from 'class-validator';
-import { MessageBaseDto } from './message-base.dto';
+import { IsDate, IsNotEmpty, IsString } from 'class-validator';
 
-export class MessageSendDto extends MessageBaseDto {
+export class MessageSendDto {
   @IsString()
   @IsNotEmpty()
   content: string;

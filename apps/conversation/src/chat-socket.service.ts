@@ -1,38 +1,26 @@
-import { UsersService } from '@/users/users.service';
-import {
-  GroupConversation,
-  PairedConversation,
-  groupConversationFullProjection as groupConvoFullProjection,
-  pairedConversationFullProjection as pairedConvoFullProjection,
-} from '@app/databases';
 import { Injectable } from '@nestjs/common';
 import { ObjectId } from 'mongodb';
 import { Namespace } from 'socket.io';
+
+import { conversationFullProjection as convoFullProjection } from '@app/databases';
+
+import { ConversationsService } from './conversations.service';
+import { ConversationDto } from './dto';
 import { ChatSocketServer } from './gateway/types';
-import {
-  GroupConversationRepository,
-  PairedConversationRepository,
-} from './conversation.repository';
-import {
-  ConversationDto,
-  GroupConversationDto as GroupConvoDto,
-  PairedConversationDto as PairedConvoDto,
-} from './dto';
-import { FilterQuery } from 'mongoose';
+import { UsersService } from './users.service';
 
 @Injectable()
 export class ChatSocketService {
   private server: ChatSocketServer;
 
   constructor(
-    private readonly groupConvoRepo: GroupConversationRepository,
-    private readonly pairedConvoRepo: PairedConversationRepository,
+    private readonly convoService: ConversationsService,
     private readonly usersService: UsersService,
   ) {}
 
   setServer = (server: Namespace) => (this.server = server);
 
-  getActiveUserIdsByConversationId(id: string) {
+  getActiveUserIdsById(id: string) {
     const room = this.server.adapter.rooms?.get(id);
     if (!room) return [];
 
@@ -47,38 +35,21 @@ export class ChatSocketService {
     return Array.from(users);
   }
 
-  countActiveUsersByConversationId(id: string) {
-    return this.getActiveUserIdsByConversationId(id).length;
+  countActiveUsersById(id: string) {
+    return this.getActiveUserIdsById(id).length;
   }
 
-  async getPairedConversationById(convoId: any, userId: number | undefined) {
-    if (!userId || !this.#isValidConvoId(convoId)) return;
+  async getConversationById(id: any, userId: number | undefined) {
+    if (!userId || !this.#isValidConvoId(id)) return;
 
-    const convo = await this.pairedConvoRepo.findOne(
-      {
-        _id: convoId,
-        $and: [{ admin: undefined }],
-        $or: [{ participants: userId }],
-      },
-      { ...pairedConvoFullProjection, messages: { $slice: -10 } },
-    );
+    const convo = await this.convoService.getById(id, userId, undefined, {
+      ...convoFullProjection,
+      messages: { $slice: -10 },
+    });
     if (!convo) return;
 
-    const users = await this.#getUsersFromSocket(convoId, convo.participants);
-    return new PairedConvoDto.Response(convo, users);
-  }
-
-  async getGroupConversationById(convoId: any, userId: number | undefined) {
-    if (!userId || !this.#isValidConvoId(convoId)) return;
-
-    const convo = await this.groupConvoRepo.findOne(
-      { _id: convoId, $or: [{ admin: userId }, { participants: userId }] },
-      { ...groupConvoFullProjection, messages: { $slice: -10 } },
-    );
-    if (!convo) return;
-
-    const users = await this.#getUsersFromSocket(convoId, convo.participants);
-    return new GroupConvoDto.Response(convo, users);
+    const users = await this.#getUsersFromSocket(id, convo.participants);
+    return new ConversationDto(convo, users);
   }
 
   #isValidConvoId(convoId: any): convoId is string {

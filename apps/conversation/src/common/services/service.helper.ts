@@ -2,7 +2,7 @@ import { Conversation, Message, MongoRepository } from '@app/databases';
 import { v4 as uuidv4 } from 'uuid';
 import { BadRequestException } from '@nestjs/common';
 import { FilterQuery, QueryOptions } from 'mongoose';
-import { UpdateMessageDto } from '../../dto';
+import { MessageDto } from '../../dto';
 import { isDate } from 'class-validator';
 
 export class ServiceHelpers<TConvo extends Conversation> {
@@ -77,18 +77,18 @@ export class ServiceHelpers<TConvo extends Conversation> {
 
   updateMessage(
     userId: number,
-    dto: UpdateMessageDto,
+    request: MessageDto.UpdateRequest,
     filter: FilterQuery<TConvo>,
   ) {
     return this.repo.updateOne(
       filter,
       {
         $set: {
-          'messages.$[el].content': dto.content,
+          'messages.$[el].content': request.content,
           'messages.$[el].isEdited': true,
         },
       },
-      { arrayFilters: [{ 'el.from': userId, 'el.id': dto.id }] },
+      { arrayFilters: [{ 'el.from': userId, 'el.id': request.id }] },
     );
   }
 

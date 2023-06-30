@@ -1,5 +1,3 @@
-import { z } from 'zod';
-import validationOptions from '@/utils/validation-options';
 import {
   BadRequestException,
   ClassSerializerInterceptor,
@@ -19,23 +17,24 @@ import {
   SubscribeMessage,
   WebSocketGateway,
 } from '@nestjs/websockets';
+import { ParsedUrlQuery } from 'querystring';
 import { Namespace } from 'socket.io';
-import { getIdByJWToken } from '../common/utils/jwt-token.util';
+import { z } from 'zod';
 
-import { WsExceptionFilter } from './exception.filter';
+import { validationOptions } from '../common/utils';
 
 import { ChatSocketService } from '../chat-socket.service';
-import { GroupConversationService } from '../group-conversations.service';
-import { PairedConversationService } from '../paired-conversations.service';
+import { getIdByJWToken } from '../common/utils/jwt-token.util';
+import { ConversationsService } from '../conversations.service';
+import { WsExceptionFilter } from './exception.filter';
 import {
   ChatSocket,
   ChatSocketEmitter as Emitter,
   ChatSocketListener as Listener,
 } from './types';
-import { ParsedUrlQuery } from 'querystring';
 
 @UseInterceptors(ClassSerializerInterceptor)
-@UsePipes(new ValidationPipe(validationOptions))
+@UsePipes(new ValidationPipe(validationOptions)) // todo: test and change
 @UseFilters(new WsExceptionFilter())
 @WebSocketGateway({
   namespace: 'conversations',
@@ -44,8 +43,7 @@ export class ConversationGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
   constructor(
-    private readonly pairedConvoService: PairedConversationService,
-    private readonly groupConvoService: GroupConversationService,
+    private readonly convoService: ConversationsService,
     private socketService: ChatSocketService,
   ) {}
 
@@ -54,29 +52,30 @@ export class ConversationGateway
   async handleConnection(client: ChatSocket) {
     try {
       const userId = getIdByJWToken(client.handshake.headers.authorization);
+      if (!userId) {
+        client.disconnect(true);
+        return;
+      }
       client.data.userId = userId;
 
-      const { conversationId, isGroup } =
-        this.#strictExtractSocketHandShakeQuery(client.handshake.query);
+      const { conversationId } = this.#strictExtractSocketHandShakeQuery(
+        client.handshake.query,
+      );
 
-      // Get the conversation by ID based on request
-      const getConvoById = isGroup
-        ? this.socketService.getGroupConversationById
-        : this.socketService.getPairedConversationById;
-
-      const convo = await getConvoById(conversationId, userId);
+      const convo = await this.socketService.getConversationById(
+        conversationId,
+        userId,
+      );
 
       // Disconnect when socket client is invalid
-      if (!convo || !userId) {
+      if (!convo) {
         client.disconnect(true);
         return;
       }
 
       await client.join(convo.id);
 
-      const activeUserIds = this.socketService.getActiveUserIdsByConversationId(
-        convo.id,
-      );
+      const activeUserIds = this.socketService.getActiveUserIdsById(convo.id);
 
       client.broadcast.emit(Emitter.User.JOIN_CHAT, { id: userId });
       client.emit(Emitter.User.CONNECT_SUCCESS, {
@@ -85,9 +84,7 @@ export class ConversationGateway
       });
     } catch (error) {
       const msg = error instanceof HttpException ? error.message : undefined;
-      client.emit(Emitter.User.CONNECT_FAILURE, {
-        message: msg,
-      });
+      client.emit(Emitter.User.CONNECT_FAILURE, { message: msg });
     }
   }
 
@@ -107,11 +104,11 @@ export class ConversationGateway
     try {
       this.#validateUserSocket(userId);
 
-      const addMessage = payload.isGroup
-        ? this.groupConvoService.addMessage
-        : this.pairedConvoService.addMessage;
-
-      const response = await addMessage(convoId, userId, payload);
+      const response = await this.convoService.addMessage(
+        convoId,
+        userId,
+        payload,
+      );
       if (!response) throw new BadRequestException('Invalid content!');
 
       client.emit(Emitter.Message.SEND_SUCCESS, response);
@@ -137,11 +134,11 @@ export class ConversationGateway
 
     this.#validateUserSocket(userId);
 
-    const updateMessageSeenLog = payload.isGroup
-      ? this.groupConvoService.updateMessageSeenLog
-      : this.pairedConvoService.updateMessageSeenLog;
-
-    const success = await updateMessageSeenLog(convoId, userId, messageId);
+    const success = await this.convoService.updateMessageSeenLog(
+      convoId,
+      userId,
+      messageId,
+    );
     if (!success) return;
 
     client.broadcast.emit(Emitter.Message.READ_RECEIPT, { id: messageId });
@@ -159,19 +156,17 @@ export class ConversationGateway
     try {
       this.#validateUserSocket(userId);
 
-      const updateMessage = payload.isGroup
-        ? this.groupConvoService.updateMessage
-        : this.pairedConvoService.updateMessage;
-
-      const success = await updateMessage(convoId, userId, payload);
+      const success = await this.convoService.updateMessage(
+        convoId,
+        userId,
+        payload,
+      );
       if (!success) throw new BadRequestException('Invalid message!');
 
-      // retrieve updated message
-      const getMessageById = payload.isGroup
-        ? this.groupConvoService.getMessageById
-        : this.pairedConvoService.getMessageById;
-
-      const updatedMesage = await getMessageById(userId, messageId);
+      const updatedMesage = await this.convoService.getMessageById(
+        userId,
+        messageId,
+      );
       if (!updatedMesage) {
         throw new InternalServerErrorException('Something went wrong!');
       }
@@ -201,11 +196,11 @@ export class ConversationGateway
     try {
       this.#validateUserSocket(userId);
 
-      const deleteMessage = payload.isGroup
-        ? this.groupConvoService.deleteMessage
-        : this.pairedConvoService.deleteMessage;
-
-      const success = await deleteMessage(convoId, userId, messageId);
+      const success = await this.convoService.removeMessage(
+        convoId,
+        userId,
+        messageId,
+      );
       if (!success) throw new BadRequestException('Invalid message!');
 
       // emits
@@ -229,7 +224,6 @@ export class ConversationGateway
   #strictExtractSocketHandShakeQuery(query: ParsedUrlQuery) {
     const expectedBodyZod = z.object({
       conversationId: z.string(),
-      isGroup: z.coerce.boolean(),
     });
 
     const expectedData = expectedBodyZod.deepPartial().safeParse(query);

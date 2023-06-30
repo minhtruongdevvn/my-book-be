@@ -4,7 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 @Injectable()
-export class ConversationRepository extends MongoRepository<Conversation> {
+export class ConversationsRepository extends MongoRepository<Conversation> {
   constructor(
     @InjectModel(Conversation.name)
     model: Model<Conversation>,

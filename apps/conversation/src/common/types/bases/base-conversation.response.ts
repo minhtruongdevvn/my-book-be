@@ -1,11 +1,9 @@
 import { MinimalUserDto } from '@app/common';
-import { BaseConversation, Message, MessageSeenLog } from '@app/databases';
+import { Conversation, Message, MessageSeenLog } from '@app/databases';
 
-export abstract class BaseConversationResponse<
-  TConvo extends BaseConversation,
-> {
-  constructor(convo: TConvo, participants: MinimalUserDto[]) {
-    this.id = convo._id?.toString() ?? '';
+export abstract class BaseConversationResponse {
+  constructor(convo: Conversation, participants: MinimalUserDto[]) {
+    this.id = convo.id ?? '';
     this.participants = participants;
     this.theme = convo.theme;
     this.quickEmoji = convo.quickEmoji;
@@ -14,9 +12,9 @@ export abstract class BaseConversationResponse<
   }
 
   id: string;
-  participants: MinimalUserDto[];
-  messages: Message[];
-  messageSeenLog: MessageSeenLog[];
+  participants?: MinimalUserDto[];
+  messages?: Message[];
+  messageSeenLog?: MessageSeenLog[];
   theme?: string;
   quickEmoji?: string;
 }

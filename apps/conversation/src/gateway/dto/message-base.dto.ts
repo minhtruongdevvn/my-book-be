@@ -1,7 +1,7 @@
-import { IsBoolean, IsMongoId, IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class MessageBaseDto {
-  @IsBoolean()
+  @IsString()
   @IsNotEmpty()
-  isGroup: boolean;
+  id: string;
 }

@@ -1,34 +1,35 @@
 import { Conversation } from '@app/databases';
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, ProjectionType } from 'mongoose';
 
-import { ServiceHelpers } from './common/utils/service.helper';
-import { ConversationRepository } from './conversation.repository';
-import {
-  ConversationDto,
-  ConversationUpsertRequest,
-  CreateMessageDto,
-  UpdateMessageDto,
-} from './dto';
+import { ServiceHelpers } from './common/services/service.helper';
+import { ConversationsRepository } from './conversations.repository';
+import { ConversationDto, ConversationUpsertRequest, MessageDto } from './dto';
 
 @Injectable()
-export class ConversationService {
-  #helper: ServiceHelpers<Conversation>;
-
-  constructor(private repo: ConversationRepository) {
-    this.#helper = new ServiceHelpers(repo);
+export class ConversationsService {
+  constructor(
+    private readonly repo: ConversationsRepository,
+    private readonly helper: ServiceHelpers<Conversation>,
+  ) {
+    this.helper = new ServiceHelpers(repo);
   }
 
-  getById(id: string, userId: number, filter?: FilterQuery<Conversation>) {
+  getById(
+    id: string,
+    userId: number,
+    filter?: FilterQuery<Conversation>,
+    projection?: ProjectionType<Conversation>,
+  ) {
     return this.repo.findOne(
-      this.#useIntakeFilterOrDefault(userId, id, filter),
-      { messages: 0 },
+      this.getOrExtendsDefaultFitler(userId, id, filter),
+      projection ?? { messages: 0 },
     );
   }
 
   getByUserId(userId: number, filter?: FilterQuery<Conversation>) {
-    return this.#helper.getMessageByUserId(
-      this.#useIntakeFilterOrDefault(userId, undefined, filter),
+    return this.helper.getMessageByUserId(
+      this.getOrExtendsDefaultFitler(userId, undefined, filter),
     );
   }
 
@@ -43,9 +44,9 @@ export class ConversationService {
     convo.messages = [];
     convo.messageSeenLog = [];
 
-    await this.repo.create(convo);
+    const createdConvo = await this.repo.create(convo);
 
-    const response = new ConversationDto(convo, []);
+    const convoDto = new ConversationDto(createdConvo, []);
     const successMemberIds: number[] = [];
     const failedMemberIds: number[] = [];
 
@@ -69,7 +70,7 @@ export class ConversationService {
       });
     }
 
-    return response;
+    return { convoDto, successMemberIds, failedMemberIds };
   }
 
   async update(
@@ -78,17 +79,17 @@ export class ConversationService {
     request: ConversationUpsertRequest,
     filter?: FilterQuery<Conversation>,
   ) {
-    await this.#helper.validateConversation(id, userId);
+    await this.helper.validateConversation(id, userId);
 
     await this.repo.updateOne(
-      this.#useIntakeFilterOrDefault(userId, id, filter),
+      this.getOrExtendsDefaultFitler(userId, id, filter),
       { $set: { ...request } },
     );
   }
 
-  async delete(id: string, userId: number, filter?: FilterQuery<Conversation>) {
+  async remove(id: string, userId: number, filter?: FilterQuery<Conversation>) {
     await this.repo.deleteOne(
-      this.#useIntakeFilterOrDefault(userId, id, filter),
+      this.getOrExtendsDefaultFitler(userId, id, filter),
     );
   }
 
@@ -96,14 +97,14 @@ export class ConversationService {
    * Add one participant into the conversation.
    * @remarks Only admin can add participant, currently.
    */
-  async addParticipant(id: string, userId: number, memberId: number) {
-    if (userId == memberId) throw new BadRequestException('self_added');
+  async addParticipant(id: string, userId: number, participantId: number) {
+    if (userId == participantId) throw new BadRequestException('self_added');
 
-    await this.#helper.validateConversation(id, userId);
+    await this.helper.validateConversation(id, userId);
 
     await this.repo.updateOne(
       { _id: id, admin: userId },
-      { $addToSet: { participants: memberId } },
+      { $addToSet: { participants: participantId } },
     );
   }
 
@@ -111,11 +112,11 @@ export class ConversationService {
    * Remove one participant into the conversation.
    * @remarks Only admin can remove participant, currently.
    */
-  async removeParticipant(id: string, userId: number, memberId: number) {
-    await this.#helper.validateConversation(id, userId);
+  async removeParticipant(id: string, userId: number, participantId: number) {
+    await this.helper.validateConversation(id, userId);
     await this.repo.updateOne(
       { _id: id, admin: userId },
-      { $pull: { participants: memberId } },
+      { $pull: { participants: participantId } },
     );
   }
 
@@ -126,7 +127,7 @@ export class ConversationService {
   ) {
     const convo = await this.repo.findOne(
       {
-        ...this.#useIntakeFilterOrDefault(userId, undefined, filter),
+        ...this.getOrExtendsDefaultFitler(userId, undefined, filter),
         'messages.id': messageId,
         'messages.from': userId,
       },
@@ -144,8 +145,8 @@ export class ConversationService {
     endAt: Date,
     filter?: FilterQuery<Conversation>,
   ) {
-    return this.#helper.getMessagesByTimeRange(
-      this.#useIntakeFilterOrDefault(userId, id, filter),
+    return this.helper.getMessagesByTimeRange(
+      this.getOrExtendsDefaultFitler(userId, id, filter),
       startAt,
       endAt,
     );
@@ -158,8 +159,8 @@ export class ConversationService {
     nthFromEnd?: number,
     filter?: FilterQuery<Conversation>,
   ) {
-    return this.#helper.getMessagesByOrder(
-      this.#useIntakeFilterOrDefault(userId, id, filter),
+    return this.helper.getMessagesByOrder(
+      this.getOrExtendsDefaultFitler(userId, id, filter),
       count,
       nthFromEnd,
     );
@@ -168,41 +169,41 @@ export class ConversationService {
   async addMessage(
     id: string,
     userId: number,
-    dto: CreateMessageDto,
+    request: MessageDto.CreateRequest,
     filter?: FilterQuery<Conversation>,
   ) {
-    await this.#helper.validateConversation(id);
-    return this.#helper.addMessage(
-      this.#useIntakeFilterOrDefault(userId, id, filter),
+    await this.helper.validateConversation(id);
+    return this.helper.addMessage(
+      this.getOrExtendsDefaultFitler(userId, id, filter),
       userId,
-      dto.content,
-      dto.at,
+      request.content,
+      request.at,
     );
   }
 
   async updateMessage(
     id: string,
     userId: number,
-    dto: UpdateMessageDto,
+    request: MessageDto.UpdateRequest,
     filter?: FilterQuery<Conversation>,
   ) {
-    await this.#helper.validateConversation(id);
-    return await this.#helper.updateMessage(
+    await this.helper.validateConversation(id);
+    return await this.helper.updateMessage(
       userId,
-      dto,
-      this.#useIntakeFilterOrDefault(userId, id, filter),
+      request,
+      this.getOrExtendsDefaultFitler(userId, id, filter),
     );
   }
 
-  async deleteMessage(
+  async removeMessage(
     id: string,
     userId: number,
     messageId: string,
     filter?: FilterQuery<Conversation>,
   ) {
-    await this.#helper.validateConversation(id);
-    return await this.#helper.deleteMessage(
-      this.#useIntakeFilterOrDefault(userId, id, filter),
+    await this.helper.validateConversation(id);
+    return await this.helper.deleteMessage(
+      this.getOrExtendsDefaultFitler(userId, id, filter),
       { arrayFilters: [{ 'el.id': messageId }] },
     );
   }
@@ -213,15 +214,15 @@ export class ConversationService {
     messageId: string,
     filter?: FilterQuery<Conversation>,
   ) {
-    await this.#helper.validateConversation(id);
-    return await this.#helper.updateMessageSeenLog(
-      this.#useIntakeFilterOrDefault(userId, id, filter),
+    await this.helper.validateConversation(id);
+    return await this.helper.updateMessageSeenLog(
+      this.getOrExtendsDefaultFitler(userId, id, filter),
       userId,
       messageId,
     );
   }
 
-  #useIntakeFilterOrDefault(
+  private getOrExtendsDefaultFitler(
     userId: number,
     id?: string,
     filter?: FilterQuery<Conversation>,

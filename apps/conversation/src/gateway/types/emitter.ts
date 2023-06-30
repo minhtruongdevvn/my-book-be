@@ -1,7 +1,7 @@
-import { MapEventPayloadActions } from '@/conversation/common/types/utils';
-import { ConversationDto } from '@/conversation/dto';
+import { ConversationDto } from '@/conversations/dto';
 import { MinimalUserDto } from '@app/common';
 import { Message as MessageEntity } from '@app/databases';
+import { MapEventPayloadActions } from '../../common/types/utils';
 
 /**
  * Defines constant keys and payload types for events emitted

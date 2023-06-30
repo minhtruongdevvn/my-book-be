@@ -1,6 +1,5 @@
-export * as PairedConversationDto from './pair-conversation-dto';
-export * as GroupConversationDto from './group-conversation-dto';
-export * from './update-message.dto';
-export * from './create-message.dto';
+export * as PairedConversationDto from './pair-conversation';
+export * as GroupConversationDto from './group-conversation';
+export * as MessageDto from './message';
 export * from './conversation.dto';
 export * from './conversation-upsert-request';

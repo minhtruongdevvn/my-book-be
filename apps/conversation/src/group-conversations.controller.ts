@@ -1,4 +1,3 @@
-/* remarks: keep for ref refactor
 import { GetUser } from '@/auth/decorators/get-user.decorator';
 import { UsersService } from '@/users/users.service';
 import { MinimalUserDto } from '@app/common';
@@ -17,12 +16,8 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  CreateMessageDto,
-  GroupConversationDto as Dto,
-  UpdateMessageDto,
-} from './dto';
-import { GroupConversationService } from './group-conversations.service';
+import { GroupConversationDto as Dto, MessageDto } from './dto';
+import { GroupConversationsService } from './group-conversations.service';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -30,13 +25,13 @@ import { GroupConversationService } from './group-conversations.service';
 @Controller({ path: 'group-conversations' })
 export class GroupConversationsController {
   constructor(
-    private readonly convoService: GroupConversationService,
+    private readonly convoService: GroupConversationsService,
     private readonly usersService: UsersService,
   ) {}
 
   @Post()
   create(@Body() dto: Dto.CreateRequest, @GetUser('id') userId: number) {
-    return this.convoService.createGroup(userId, dto);
+    return this.convoService.create(userId, dto);
   }
 
   @Get()
@@ -82,32 +77,32 @@ export class GroupConversationsController {
     @Body() dto: Dto.UpdateRequest,
     @GetUser('id') userId: number,
   ) {
-    return this.convoService.updateGroup(id, userId, dto);
+    return this.convoService.update(id, userId, dto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@Param('id') id: string, @GetUser('id') userId: number) {
-    return this.convoService.removeGroup(id, userId);
+  delete(@Param('id') id: string, @GetUser('id') userId: number) {
+    return this.convoService.remove(id, userId);
   }
 
   @Post(':id/members/:memberId')
-  addMember(
+  addParticipant(
     @Param('id') id: string,
     @Param('memberId') memberId: number,
     @GetUser('id') userId: number,
   ) {
-    return this.convoService.addMember(id, userId, memberId);
+    return this.convoService.addParticipant(id, userId, memberId);
   }
 
   @Delete(':id/members/:memberId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  removeMember(
+  deleteParticipant(
     @Param('id') id: string,
     @Param('memberId') memberId: number,
     @GetUser('id') userId: number,
   ) {
-    return this.convoService.removeMember(id, userId, memberId);
+    return this.convoService.removeParticipant(id, userId, memberId);
   }
 
   @Get(':id/messages')
@@ -124,7 +119,7 @@ export class GroupConversationsController {
   addMessages(
     @GetUser('id') userId: number,
     @Param('id') id: string,
-    @Body() dto: CreateMessageDto,
+    @Body() dto: MessageDto.CreateRequest,
   ) {
     return this.convoService.addMessage(id, userId, dto);
   }
@@ -133,7 +128,7 @@ export class GroupConversationsController {
   updateMessages(
     @GetUser('id') userId: number,
     @Param('id') id: string,
-    @Body() dto: UpdateMessageDto,
+    @Body() dto: MessageDto.UpdateRequest,
   ) {
     return this.convoService.updateMessage(id, userId, dto);
   }
@@ -144,7 +139,6 @@ export class GroupConversationsController {
     @Param('id') id: string,
     @Param('messageId') messageId: string,
   ) {
-    return this.convoService.deleteMessage(id, userId, messageId);
+    return this.convoService.removeMessage(id, userId, messageId);
   }
 }
-*/

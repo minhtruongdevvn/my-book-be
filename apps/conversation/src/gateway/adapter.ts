@@ -1,4 +1,3 @@
-import { verifyJWToken } from '@/conversation/common/utils';
 import { INestApplicationContext } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { IoAdapter } from '@nestjs/platform-socket.io';
@@ -6,8 +5,9 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { IncomingMessage } from 'http';
 import { createClient } from 'redis';
 import { Server, ServerOptions } from 'socket.io';
+import { verifyJWToken } from '../common/utils';
 
-export class ChatboxSocketIOAdapter extends IoAdapter {
+export class ConversationSocketIOAdapter extends IoAdapter {
   private adapterConstructor: ReturnType<typeof createAdapter>;
   constructor(
     app: INestApplicationContext,

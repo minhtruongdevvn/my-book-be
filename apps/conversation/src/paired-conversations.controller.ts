@@ -1,4 +1,3 @@
-/* remarks: keep for ref refactor
 import { GetUser } from '@/auth/decorators/get-user.decorator';
 import { UsersService } from '@/users/users.service';
 import { MinimalUserDto } from '@app/common';
@@ -15,12 +14,9 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  CreateMessageDto,
-  PairedConversationDto,
-  UpdateMessageDto,
-} from './dto';
-import { PairedConversationService } from './paired-conversations.service';
+
+import { PairedConversationsService } from './paired-conversations.service';
+import { MessageDto, PairedConversationDto as Dto } from './dto';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard('jwt'))
@@ -28,7 +24,7 @@ import { PairedConversationService } from './paired-conversations.service';
 @Controller({ path: 'paired-conversations' })
 export class PairedConversationsController {
   constructor(
-    private readonly convoService: PairedConversationService,
+    private readonly convoService: PairedConversationsService,
     private readonly usersService: UsersService,
   ) {}
 
@@ -44,7 +40,7 @@ export class PairedConversationsController {
       convo.participants,
     );
 
-    return new PairedConversationDto.Response(convo, members);
+    return new Dto.Response(convo, members);
   }
 
   @Get()
@@ -66,7 +62,7 @@ export class PairedConversationsController {
         .map((ptId) => users.get(ptId))
         .filter((user): user is MinimalUserDto => !!user);
 
-      return new PairedConversationDto.Response(convo, participants);
+      return new Dto.Response(convo, participants);
     });
 
     return response;
@@ -91,7 +87,7 @@ export class PairedConversationsController {
   addMessages(
     @GetUser('id') userId: number,
     @Param('id') id: string,
-    @Body() dto: CreateMessageDto,
+    @Body() dto: MessageDto.CreateRequest,
   ) {
     return this.convoService.addMessage(id, userId, dto);
   }
@@ -100,7 +96,7 @@ export class PairedConversationsController {
   updateMessages(
     @GetUser('id') userId: number,
     @Param('id') id: string,
-    @Body() dto: UpdateMessageDto,
+    @Body() dto: MessageDto.UpdateRequest,
   ) {
     return this.convoService.updateMessage(id, userId, dto);
   }
@@ -111,7 +107,6 @@ export class PairedConversationsController {
     @Param('id') id: string,
     @Param('messageId') messageId: string,
   ) {
-    return this.convoService.deleteMessage(id, userId, messageId);
+    return this.convoService.removeMessage(id, userId, messageId);
   }
 }
-*/

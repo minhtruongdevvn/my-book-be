@@ -1,10 +1,10 @@
 import { EntityCondition } from '@/utils/types/entity-condition.type';
 import { IPaginationOptions } from '@/utils/types/pagination-options';
+import { MinimalUserDto } from '@app/common';
 import { User } from '@app/databases';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, In, Repository } from 'typeorm';
-import { MinimalUserDto } from '../../../../libs/common/src/dto/minimal-user.dto';
 import { NullableType } from '../utils/types/nullable.type';
 import { CreateUserDto } from './dto/create-user.dto';
 
