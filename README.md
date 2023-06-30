@@ -39,10 +39,11 @@ cp env-example .env
 ```
 
 Delete all comments in .env
+
 Run additional container:
 
 ```bash
-docker compose up -d postgres mongo adminer mongo-express maildev
+docker compose up -d postgres mongo adminer mongo-express maildev redis chat-redis
 ```
 
 ```bash
