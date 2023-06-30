@@ -17,15 +17,16 @@ module.exports = {
   },
   ignorePatterns: ['.eslintrc.js'],
   rules: {
-    '@typescript-eslint/interface-name-prefix': 'off',
-    '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/explicit-function-return-type': 'off',
+    '@typescript-eslint/interface-name-prefix': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
-    'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': ['error'],
-    'require-await': 'off',
-    '@typescript-eslint/require-await': 'error',
+    '@typescript-eslint/no-namespace': 'off',
     '@typescript-eslint/no-floating-promises': 'error',
+    '@typescript-eslint/no-unused-vars': ['error'],
+    '@typescript-eslint/require-await': 'error',
+    'no-unused-vars': 'off',
+    'require-await': 'off',
     'prettier/prettier': [
       'error',
       {

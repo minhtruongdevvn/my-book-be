@@ -1,3 +1,4 @@
+/* remarks: keep for ref refactor
 import { PairedConversation } from '@app/databases';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ServiceHelpers } from './common/utils/service.helper';
@@ -145,3 +146,4 @@ export class PairedConversationService {
     );
   }
 }
+*/

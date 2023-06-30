@@ -1,7 +1,7 @@
 import { MapEventPayloadActions } from '@/conversation/common/types/utils';
 import { ConversationDto } from '@/conversation/dto';
 import { MinimalUserDto } from '@app/common';
-import { Message } from '@app/databases';
+import { Message as MessageEntity } from '@app/databases';
 
 /**
  * Defines constant keys and payload types for events emitted
@@ -112,7 +112,7 @@ declare namespace Util {
 
   namespace Message {
     /** Base */
-    type Payload = Message;
+    type Payload = MessageEntity;
     /** Base picker */
     type WithKeys<T extends keyof Payload> = Pick<Payload, T>;
 

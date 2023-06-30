@@ -1,3 +1,4 @@
+/* remarks: keep for ref refactor
 import { GroupConversation } from '@app/databases';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { ServiceHelpers } from './common/utils/service.helper';
@@ -13,7 +14,6 @@ export class GroupConversationService {
   #helper: ServiceHelpers<GroupConversation>;
 
   constructor(private repo: GroupConversationRepository) {
-    /** todo(refactor): might consider to use injection instead. */
     this.#helper = new ServiceHelpers(repo);
   }
 
@@ -207,3 +207,4 @@ export class GroupConversationService {
     );
   }
 }
+*/
