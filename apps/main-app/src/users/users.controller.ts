@@ -6,9 +6,7 @@ import { User } from '@app/databases';
 import {
   ClientProvider,
   InjectAppClient,
-  USER_CHANGED_EVENT,
-  USER_CREATED_EVENT,
-  USER_DELETED_EVENT,
+  UserEvents,
 } from '@app/microservices';
 import {
   Body,
@@ -55,7 +53,7 @@ export class UsersController {
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() createProfileDto: CreateUserDto): Promise<User> {
     const created = await this.usersService.create(createProfileDto);
-    this.client.emit(USER_CREATED_EVENT, created.id);
+    this.client.emit(UserEvents.CREATED, created.id);
     return created;
   }
 
@@ -100,14 +98,14 @@ export class UsersController {
     @Body() updateProfileDto: UpdateUserDto,
   ): Promise<User> {
     const user = await this.usersService.update(id, updateProfileDto);
-    this.client.emit(USER_CHANGED_EVENT, id);
+    this.client.emit(UserEvents.CHANGED, id);
     return user;
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: number): Promise<void> {
-    this.client.emit(USER_DELETED_EVENT, id);
+    this.client.emit(UserEvents.DELETED, id);
     return this.usersService.softDelete(id);
   }
 }

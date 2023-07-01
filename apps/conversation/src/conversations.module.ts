@@ -4,8 +4,13 @@ import {
   DatabasesModule,
   User,
 } from '@app/databases';
+import {
+  ExceptionFilter,
+  TransformResponseInterceptor,
+} from '@app/microservices';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -41,6 +46,8 @@ import {
     GroupConversationsService,
     PairedConversationsService,
     UsersService,
+    { provide: APP_INTERCEPTOR, useClass: TransformResponseInterceptor },
+    { provide: APP_FILTER, useClass: ExceptionFilter },
   ],
 })
 export class ConversationsModule {}

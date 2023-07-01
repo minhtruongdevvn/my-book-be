@@ -52,7 +52,6 @@ export class ConversationGateway
     }
 
     client.data.userId = userId;
-
     const { conversationId } = this.#strictExtractSocketHandShakeQuery(
       client.handshake.query,
     );

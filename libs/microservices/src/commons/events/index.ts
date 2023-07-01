@@ -1,1 +1,1 @@
-export * from './user';
+export { default as UserEvents } from './user';

@@ -49,7 +49,7 @@ const validateRequest = async (
   allowFunction: (err: string | null | undefined, success: boolean) => void,
 ) => {
   const user = await verifyJWToken(
-    configService.getOrThrow<string>('auth.secret'),
+    configService.getOrThrow<string>('AUTH_JWT_SECRET'),
     request.headers.authorization,
   );
 

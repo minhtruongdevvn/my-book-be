@@ -3,7 +3,7 @@ import { Conversation, Message, MessageSeenLog } from '@app/databases';
 
 export abstract class BaseConversationResponse {
   constructor(convo: Conversation, participants: MinimalUserDto[]) {
-    this.id = convo.id ?? '';
+    this.id = convo._id?.toString() ?? '';
     this.participants = participants;
     this.theme = convo.theme;
     this.quickEmoji = convo.quickEmoji;

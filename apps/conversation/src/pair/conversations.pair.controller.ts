@@ -30,7 +30,6 @@ export class PairedConversationsController {
   async get(payload: number) {
     const convos = await this.convoService.getByUserId(payload);
     if (!convos) return;
-
     const users = new Map<number, MinimalUserDto>();
 
     for (const convo of convos) {

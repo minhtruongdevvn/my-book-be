@@ -1,4 +1,9 @@
-import { Conversation, Message, MongoRepository } from '@app/databases';
+import {
+  Conversation,
+  conversationFullProjection,
+  Message,
+  MongoRepository,
+} from '@app/databases';
 import { BadRequestException } from '@nestjs/common';
 import { isDate } from 'class-validator';
 import { FilterQuery, QueryOptions } from 'mongoose';
@@ -22,7 +27,7 @@ export class ServiceHelpers<TConvo extends Conversation> {
 
   getMessageByUserId(filter: FilterQuery<TConvo>) {
     return this.repo.find(filter, {
-      members: 1,
+      ...conversationFullProjection,
       messages: { $arrayElemAt: ['$messages', -1] },
     });
   }

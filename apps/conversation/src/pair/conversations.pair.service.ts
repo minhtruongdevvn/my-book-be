@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
 
-import { Conversation } from '@app/databases';
+import { Conversation, conversationFullProjection } from '@app/databases';
 
 import { Pair } from '@app/microservices/conversation';
 import { ConversationsRepository } from '../common/conversations.repository';
@@ -23,10 +23,12 @@ export class PairedConversationsService extends BaseSubConversationsService {
     if (user1Id == user2Id) {
       throw new BadRequestException('Users cannot be identical');
     }
-
     let convo = await this.repo.findOne(
-      { participants: { $all: [user1Id, user2Id] }, admin: { $exist: false } },
-      { messages: { $arrayElemAt: ['$messages', -1] } },
+      { participants: { $all: [user1Id, user2Id] }, admin: { $exists: false } },
+      {
+        ...conversationFullProjection,
+        messages: { $arrayElemAt: ['$messages', -1] },
+      },
     );
 
     if (!convo) {
@@ -47,7 +49,7 @@ export class PairedConversationsService extends BaseSubConversationsService {
       ...(filter ?? {}),
       ...(id ? { _id: id } : {}),
       // paired group filter
-      admin: { $exist: false },
+      admin: { $exists: false },
       participants: userId,
     };
   }

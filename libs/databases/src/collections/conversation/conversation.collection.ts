@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { BaseCollection } from '../base.collection';
-import { Message, MessageSchema } from './message.collection';
 import {
   MessageSeenLog,
   MessageSeenLogSchema,
 } from './message-seen-log.collection';
+import { Message, MessageSchema } from './message.collection';
 
 @Schema({
   collection: 'conversation',

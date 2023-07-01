@@ -3,9 +3,7 @@ import { User } from '@app/databases';
 import {
   ClientProvider,
   InjectAppClient,
-  USER_CHANGED_EVENT,
-  USER_CREATED_EVENT,
-  USER_DELETED_EVENT,
+  UserEvents,
 } from '@app/microservices';
 import {
   Body,
@@ -106,7 +104,7 @@ export class AuthController {
       );
     }
     const created = await this.service.register(createUserDto);
-    this.client.emit(USER_CREATED_EVENT, created.id);
+    this.client.emit(UserEvents.CREATED, created.id);
   }
 
   @Post('email/confirm')
@@ -157,7 +155,7 @@ export class AuthController {
     @Body() userDto: AuthUpdateDto,
   ): Promise<NullableType<User>> {
     const user = await this.service.update(request.user, userDto);
-    this.client.emit(USER_CHANGED_EVENT, request.user.id);
+    this.client.emit(UserEvents.CHANGED, request.user.id);
     return user;
   }
 
@@ -166,7 +164,7 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.NO_CONTENT)
   public async delete(@Request() request): Promise<void> {
-    this.client.emit(USER_DELETED_EVENT, request.user.id);
+    this.client.emit(UserEvents.DELETED, request.user.id);
     await this.service.softDelete(request.user);
   }
 }

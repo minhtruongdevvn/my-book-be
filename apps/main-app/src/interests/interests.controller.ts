@@ -6,7 +6,7 @@ import { Interest } from '@app/databases';
 import {
   ClientProvider,
   InjectAppClient,
-  USER_INTEREST_CHANGED_EVENT,
+  UserEvents,
 } from '@app/microservices';
 import {
   Body,
@@ -80,7 +80,7 @@ export class InterestsController {
     @Body() interestIds: number[],
     @GetUser('id') userId: number,
   ) {
-    this.client.emit(USER_INTEREST_CHANGED_EVENT, userId);
+    this.client.emit(UserEvents.INTEREST_CHANGED, userId);
     return this.interestsService.addUserInterests(userId, interestIds);
   }
 
@@ -89,7 +89,7 @@ export class InterestsController {
     @Body() interestIds: number[],
     @GetUser('id') userId: number,
   ) {
-    this.client.emit(USER_INTEREST_CHANGED_EVENT, userId);
+    this.client.emit(UserEvents.INTEREST_CHANGED, userId);
     return this.interestsService.removeUserInterests(userId, interestIds);
   }
 }

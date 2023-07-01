@@ -11,13 +11,16 @@ async function bootstrap() {
   const app = await NestFactory.create(ConversationsModule);
   const config = app.get(ConfigService);
 
-  app.connectMicroservice({
-    transport: Transport.REDIS,
-    options: {
-      host: config.getOrThrow<string>('WORKER_HOST'),
-      port: config.getOrThrow<number>('WORKER_PORT'),
+  app.connectMicroservice(
+    {
+      transport: Transport.REDIS,
+      options: {
+        host: config.getOrThrow<string>('WORKER_HOST'),
+        port: config.getOrThrow<number>('WORKER_PORT'),
+      },
     },
-  });
+    { inheritAppConfig: true },
+  );
 
   const chatAdapter = new ConversationSocketIOAdapter(app, config);
   await chatAdapter.connectToRedis();

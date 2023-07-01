@@ -1,11 +1,8 @@
-const USER_CHANGED_EVENT = 'user_changed';
-const USER_INTEREST_CHANGED_EVENT = 'user_interest_changed';
-const USER_DELETED_EVENT = 'user_deleted';
-const USER_CREATED_EVENT = 'user_created_event';
+const baseKey = 'user';
 
-export {
-  USER_CHANGED_EVENT,
-  USER_INTEREST_CHANGED_EVENT,
-  USER_DELETED_EVENT,
-  USER_CREATED_EVENT,
+export default {
+  CHANGED: `${baseKey}_changed`,
+  INTEREST_CHANGED: `${baseKey}_interest_changed`,
+  DELETED: `${baseKey}_deleted`,
+  CREATED: `${baseKey}_created_event`,
 };

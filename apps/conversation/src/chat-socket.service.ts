@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ObjectId } from 'mongodb';
 import { Namespace } from 'socket.io';
 
 import { conversationFullProjection as convoFullProjection } from '@app/databases';
@@ -40,20 +39,15 @@ export class ChatSocketService {
   }
 
   async getConversationById(id: any, userId: number | undefined) {
-    if (!userId || !this.#isValidConvoId(id)) return;
+    if (!userId || !id) return;
 
     const convo = await this.convoService.getById(id, userId, undefined, {
       ...convoFullProjection,
       messages: { $slice: -10 },
     });
     if (!convo) return;
-
     const users = await this.#getUsersFromSocket(id, convo.participants);
     return new ConversationDto(convo, users);
-  }
-
-  #isValidConvoId(convoId: any): convoId is string {
-    return !convoId || !ObjectId.isValid(convoId);
   }
 
   async #getUsersFromSocket(convoId: string, participants: number[]) {

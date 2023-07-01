@@ -63,7 +63,7 @@ export class GroupConversationsService extends BaseSubConversationsService {
       ...(filter ?? {}),
       ...(id ? { _id: id } : {}),
       // convo group filter
-      admin: { $exist: false },
+      admin: { $exists: false },
       participants: userId,
     };
   }
