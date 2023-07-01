@@ -1,10 +1,10 @@
+import { MapEventPayloadActions } from '../../common/types';
 import {
   MessageDeleteDto,
   MessageSeenDto,
   MessageSendDto,
   MessageUpdateDto,
-} from '@/conversations/gateway/dto';
-import { MapEventPayloadActions } from '../../common/types/utils';
+} from '../dto';
 
 /**
  * Defines constant keys and payload types for events listened to

@@ -1,4 +1,4 @@
-import { GroupConversation } from '@/conversations/types';
+import { GroupConversation } from './group-conversation';
 
 export class CreateResponse {
   constructor(

@@ -3,10 +3,11 @@ import { FilterQuery } from 'mongoose';
 
 import { Conversation } from '@app/databases';
 
+import { Pair } from '@app/microservices/conversation';
 import { ConversationsRepository } from '../common/conversations.repository';
 import { ConversationsService } from '../common/conversations.service';
 import { BaseSubConversationsService } from '../common/services';
-import { PairedConversation } from '../types';
+import { PairedConversation } from './types';
 
 @Injectable()
 export class PairedConversationsService extends BaseSubConversationsService {
@@ -17,7 +18,8 @@ export class PairedConversationsService extends BaseSubConversationsService {
     super(baseService);
   }
 
-  async getOrCreate(user1Id: number, user2Id: number) {
+  async getOrCreate(payload: Pair.Payload.GetOrCreate) {
+    const { user1Id, user2Id } = payload;
     if (user1Id == user2Id) {
       throw new BadRequestException('Users cannot be identical');
     }

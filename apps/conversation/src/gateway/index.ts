@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ClassSerializerInterceptor,
-  HttpException,
   InternalServerErrorException,
   UseFilters,
   UseInterceptors,
@@ -50,42 +49,37 @@ export class ConversationGateway
   afterInit = (server: Namespace) => this.socketService.setServer(server);
 
   async handleConnection(client: ChatSocket) {
-    try {
-      const userId = getIdByJWToken(client.handshake.headers.authorization);
-      if (!userId) {
-        client.disconnect(true);
-        return;
-      }
-      client.data.userId = userId;
-
-      const { conversationId } = this.#strictExtractSocketHandShakeQuery(
-        client.handshake.query,
-      );
-
-      const convo = await this.socketService.getConversationById(
-        conversationId,
-        userId,
-      );
-
-      // Disconnect when socket client is invalid
-      if (!convo) {
-        client.disconnect(true);
-        return;
-      }
-
-      await client.join(convo.id);
-
-      const activeUserIds = this.socketService.getActiveUserIdsById(convo.id);
-
-      client.broadcast.emit(Emitter.User.JOIN_CHAT, { id: userId });
-      client.emit(Emitter.User.CONNECT_SUCCESS, {
-        conversation: convo,
-        activeUserIds,
-      });
-    } catch (error) {
-      const msg = error instanceof HttpException ? error.message : undefined;
-      client.emit(Emitter.User.CONNECT_FAILURE, { message: msg });
+    const userId = getIdByJWToken(client.handshake.headers.authorization);
+    if (!userId) {
+      client.disconnect(true);
+      return;
     }
+
+    client.data.userId = userId;
+
+    const { conversationId } = this.#strictExtractSocketHandShakeQuery(
+      client.handshake.query,
+    );
+
+    const convo = await this.socketService.getConversationById(
+      conversationId,
+      userId,
+    );
+
+    if (!convo) {
+      client.disconnect(true);
+      return;
+    }
+
+    await client.join(convo.id);
+
+    const activeUserIds = this.socketService.getActiveUserIdsById(convo.id);
+
+    client.broadcast.emit(Emitter.User.JOIN_CHAT, { id: userId });
+    client.emit(Emitter.User.CONNECT, {
+      conversation: convo,
+      activeUserIds,
+    });
   }
 
   handleDisconnect(client: ChatSocket) {
@@ -101,26 +95,17 @@ export class ConversationGateway
     const { userId } = client.data;
     const convoId = client.id;
 
-    try {
-      this.#validateUserSocket(userId);
+    this.#validateUserSocket(userId);
 
-      const response = await this.convoService.addMessage(
-        convoId,
-        userId,
-        payload,
-      );
-      if (!response) throw new BadRequestException('Invalid content!');
+    const response = await this.convoService.addMessage(
+      convoId,
+      userId,
+      payload,
+    );
+    if (!response) throw new BadRequestException('Invalid content!');
 
-      client.emit(Emitter.Message.SEND_SUCCESS, response);
-      client.broadcast.emit(Emitter.Message.RECEIVE, response);
-    } catch (error) {
-      const msg = error instanceof HttpException ? error.message : undefined;
-
-      client.emit(Emitter.Message.SEND_FAILURE, {
-        request: payload,
-        message: msg,
-      });
-    }
+    client.emit(Emitter.Message.SEND_SUCCESS, response);
+    client.broadcast.emit(Emitter.Message.RECEIVE, response);
   }
 
   @SubscribeMessage(Listener.Message.SEEN)
@@ -153,35 +138,26 @@ export class ConversationGateway
     const convoId = client.id;
     const messageId = payload.id;
 
-    try {
-      this.#validateUserSocket(userId);
+    this.#validateUserSocket(userId);
 
-      const success = await this.convoService.updateMessage(
-        convoId,
-        userId,
-        payload,
-      );
-      if (!success) throw new BadRequestException('Invalid message!');
+    const success = await this.convoService.updateMessage(
+      convoId,
+      userId,
+      payload,
+    );
+    if (!success) throw new BadRequestException('Invalid message!');
 
-      const updatedMesage = await this.convoService.getMessageById(
-        userId,
-        messageId,
-      );
-      if (!updatedMesage) {
-        throw new InternalServerErrorException('Something went wrong!');
-      }
-
-      // emits
-      client.emit(Emitter.Message.UPDATE_SUCCESS, updatedMesage);
-      client.broadcast.emit(Emitter.Message.UPDATE_NOTIFY, updatedMesage);
-    } catch (error) {
-      const msg = error instanceof HttpException ? error.message : undefined;
-
-      client.emit(Emitter.Message.UPDATE_FAILURE, {
-        request: payload,
-        message: msg,
-      });
+    const updatedMessage = await this.convoService.getMessageById(
+      userId,
+      messageId,
+    );
+    if (!updatedMessage) {
+      throw new InternalServerErrorException('Something went wrong!');
     }
+
+    // emits
+    client.emit(Emitter.Message.UPDATE_SUCCESS, updatedMessage);
+    client.broadcast.emit(Emitter.Message.UPDATE_NOTIFY, updatedMessage);
   }
 
   @SubscribeMessage(Listener.Message.DELETE)
@@ -193,27 +169,18 @@ export class ConversationGateway
     const convoId = client.id;
     const messageId = payload.id;
 
-    try {
-      this.#validateUserSocket(userId);
+    this.#validateUserSocket(userId);
 
-      const success = await this.convoService.removeMessage(
-        convoId,
-        userId,
-        messageId,
-      );
-      if (!success) throw new BadRequestException('Invalid message!');
+    const success = await this.convoService.removeMessage(
+      convoId,
+      userId,
+      messageId,
+    );
+    if (!success) throw new BadRequestException('Invalid message!');
 
-      // emits
-      client.emit(Emitter.Message.DELETE_SUCCESS, { id: messageId });
-      client.broadcast.emit(Emitter.Message.DELETE_NOTIFY, { id: messageId });
-    } catch (error) {
-      const msg = error instanceof HttpException ? error.message : undefined;
-
-      client.emit(Emitter.Message.DELETE_FAILURE, {
-        request: payload,
-        message: msg,
-      });
-    }
+    // emits
+    client.emit(Emitter.Message.DELETE_SUCCESS, { id: messageId });
+    client.broadcast.emit(Emitter.Message.DELETE_NOTIFY, { id: messageId });
   }
 
   #validateUserSocket(userId: number | undefined): asserts userId is number {

@@ -1,3 +1,3 @@
-import { BaseUpdateDto } from '@/conversations/common/types/bases';
+import { BaseUpdateDto } from '../../types';
 
 export class UpdateRequest extends BaseUpdateDto {}

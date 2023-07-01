@@ -1,10 +1,12 @@
 import { Conversation } from '@app/databases';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterQuery, ProjectionType } from 'mongoose';
+import { ConversationDto } from './dto';
 
-import { ConversationDto, ConversationUpsertRequest, MessageDto } from '../dto';
 import { ConversationsRepository } from './conversations.repository';
+import { MessageDto } from './dto';
 import { ServiceHelpers } from './services/service.helper';
+import { ConversationUpsertRequest } from './types';
 
 @Injectable()
 export class ConversationsService {
@@ -53,19 +55,21 @@ export class ConversationsService {
     // remarks: for some reasons, TS cannot understand IF Assertion
     // for class deep object
     const convoId = convo.id;
-    const paritipantIds = request.participants;
+    const participantIds = request.participants;
 
     // Add initial members.
-    if (convoId && paritipantIds) {
+    if (convoId && participantIds) {
       const result = await Promise.allSettled(
-        paritipantIds.map((ptId) => this.addParticipant(convoId, userId, ptId)),
+        participantIds.map((ptId) =>
+          this.addParticipant(convoId, userId, ptId),
+        ),
       );
 
       // Update the response object with the member IDs that were
       // added successfully or failed.
       result.forEach(({ status }, index) => {
         (status === 'fulfilled' ? successMemberIds : failedMemberIds).push(
-          paritipantIds[index],
+          participantIds[index],
         );
       });
     }

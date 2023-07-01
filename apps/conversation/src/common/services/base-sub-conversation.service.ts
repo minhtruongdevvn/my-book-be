@@ -1,8 +1,8 @@
 import { Conversation } from '@app/databases';
 
 import { FilterQuery } from 'mongoose';
-import { MessageDto } from '../../dto';
 import { ConversationsService } from '../conversations.service';
+import { MessageDto } from '../dto';
 
 export abstract class BaseSubConversationsService {
   constructor(protected baseService: ConversationsService) {}

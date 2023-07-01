@@ -1,9 +1,9 @@
 import { Conversation, Message, MongoRepository } from '@app/databases';
-import { v4 as uuidv4 } from 'uuid';
 import { BadRequestException } from '@nestjs/common';
-import { FilterQuery, QueryOptions } from 'mongoose';
-import { MessageDto } from '../../dto';
 import { isDate } from 'class-validator';
+import { FilterQuery, QueryOptions } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
+import { MessageDto } from '../dto';
 
 export class ServiceHelpers<TConvo extends Conversation> {
   constructor(private repo: MongoRepository<TConvo>) {}

@@ -4,8 +4,8 @@ import { Pair } from '@app/microservices/conversation';
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 
-import { PairedConversationDto as Dto } from '../dto';
 import { PairedConversationsService } from './conversations.pair.service';
+import { Response } from './types';
 
 @Controller()
 export class PairedConversationsController {
@@ -16,17 +16,14 @@ export class PairedConversationsController {
 
   @MessagePattern(Pair.Msg.GET_OR_CREATE)
   async getOrCreate(payload: Pair.Payload.GetOrCreate) {
-    const convo = await this.convoService.getOrCreate(
-      payload.user1Id,
-      payload.user2Id,
-    );
+    const convo = await this.convoService.getOrCreate(payload);
     if (!convo) return;
 
     const members = await this.usersService.getUserByRangeId(
       convo.participants,
     );
 
-    return new Dto.Response(convo, members);
+    return new Response(convo, members);
   }
 
   @MessagePattern(Pair.Msg.GET_ALL_BY_USER)
@@ -48,7 +45,7 @@ export class PairedConversationsController {
         .map((ptId) => users.get(ptId))
         .filter((user): user is MinimalUserDto => !!user);
 
-      return new Dto.Response(convo, participants);
+      return new Response(convo, participants);
     });
 
     return response;

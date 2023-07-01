@@ -2,14 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { Conversation } from '@app/databases';
 
+import { ConversationDto, Group } from '@app/microservices/conversation';
 import { FilterQuery } from 'mongoose';
 import { ConversationsService } from '../common/conversations.service';
 import { BaseSubConversationsService } from '../common/services';
-import {
-  ConversationDto,
-  ConversationUpsertRequest,
-  GroupConversationDto as GroupConvoDto,
-} from '../dto';
 
 @Injectable()
 export class GroupConversationsService extends BaseSubConversationsService {
@@ -17,7 +13,8 @@ export class GroupConversationsService extends BaseSubConversationsService {
     super(baseService);
   }
 
-  async create(userId: number, request: ConversationUpsertRequest) {
+  async create(payload: Group.Payload.Create) {
+    const { userId, ...request } = payload;
     const { convoDto, failedMemberIds, successMemberIds } =
       await this.baseService.create(userId, request);
 
@@ -28,29 +25,32 @@ export class GroupConversationsService extends BaseSubConversationsService {
     );
   }
 
-  update(id: string, userId: number, request: GroupConvoDto.UpdateRequest) {
+  update(payload: Group.Payload.Update) {
+    const { convoId, userId, ...request } = payload;
     return this.baseService.update(
-      id,
+      convoId,
       userId,
       request,
-      this.getOrExtendsDefaultFilter(userId, id),
+      this.getOrExtendsDefaultFilter(userId, convoId),
     );
   }
 
-  remove(id: string, userId: number) {
+  remove(payload: Group.Payload.UserIdWithConvoId) {
     return this.baseService.remove(
-      id,
-      userId,
-      this.getOrExtendsDefaultFilter(userId, id),
+      payload.convoId,
+      payload.userId,
+      this.getOrExtendsDefaultFilter(payload.userId, payload.convoId),
     );
   }
 
-  addParticipant(id: string, userId: number, participantId: number) {
-    return this.baseService.addParticipant(id, userId, participantId);
+  addParticipant(payload: Group.Payload.Participant) {
+    const { adminId, convoId, participantId } = payload;
+    return this.baseService.addParticipant(convoId, adminId, participantId);
   }
 
-  removeParticipant(id: string, userId: number, participantId: number) {
-    return this.baseService.addParticipant(id, userId, participantId);
+  removeParticipant(payload: Group.Payload.Participant) {
+    const { adminId, convoId, participantId } = payload;
+    return this.baseService.addParticipant(convoId, adminId, participantId);
   }
 
   protected override getOrExtendsDefaultFilter(

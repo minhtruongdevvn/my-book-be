@@ -3,8 +3,8 @@ import { Group } from '@app/microservices/conversation';
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { UsersService } from '../common/users.service';
-import { GroupConversationDto as Dto } from '../dto';
 import { GroupConversationsService } from './conversations.group.service';
+import { Response } from './types';
 
 @Controller()
 export class GroupConversationsController {
@@ -15,8 +15,7 @@ export class GroupConversationsController {
 
   @MessagePattern(Group.Msg.CREATE)
   create(payload: Group.Payload.Create) {
-    const { userId, ...dto } = payload;
-    return this.convoService.create(userId, dto);
+    return this.convoService.create(payload);
   }
 
   @MessagePattern(Group.Msg.GET_ALL_BY_USER)
@@ -38,7 +37,7 @@ export class GroupConversationsController {
         .map((ptId) => users.get(ptId))
         .filter((user): user is MinimalUserDto => !!user);
 
-      return new Dto.Response(convo, participants);
+      return new Response(convo, participants);
     });
 
     return response;
@@ -56,35 +55,26 @@ export class GroupConversationsController {
       convo.participants,
     );
 
-    return new Dto.Response(convo, members);
+    return new Response(convo, members);
   }
 
   @MessagePattern(Group.Msg.UPDATE)
   update(payload: Group.Payload.Update) {
-    const { convoId, userId, ...dto } = payload;
-    return this.convoService.update(convoId, userId, dto);
+    return this.convoService.update(payload);
   }
 
   @MessagePattern(Group.Msg.DELETE)
   delete(payload: Group.Payload.UserIdWithConvoId) {
-    return this.convoService.remove(payload.convoId, payload.userId);
+    return this.convoService.remove(payload);
   }
 
   @MessagePattern(Group.Msg.ADD_PARTICIPANT)
   addParticipant(payload: Group.Payload.Participant) {
-    return this.convoService.addParticipant(
-      payload.convoId,
-      payload.adminId,
-      payload.participantId,
-    );
+    return this.convoService.addParticipant(payload);
   }
 
   @MessagePattern(Group.Msg.DELETE_PARTICIPANT)
   deleteParticipant(payload: Group.Payload.Participant) {
-    return this.convoService.removeParticipant(
-      payload.convoId,
-      payload.adminId,
-      payload.participantId,
-    );
+    return this.convoService.removeParticipant(payload);
   }
 }
