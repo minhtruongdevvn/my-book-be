@@ -9,13 +9,13 @@ import { I18nModule } from 'nestjs-i18n/dist/i18n.module';
 import { AddressesModule } from './addresses/addresses.module';
 import { AuthGoogleModule } from './auth-google/auth-google.module';
 import { AuthModule } from './auth/auth.module';
-// import { ConversationModule } from './conversation/conversation.module';
 import appConfig from './config/app.config';
 import authConfig from './config/auth.config';
 import { AllConfigType } from './config/config.type';
 import fileConfig from './config/file.config';
 import googleConfig from './config/google.config';
 import mailConfig from './config/mail.config';
+import { ConversationsModule } from './conversations/conversations.module';
 import { FilesModule } from './files/files.module';
 import { ForgotModule } from './forgot/forgot.module';
 import { FriendsModule } from './friends/friends.module';
@@ -65,8 +65,7 @@ import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter
     ForgotModule,
     MailModule,
     HomeModule,
-    // ChatboxesModule,
-    // ConversationModule,
+    ConversationsModule,
     FriendsModule,
     AddressesModule,
     InterestsModule,

@@ -11,12 +11,11 @@ import {
   Param,
   Post,
   Put,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { GroupConversationDto as Dto, MessageDto } from './dto';
+import { GroupConversationDto as Dto } from './dto';
 import { GroupConversationsService } from './group-conversations.service';
 
 @ApiBearerAuth()
@@ -103,42 +102,5 @@ export class GroupConversationsController {
     @GetUser('id') userId: number,
   ) {
     return this.convoService.removeParticipant(id, userId, memberId);
-  }
-
-  @Get(':id/messages')
-  getMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Query('count') count: number,
-    @Query('nthFromEnd') nthFromEnd: number | undefined,
-  ) {
-    return this.convoService.getMessagesByOrder(id, userId, count, nthFromEnd);
-  }
-
-  @Post(':id/messages')
-  addMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Body() dto: MessageDto.CreateRequest,
-  ) {
-    return this.convoService.addMessage(id, userId, dto);
-  }
-
-  @Put(':id/messages')
-  updateMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Body() dto: MessageDto.UpdateRequest,
-  ) {
-    return this.convoService.updateMessage(id, userId, dto);
-  }
-
-  @Delete(':id/messages/:messageId')
-  deleteMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Param('messageId') messageId: string,
-  ) {
-    return this.convoService.removeMessage(id, userId, messageId);
   }
 }
