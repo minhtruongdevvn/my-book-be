@@ -1,42 +1,27 @@
-import { GetUser } from '@/auth/decorators/get-user.decorator';
-import { UsersService } from '@/users/users.service';
 import { MinimalUserDto } from '@app/common';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { GroupConversationDto as Dto, MessageDto } from './dto';
+import { Group } from '@app/microservices/conversation';
+import { Controller } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
+import { GroupConversationDto as Dto } from './dto';
 import { GroupConversationsService } from './group-conversations.service';
+import { UsersService } from './users.service';
 
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
-@ApiTags('GroupConversations')
-@Controller({ path: 'group-conversations' })
+@Controller()
 export class GroupConversationsController {
   constructor(
     private readonly convoService: GroupConversationsService,
     private readonly usersService: UsersService,
   ) {}
 
-  @Post()
-  create(@Body() dto: Dto.CreateRequest, @GetUser('id') userId: number) {
+  @MessagePattern(Group.Msg.CREATE)
+  create(payload: Group.Payload.Create) {
+    const { userId, ...dto } = payload;
     return this.convoService.create(userId, dto);
   }
 
-  @Get()
-  async get(@GetUser('id') userId: number) {
-    const convos = await this.convoService.getByUserId(userId);
+  @MessagePattern(Group.Msg.GET_ALL_BY_USER)
+  async Get(payload: number) {
+    const convos = await this.convoService.getByUserId(payload);
     if (!convos) return;
 
     const users = new Map<number, MinimalUserDto>();
@@ -59,9 +44,12 @@ export class GroupConversationsController {
     return response;
   }
 
-  @Get(':id')
-  async getById(@GetUser('id') userId: number, @Param('id') id: string) {
-    const convo = await this.convoService.getById(id, userId);
+  @MessagePattern(Group.Msg.GET_BY_ID)
+  async getById(payload: Group.Payload.UserIdWithConvoId) {
+    const convo = await this.convoService.getById(
+      payload.convoId,
+      payload.userId,
+    );
     if (!convo) return null;
 
     const members = await this.usersService.getUserByRangeId(
@@ -71,74 +59,32 @@ export class GroupConversationsController {
     return new Dto.Response(convo, members);
   }
 
-  @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: Dto.UpdateRequest,
-    @GetUser('id') userId: number,
-  ) {
-    return this.convoService.update(id, userId, dto);
+  @MessagePattern(Group.Msg.UPDATE)
+  update(payload: Group.Payload.Update) {
+    const { convoId, userId, ...dto } = payload;
+    return this.convoService.update(convoId, userId, dto);
   }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  delete(@Param('id') id: string, @GetUser('id') userId: number) {
-    return this.convoService.remove(id, userId);
+  @MessagePattern(Group.Msg.DELETE)
+  delete(payload: Group.Payload.UserIdWithConvoId) {
+    return this.convoService.remove(payload.convoId, payload.userId);
   }
 
-  @Post(':id/members/:memberId')
-  addParticipant(
-    @Param('id') id: string,
-    @Param('memberId') memberId: number,
-    @GetUser('id') userId: number,
-  ) {
-    return this.convoService.addParticipant(id, userId, memberId);
+  @MessagePattern(Group.Msg.ADD_PARTICIPANT)
+  addParticipant(payload: Group.Payload.Participant) {
+    return this.convoService.addParticipant(
+      payload.convoId,
+      payload.adminId,
+      payload.participantId,
+    );
   }
 
-  @Delete(':id/members/:memberId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  deleteParticipant(
-    @Param('id') id: string,
-    @Param('memberId') memberId: number,
-    @GetUser('id') userId: number,
-  ) {
-    return this.convoService.removeParticipant(id, userId, memberId);
-  }
-
-  @Get(':id/messages')
-  getMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Query('count') count: number,
-    @Query('nthFromEnd') nthFromEnd: number | undefined,
-  ) {
-    return this.convoService.getMessagesByOrder(id, userId, count, nthFromEnd);
-  }
-
-  @Post(':id/messages')
-  addMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Body() dto: MessageDto.CreateRequest,
-  ) {
-    return this.convoService.addMessage(id, userId, dto);
-  }
-
-  @Put(':id/messages')
-  updateMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Body() dto: MessageDto.UpdateRequest,
-  ) {
-    return this.convoService.updateMessage(id, userId, dto);
-  }
-
-  @Delete(':id/messages/:messageId')
-  deleteMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Param('messageId') messageId: string,
-  ) {
-    return this.convoService.removeMessage(id, userId, messageId);
+  @MessagePattern(Group.Msg.DELETE_PARTICIPANT)
+  deleteParticipant(payload: Group.Payload.Participant) {
+    return this.convoService.removeParticipant(
+      payload.convoId,
+      payload.adminId,
+      payload.participantId,
+    );
   }
 }

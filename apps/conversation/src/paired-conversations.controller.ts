@@ -1,39 +1,25 @@
-import { GetUser } from '@/auth/decorators/get-user.decorator';
 import { UsersService } from '@/users/users.service';
 import { MinimalUserDto } from '@app/common';
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { Pair } from '@app/microservices/conversation';
+import { Controller } from '@nestjs/common';
+import { MessagePattern } from '@nestjs/microservices';
 
+import { PairedConversationDto as Dto } from './dto';
 import { PairedConversationsService } from './paired-conversations.service';
-import { MessageDto, PairedConversationDto as Dto } from './dto';
 
-@ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'))
-@ApiTags('PairedConversations')
-@Controller({ path: 'paired-conversations' })
+@Controller()
 export class PairedConversationsController {
   constructor(
     private readonly convoService: PairedConversationsService,
     private readonly usersService: UsersService,
   ) {}
 
-  @Get('to/:toUserId')
-  async getOrCreate(
-    @GetUser('id') userId: number,
-    @Param('toUserId') toUserId: number,
-  ) {
-    const convo = await this.convoService.getOrCreate(userId, toUserId);
+  @MessagePattern(Pair.Msg.GET_OR_CREATE)
+  async getOrCreate(payload: Pair.Payload.GetOrCreate) {
+    const convo = await this.convoService.getOrCreate(
+      payload.user1Id,
+      payload.user2Id,
+    );
     if (!convo) return;
 
     const members = await this.usersService.getUserByRangeId(
@@ -43,9 +29,9 @@ export class PairedConversationsController {
     return new Dto.Response(convo, members);
   }
 
-  @Get()
-  async get(@GetUser('id') userId: number) {
-    const convos = await this.convoService.getByUserId(userId);
+  @MessagePattern(Pair.Msg.GET_ALL_BY_USER)
+  async get(payload: number) {
+    const convos = await this.convoService.getByUserId(payload);
     if (!convos) return;
 
     const users = new Map<number, MinimalUserDto>();
@@ -68,45 +54,8 @@ export class PairedConversationsController {
     return response;
   }
 
-  @Get(':id')
-  getById(@GetUser('id') userId: number, @Param('id') id: string) {
-    return this.convoService.getById(id, userId);
-  }
-
-  @Get(':id/messages')
-  getMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Query('count') count: number,
-    @Query('nthFromEnd') nthFromEnd: number | undefined,
-  ) {
-    return this.convoService.getMessagesByOrder(id, userId, count, nthFromEnd);
-  }
-
-  @Post(':id/messages')
-  addMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Body() dto: MessageDto.CreateRequest,
-  ) {
-    return this.convoService.addMessage(id, userId, dto);
-  }
-
-  @Put(':id/messages')
-  updateMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Body() dto: MessageDto.UpdateRequest,
-  ) {
-    return this.convoService.updateMessage(id, userId, dto);
-  }
-
-  @Delete(':id/messages/:messageId')
-  deleteMessages(
-    @GetUser('id') userId: number,
-    @Param('id') id: string,
-    @Param('messageId') messageId: string,
-  ) {
-    return this.convoService.removeMessage(id, userId, messageId);
+  @MessagePattern(Pair.Msg.GET_BY_ID)
+  getById(payload: Pair.Payload.UserIdWithConvoId) {
+    return this.convoService.getById(payload.convoId, payload.userId);
   }
 }
