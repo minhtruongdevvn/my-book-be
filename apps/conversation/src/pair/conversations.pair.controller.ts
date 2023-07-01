@@ -4,8 +4,8 @@ import { Pair } from '@app/microservices/conversation';
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 
-import { PairedConversationDto as Dto } from './dto';
-import { PairedConversationsService } from './paired-conversations.service';
+import { PairedConversationDto as Dto } from '../dto';
+import { PairedConversationsService } from './conversations.pair.service';
 
 @Controller()
 export class PairedConversationsController {

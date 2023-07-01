@@ -3,10 +3,10 @@ import { FilterQuery } from 'mongoose';
 
 import { Conversation } from '@app/databases';
 
-import { BaseSubConversationsService } from './common/services';
-import { ConversationsRepository } from './conversations.repository';
-import { ConversationsService } from './conversations.service';
-import { PairedConversation } from './types';
+import { BaseSubConversationsService } from '../common/services';
+import { ConversationsRepository } from '../conversations.repository';
+import { ConversationsService } from '../conversations.service';
+import { PairedConversation } from '../types';
 
 @Injectable()
 export class PairedConversationsService extends BaseSubConversationsService {

@@ -2,9 +2,9 @@ import { MinimalUserDto } from '@app/common';
 import { Group } from '@app/microservices/conversation';
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
-import { GroupConversationDto as Dto } from './dto';
-import { GroupConversationsService } from './group-conversations.service';
-import { UsersService } from './users.service';
+import { GroupConversationDto as Dto } from '../dto';
+import { UsersService } from '../users.service';
+import { GroupConversationsService } from './conversations.group.service';
 
 @Controller()
 export class GroupConversationsController {

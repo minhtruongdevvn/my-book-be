@@ -13,10 +13,14 @@ import { ChatSocketService } from './chat-socket.service';
 import { ConversationsRepository } from './conversations.repository';
 import { ConversationsService } from './conversations.service';
 import { ConversationGateway } from './gateway';
-import { GroupConversationsController } from './group-conversations.controller';
-import { GroupConversationsService } from './group-conversations.service';
-import { PairedConversationsController } from './paired-conversations.controller';
-import { PairedConversationsService } from './paired-conversations.service';
+import {
+  GroupConversationsController,
+  GroupConversationsService,
+} from './group';
+import {
+  PairedConversationsController,
+  PairedConversationsService,
+} from './pair';
 
 @Module({
   imports: [

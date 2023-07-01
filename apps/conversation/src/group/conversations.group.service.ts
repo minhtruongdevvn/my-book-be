@@ -3,13 +3,13 @@ import { Injectable } from '@nestjs/common';
 import { Conversation } from '@app/databases';
 
 import { FilterQuery } from 'mongoose';
-import { BaseSubConversationsService } from './common/services';
-import { ConversationsService } from './conversations.service';
+import { BaseSubConversationsService } from '../common/services';
+import { ConversationsService } from '../conversations.service';
 import {
   ConversationDto,
   ConversationUpsertRequest,
   GroupConversationDto as GroupConvoDto,
-} from './dto';
+} from '../dto';
 
 @Injectable()
 export class GroupConversationsService extends BaseSubConversationsService {
