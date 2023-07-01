@@ -13,7 +13,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection, Schema } from 'mongoose';
 import { FriendRecommendationConsumer } from './friend-recommendation.consumer';
 import { FriendRecommendationController } from './friend-recommendation.controller';
-import { FRIEND_RECO_QUEUE_KEY } from './jobs';
+import QueueKey from './queue-keys';
 import {
   UserCommonInterestProvider,
   UserMutualFriendProvider,
@@ -38,7 +38,7 @@ import { RECO_STORAGE_KEY } from './storage-key';
       }),
     }),
     BullModule.registerQueue({
-      name: FRIEND_RECO_QUEUE_KEY,
+      name: QueueKey.FRIEND_RECO,
     }),
     DatabasesModule.forRoot(),
     TypeOrmModule.forFeature([User]),

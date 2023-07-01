@@ -1,9 +1,9 @@
-import { Person, QueryFilter } from '@app/microservices/friend';
+import { Friend, Person } from '@app/microservices/friend';
 
 export const defaultFilter = (
-  filter?: QueryFilter,
-  defaultQuery?: QueryFilter,
-): Required<QueryFilter> => {
+  filter?: Friend.Payload.QueryFilter,
+  defaultQuery?: Friend.Payload.QueryFilter,
+): Required<Friend.Payload.QueryFilter> => {
   const defaultSkip = 0;
   const defaultTake = 20;
 

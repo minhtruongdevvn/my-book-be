@@ -1,4 +1,2 @@
-export * from './events';
-export * from './friend-message-pattern';
-export * from './payload-type';
+export * as Friend from './export-helper';
 export * from './types';

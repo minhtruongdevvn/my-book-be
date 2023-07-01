@@ -2,13 +2,8 @@
 import { ClientError, MinimalUserDto } from '@app/common';
 import { User } from '@app/databases';
 import { RpcControlledException } from '@app/microservices';
-import {
-  GetUserMutualFriend,
-  GetUserMutualFriendFromList,
-  Person,
-  QueryFilter,
-} from '@app/microservices/friend';
-import { MutualFriendsOfUserWithUsers } from '@app/microservices/friend/payload-type/mutual-friend-of-user-with-users';
+import { Friend, Person } from '@app/microservices/friend';
+import { MutualFriendsOfUserWithUsers } from '@app/microservices/friend/payloads/mutual-friend-of-user-with-users';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -138,7 +133,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     user2.friendIds.delete(user1Id);
   }
 
-  getFriendsByUserId(user1Id: number, filter?: QueryFilter) {
+  getFriendsByUserId(user1Id: number, filter?: Friend.Payload.QueryFilter) {
     const user = this.graph.get(user1Id);
     if (!user) return [];
     let { skip, take, search } = defaultFilter(filter);
@@ -168,7 +163,9 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     );
   }
 
-  getMutualFriendsOfUserWithUsers(payload: GetUserMutualFriendFromList) {
+  getMutualFriendsOfUserWithUsers(
+    payload: Friend.Payload.GetUserMutualFriendFromList,
+  ) {
     const { userId, peerIds } = payload;
     const user = this.graph.get(userId);
     if (!user) return peerIds.map((e) => ({ userId: e, count: 0 }));
@@ -190,7 +187,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     return result;
   }
 
-  getMutualFriendsOfUser(payload: GetUserMutualFriend) {
+  getMutualFriendsOfUser(payload: Friend.Payload.GetUserMutualFriend) {
     const { userId, filter, min } = payload;
     const user = this.graph.get(userId);
     if (!user) return [];

@@ -1,61 +1,46 @@
-import {
-  USER_CHANGED_EVENT,
-  USER_CREATED_EVENT,
-  USER_DELETED_EVENT,
-  USER_INTEREST_CHANGED_EVENT,
-} from '@app/microservices';
-import {
-  GET_FRIEND_RECO,
-  RELATIONSHIP_CHANGED_EVENT,
-  UserToUser,
-} from '@app/microservices/friend';
+import { UserEvents } from '@app/microservices';
+import { Friend } from '@app/microservices/friend';
 import { InjectQueue } from '@nestjs/bull';
 import { Controller } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { Queue } from 'bull';
-import {
-  FRIEND_RECO_QUEUE_KEY,
-  RELATIONSHIP_CHANGED_JOB,
-  USER_CREATED_JOB,
-  USER_DELETE_JOB,
-  USER_INFO_CHANGED_JOB,
-  USER_INTEREST_CHANGED_JOB,
-} from './jobs';
+import Job from './jobs';
+import QueueKey from './queue-keys';
 import { FriendRecommendationService } from './services/friend-recommendation.service';
 
 @Controller()
 export class FriendRecommendationController {
   constructor(
-    @InjectQueue(FRIEND_RECO_QUEUE_KEY) private friendQueue: Queue,
+    @InjectQueue(QueueKey.FRIEND_RECO) private friendQueue: Queue,
     private readonly recoService: FriendRecommendationService,
   ) {}
 
-  @EventPattern(USER_CHANGED_EVENT)
+  @EventPattern(UserEvents.CHANGED)
   async syncUser(payload: number) {
-    await this.friendQueue.add(USER_INFO_CHANGED_JOB, payload);
+    await this.friendQueue.add(Job.USER_INFO_CHANGED, payload);
   }
 
-  @EventPattern(USER_INTEREST_CHANGED_EVENT)
+  @EventPattern(UserEvents.INTEREST_CHANGED)
   async syncUserInterest(payload: number) {
-    await this.friendQueue.add(USER_INTEREST_CHANGED_JOB, payload);
+    await this.friendQueue.add(Job.USER_INTEREST_CHANGED, payload);
   }
 
-  @EventPattern(RELATIONSHIP_CHANGED_EVENT)
-  async syncRelationship(payload: UserToUser) {
-    await this.friendQueue.add(RELATIONSHIP_CHANGED_JOB, payload);
+  @EventPattern(Friend.Events.RELATIONSHIP_CHANGED)
+  async syncRelationship(payload: Friend.Payload.UserToUser) {
+    await this.friendQueue.add(Job.RELATIONSHIP_CHANGED, payload);
   }
 
-  @EventPattern(USER_DELETED_EVENT)
+  @EventPattern(UserEvents.DELETED)
   async syncUserDeleted(payload: number) {
-    await this.friendQueue.add(USER_DELETE_JOB, payload, { lifo: false });
+    await this.friendQueue.add(Job.USER_DELETE, payload, { lifo: false });
   }
 
-  @EventPattern(USER_CREATED_EVENT)
+  @EventPattern(UserEvents.CREATED)
   async syncUserCreated(payload: number) {
-    await this.friendQueue.add(USER_CREATED_JOB, payload, { lifo: false });
+    await this.friendQueue.add(Job.USER_CREATED, payload, { lifo: false });
   }
 
-  @MessagePattern(GET_FRIEND_RECO)
+  @MessagePattern(Friend.Msg.GET_FRIEND_RECO)
   getRecommendation(payload: number) {
     return this.recoService.getRecommendation(payload);
   }

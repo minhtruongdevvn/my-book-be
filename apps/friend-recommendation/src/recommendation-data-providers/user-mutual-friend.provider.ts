@@ -1,9 +1,6 @@
 import { MinimalUserDto } from '@app/common';
 import { ClientProvider, InjectAppClient } from '@app/microservices';
-import {
-  GetUserMutualFriend,
-  GET_USER_MUTUAL_FRIEND,
-} from '@app/microservices/friend';
+import { Friend } from '@app/microservices/friend';
 import { RecommendationType } from '../types';
 
 export class UserMutualFriendProvider {
@@ -15,8 +12,8 @@ export class UserMutualFriendProvider {
     const take = 50;
     const userFriends = await this.client.sendAndReceive<
       MinimalUserDto[],
-      GetUserMutualFriend
-    >(GET_USER_MUTUAL_FRIEND, {
+      Friend.Payload.GetUserMutualFriend
+    >(Friend.Msg.GET_USER_MUTUAL_FRIEND, {
       userId,
       filter: { take },
       min: this.minMutualFriendCount,

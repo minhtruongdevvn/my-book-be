@@ -1,19 +1,16 @@
 import { MinimalUserDto } from '@app/common';
 import { User } from '@app/databases';
 import { ClientProvider, InjectAppClient } from '@app/microservices';
-import {
-  GetUserMutualFriendFromList,
-  GET_USER,
-  GET_USER_MUTUAL_FRIEND_FROM_LIST,
-} from '@app/microservices/friend';
-import { MutualFriendsOfUserWithUsers } from '@app/microservices/friend/payload-type/mutual-friend-of-user-with-users';
+import { Friend } from '@app/microservices/friend';
+import { MutualFriendsOfUserWithUsers } from '@app/microservices/friend/payloads/mutual-friend-of-user-with-users';
 import { InjectQueue } from '@nestjs/bull';
 import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { Model } from 'mongoose';
 import { Repository } from 'typeorm';
-import { FRIEND_RECO_QUEUE_KEY, INIT_JOB } from '../jobs';
+import Job from '../jobs';
+import QueueKey from '../queue-keys';
 import {
   UserCommonInterestProvider,
   UserMutualFriendProvider,
@@ -29,7 +26,7 @@ export class FriendRecommendationService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectAppClient() private readonly client: ClientProvider,
-    @InjectQueue(FRIEND_RECO_QUEUE_KEY) private friendQueue: Queue,
+    @InjectQueue(QueueKey.FRIEND_RECO) private friendQueue: Queue,
     private readonly commonInterestProvider: UserCommonInterestProvider,
     private readonly provinceProvider: UserProvinceProvider,
     private readonly mutualFriendProvider: UserMutualFriendProvider,
@@ -42,7 +39,7 @@ export class FriendRecommendationService implements OnApplicationBootstrap {
     const isInit = await this.model.findOne(markInit).exec();
     if (!isInit) {
       await this.model.create(markInit);
-      await this.friendQueue.add(INIT_JOB);
+      await this.friendQueue.add(Job.INIT);
     }
   }
 
@@ -129,7 +126,7 @@ export class FriendRecommendationService implements OnApplicationBootstrap {
     ...arrays: MinimalUserDto[][]
   ) {
     const ug = await this.client.sendAndReceive<UserGraph | undefined, number>(
-      GET_USER,
+      Friend.Msg.GET_USER,
       userId,
     );
 
@@ -151,8 +148,8 @@ export class FriendRecommendationService implements OnApplicationBootstrap {
   ) {
     const mutualCount = await this.client.sendAndReceive<
       MutualFriendsOfUserWithUsers[],
-      GetUserMutualFriendFromList
-    >(GET_USER_MUTUAL_FRIEND_FROM_LIST, {
+      Friend.Payload.GetUserMutualFriendFromList
+    >(Friend.Msg.GET_USER_MUTUAL_FRIEND_FROM_LIST, {
       userId: userId,
       peerIds: friends.map((e) => e.id),
     });

@@ -1,22 +1,16 @@
 import { User } from '@app/databases';
-import { UserToUser } from '@app/microservices/friend';
+import { Friend } from '@app/microservices/friend';
 import { OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Job } from 'bull';
 import { Repository } from 'typeorm';
-import {
-  FRIEND_RECO_QUEUE_KEY,
-  INIT_JOB,
-  RELATIONSHIP_CHANGED_JOB,
-  USER_CREATED_JOB,
-  USER_DELETE_JOB,
-  USER_INFO_CHANGED_JOB,
-  USER_INTEREST_CHANGED_JOB,
-} from './jobs';
+import FriendJob from './jobs';
+import QueueKey from './queue-keys';
+
 import { FriendRecommendationProcessor } from './services/friend-recommendation.processor';
 import { FriendRecommendationService } from './services/friend-recommendation.service';
 
-@Processor(FRIEND_RECO_QUEUE_KEY)
+@Processor(QueueKey.FRIEND_RECO)
 export class FriendRecommendationConsumer {
   constructor(
     private readonly recoService: FriendRecommendationService,
@@ -32,7 +26,7 @@ export class FriendRecommendationConsumer {
     console.log(error);
   }
 
-  @Process(INIT_JOB)
+  @Process(FriendJob.INIT)
   async init() {
     const users = await this.userRepo
       .createQueryBuilder('user')
@@ -44,30 +38,30 @@ export class FriendRecommendationConsumer {
     }
   }
 
-  @Process(RELATIONSHIP_CHANGED_JOB)
-  onRelationshipChanged(job: Job<UserToUser>) {
+  @Process(FriendJob.RELATIONSHIP_CHANGED)
+  onRelationshipChanged(job: Job<Friend.Payload.UserToUser>) {
     return Promise.all([
       this.processor.onUserRelationChange(job.data.user1Id),
       this.processor.onUserRelationChange(job.data.user2Id),
     ]);
   }
 
-  @Process(USER_INFO_CHANGED_JOB)
+  @Process(FriendJob.USER_INFO_CHANGED)
   onUserInfoChanged(job: Job<number>) {
     return this.processor.onUserInfoChange(job.data);
   }
 
-  @Process(USER_INTEREST_CHANGED_JOB)
+  @Process(FriendJob.USER_INTEREST_CHANGED)
   onUserInterestChanged(job: Job<number>) {
     return this.processor.onUserInterestChange(job.data);
   }
 
-  @Process(USER_DELETE_JOB)
+  @Process(FriendJob.USER_DELETE)
   async onUserDeleted(job: Job<number>) {
     await this.processor.onUserDeleted(job.data);
   }
 
-  @Process(USER_CREATED_JOB)
+  @Process(FriendJob.USER_CREATED)
   async onUserCreated(job: Job<number>) {
     await this.recoService.saveRecommendation(job.data);
   }

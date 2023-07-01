@@ -1,17 +1,7 @@
 import { ClientError, ClientErrorException, MinimalUserDto } from '@app/common';
 import { FriendRequest } from '@app/databases';
 import { ClientProvider, InjectAppClient } from '@app/microservices';
-import {
-  ADD_RELATIONSHIP,
-  GetFriend,
-  GET_FRIEND,
-  GET_FRIEND_RECO,
-  GET_USERS,
-  IS_FRIEND,
-  PREPARE_REQ,
-  REMOVE_RELATIONSHIP,
-  UserToUser,
-} from '@app/microservices/friend';
+import { Friend } from '@app/microservices/friend';
 import { Injectable } from '@nestjs/common';
 import { FriendRequestRepository } from './friend-request.repository';
 
@@ -24,7 +14,7 @@ export class FriendsService {
 
   async getFriendReco(userId: number) {
     return this.client.sendAndReceive<MinimalUserDto[], number>(
-      GET_FRIEND_RECO,
+      Friend.Msg.GET_FRIEND_RECO,
       userId,
     );
   }
@@ -88,13 +78,13 @@ export class FriendsService {
       });
     }
 
-    const isFriend = await this.client.sendAndReceive<boolean, UserToUser>(
-      IS_FRIEND,
-      {
-        user1Id: senderId,
-        user2Id: recipientId,
-      },
-    );
+    const isFriend = await this.client.sendAndReceive<
+      boolean,
+      Friend.Payload.UserToUser
+    >(Friend.Msg.IS_FRIEND, {
+      user1Id: senderId,
+      user2Id: recipientId,
+    });
     if (isFriend) {
       throw new ClientErrorException({
         name: ClientError.Existed,
@@ -107,8 +97,8 @@ export class FriendsService {
     friendReq.recipientId = recipientId;
     friendReq.mutualCount = await this.client.sendAndReceive<
       number,
-      UserToUser
-    >(PREPARE_REQ, {
+      Friend.Payload.UserToUser
+    >(Friend.Msg.PREPARE_REQ, {
       user1Id: senderId,
       user2Id: recipientId,
     });
@@ -146,10 +136,13 @@ export class FriendsService {
       });
     }
 
-    await this.client.sendWithoutReceive<UserToUser>(ADD_RELATIONSHIP, {
-      user1Id: senderId,
-      user2Id: recipientId,
-    });
+    await this.client.sendWithoutReceive<Friend.Payload.UserToUser>(
+      Friend.Msg.ADD_RELATIONSHIP,
+      {
+        user1Id: senderId,
+        user2Id: recipientId,
+      },
+    );
     await this.cancelRequest(recipientId, senderId);
   }
 
@@ -159,17 +152,23 @@ export class FriendsService {
     skip?: number,
     search?: string,
   ) {
-    return this.client.sendAndReceive<MinimalUserDto[], GetFriend>(GET_FRIEND, {
+    return this.client.sendAndReceive<
+      MinimalUserDto[],
+      Friend.Payload.GetFriend
+    >(Friend.Msg.GET_FRIEND, {
       userId,
       filter: { skip, take, search },
     });
   }
 
   unfriend(user1Id: number, user2Id: number) {
-    return this.client.sendWithoutReceive<UserToUser>(REMOVE_RELATIONSHIP, {
-      user1Id,
-      user2Id,
-    });
+    return this.client.sendWithoutReceive<Friend.Payload.UserToUser>(
+      Friend.Msg.REMOVE_RELATIONSHIP,
+      {
+        user1Id,
+        user2Id,
+      },
+    );
   }
 
   private isReqExist(user1Id: number, user2Id: number) {
@@ -185,7 +184,7 @@ export class FriendsService {
     return new Map<number, MinimalUserDto>(
       (
         await this.client.sendAndReceive<MinimalUserDto[], number[]>(
-          GET_USERS,
+          Friend.Msg.GET_USERS,
           userIds,
         )
       ).map((e) => [e.id, e]),
