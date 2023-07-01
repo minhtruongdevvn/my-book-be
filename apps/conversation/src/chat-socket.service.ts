@@ -5,9 +5,9 @@ import { Namespace } from 'socket.io';
 import { conversationFullProjection as convoFullProjection } from '@app/databases';
 
 import { ConversationsService } from './common/conversations.service';
+import { UsersService } from './common/users.service';
 import { ConversationDto } from './dto';
 import { ChatSocketServer } from './gateway/types';
-import { UsersService } from './users.service';
 
 @Injectable()
 export class ChatSocketService {
