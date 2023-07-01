@@ -4,9 +4,9 @@ import { FilterQuery, ProjectionType } from 'mongoose';
 import { ConversationDto } from './dto';
 
 import { ConversationsRepository } from './conversations.repository';
-import { MessageDto } from './dto';
 import { ServiceHelpers } from './services/service.helper';
 import { ConversationUpsertRequest } from './types';
+import { Listener } from '../gateway/types';
 
 @Injectable()
 export class ConversationsService {
@@ -171,7 +171,7 @@ export class ConversationsService {
   async addMessage(
     id: string,
     userId: number,
-    request: MessageDto.CreateRequest,
+    request: Listener.Message.Payload.Send,
     filter?: FilterQuery<Conversation>,
   ) {
     await this.helper.validateConversation(id);
@@ -186,7 +186,7 @@ export class ConversationsService {
   async updateMessage(
     id: string,
     userId: number,
-    request: MessageDto.UpdateRequest,
+    request: Listener.Message.Payload.Update,
     filter?: FilterQuery<Conversation>,
   ) {
     await this.helper.validateConversation(id);

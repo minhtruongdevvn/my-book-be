@@ -3,7 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { isDate } from 'class-validator';
 import { FilterQuery, QueryOptions } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import { MessageDto } from '../dto';
+import { Listener } from '../../gateway/types';
 
 export class ServiceHelpers<TConvo extends Conversation> {
   constructor(private repo: MongoRepository<TConvo>) {}
@@ -77,7 +77,7 @@ export class ServiceHelpers<TConvo extends Conversation> {
 
   updateMessage(
     userId: number,
-    request: MessageDto.UpdateRequest,
+    request: Listener.Message.Payload.Update,
     filter: FilterQuery<TConvo>,
   ) {
     return this.repo.updateOne(
