@@ -29,8 +29,7 @@ export class ConversationSocketIOAdapter extends IoAdapter {
   }
 
   createIOServer(port: number, options?: ServerOptions) {
-    const clientPort =
-      this.configService.getOrThrow<string>('app.frontendDomain');
+    const clientPort = this.configService.getOrThrow<string>('FRONTEND_DOMAIN');
     const cors = { origin: [clientPort] };
     const chatboxOption: Partial<ServerOptions> = {
       ...(options ?? {}),

@@ -9,7 +9,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { useContainer } from 'class-validator';
 import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
-import { ChatboxSocketIOAdapter } from './chatboxes/gateway/adapter';
 import { AllConfigType } from './config/config.type';
 import { ParamValidationPipe } from './utils/pipes/param-validation.pipe';
 import validationOptions from './utils/validation-options';
@@ -24,7 +23,6 @@ async function bootstrap() {
     credentials: true,
   });
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
-  app.useWebSocketAdapter(new ChatboxSocketIOAdapter(app, configService));
 
   app.enableShutdownHooks();
   app.setGlobalPrefix(

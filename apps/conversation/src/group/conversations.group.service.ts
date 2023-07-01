@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { Conversation } from '@app/databases';
 
-import { ConversationDto, Group } from '@app/microservices/conversation';
+import { Group } from '@app/microservices/conversation';
 import { FilterQuery } from 'mongoose';
 import { ConversationsService } from '../common/conversations.service';
+import { ConversationDto } from '../common/dto';
 import { BaseSubConversationsService } from '../common/services';
 
 @Injectable()

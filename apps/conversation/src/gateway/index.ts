@@ -26,11 +26,7 @@ import { ChatSocketService } from '../chat-socket.service';
 import { ConversationsService } from '../common/conversations.service';
 import { getIdByJWToken } from '../common/utils/jwt-token.util';
 import { WsExceptionFilter } from './exception.filter';
-import {
-  ChatSocket,
-  ChatSocketEmitter as Emitter,
-  ChatSocketListener as Listener,
-} from './types';
+import { ChatSocket, Emitter, Listener } from './types';
 
 @UseInterceptors(ClassSerializerInterceptor)
 @UsePipes(new ValidationPipe(validationOptions)) // todo: test and change
@@ -75,8 +71,8 @@ export class ConversationGateway
 
     const activeUserIds = this.socketService.getActiveUserIdsById(convo.id);
 
-    client.broadcast.emit(Emitter.User.JOIN_CHAT, { id: userId });
-    client.emit(Emitter.User.CONNECT, {
+    client.broadcast.emit(Emitter.User.Events.JOIN_CHAT, { id: userId });
+    client.emit(Emitter.User.Events.CONNECT, {
       conversation: convo,
       activeUserIds,
     });
@@ -84,12 +80,14 @@ export class ConversationGateway
 
   handleDisconnect(client: ChatSocket) {
     if (!client.data.userId) return;
-    client.broadcast.emit(Emitter.User.LEAVE_CHAT, { id: client.data.userId });
+    client.broadcast.emit(Emitter.User.Events.LEAVE_CHAT, {
+      id: client.data.userId,
+    });
   }
 
-  @SubscribeMessage(Listener.Message.SEND)
+  @SubscribeMessage(Listener.Message.Events.SEND)
   async messageSend(
-    @MessageBody() payload: Listener.Message.Send,
+    @MessageBody() payload: Listener.Message.Payload.Send,
     @ConnectedSocket() client: ChatSocket,
   ) {
     const { userId } = client.data;
@@ -104,13 +102,13 @@ export class ConversationGateway
     );
     if (!response) throw new BadRequestException('Invalid content!');
 
-    client.emit(Emitter.Message.SEND_SUCCESS, response);
-    client.broadcast.emit(Emitter.Message.RECEIVE, response);
+    client.emit(Emitter.Message.Events.SEND_SUCCESS, response);
+    client.broadcast.emit(Emitter.Message.Events.RECEIVE, response);
   }
 
-  @SubscribeMessage(Listener.Message.SEEN)
+  @SubscribeMessage(Listener.Message.Events.SEEN)
   async messageSeen(
-    @MessageBody() payload: Listener.Message.Seen,
+    @MessageBody() payload: Listener.Message.Payload.Seen,
     @ConnectedSocket() client: ChatSocket,
   ) {
     const { userId } = client.data;
@@ -126,12 +124,14 @@ export class ConversationGateway
     );
     if (!success) return;
 
-    client.broadcast.emit(Emitter.Message.READ_RECEIPT, { id: messageId });
+    client.broadcast.emit(Emitter.Message.Events.READ_RECEIPT, {
+      id: messageId,
+    });
   }
 
-  @SubscribeMessage(Listener.Message.UPDATE)
+  @SubscribeMessage(Listener.Message.Events.UPDATE)
   async messageUpdate(
-    @MessageBody() payload: Listener.Message.Update,
+    @MessageBody() payload: Listener.Message.Payload.Update,
     @ConnectedSocket() client: ChatSocket,
   ) {
     const { userId } = client.data;
@@ -156,13 +156,13 @@ export class ConversationGateway
     }
 
     // emits
-    client.emit(Emitter.Message.UPDATE_SUCCESS, updatedMessage);
-    client.broadcast.emit(Emitter.Message.UPDATE_NOTIFY, updatedMessage);
+    client.emit(Emitter.Message.Events.UPDATE_SUCCESS, updatedMessage);
+    client.broadcast.emit(Emitter.Message.Events.UPDATE_NOTIFY, updatedMessage);
   }
 
-  @SubscribeMessage(Listener.Message.DELETE)
+  @SubscribeMessage(Listener.Message.Events.DELETE)
   async messageDelete(
-    @MessageBody() payload: Listener.Message.Delete,
+    @MessageBody() payload: Listener.Message.Payload.Delete,
     @ConnectedSocket() client: ChatSocket,
   ) {
     const { userId } = client.data;
@@ -179,8 +179,10 @@ export class ConversationGateway
     if (!success) throw new BadRequestException('Invalid message!');
 
     // emits
-    client.emit(Emitter.Message.DELETE_SUCCESS, { id: messageId });
-    client.broadcast.emit(Emitter.Message.DELETE_NOTIFY, { id: messageId });
+    client.emit(Emitter.Message.Events.DELETE_SUCCESS, { id: messageId });
+    client.broadcast.emit(Emitter.Message.Events.DELETE_NOTIFY, {
+      id: messageId,
+    });
   }
 
   #validateUserSocket(userId: number | undefined): asserts userId is number {

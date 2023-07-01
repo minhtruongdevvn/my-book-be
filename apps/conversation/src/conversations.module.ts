@@ -12,6 +12,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatSocketService } from './chat-socket.service';
 import { ConversationsRepository } from './common/conversations.repository';
 import { ConversationsService } from './common/conversations.service';
+import { UsersService } from './common/users.service';
 import { ConversationGateway } from './gateway';
 import {
   GroupConversationsController,
@@ -39,6 +40,7 @@ import {
     ConversationsService,
     GroupConversationsService,
     PairedConversationsService,
+    UsersService,
   ],
 })
 export class ConversationsModule {}

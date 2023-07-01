@@ -1,8 +1,8 @@
-import { UsersService } from '@/users/users.service';
 import { MinimalUserDto } from '@app/common';
 import { Pair } from '@app/microservices/conversation';
 import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
+import { UsersService } from '../common/users.service';
 
 import { PairedConversationsService } from './conversations.pair.service';
 import { Response } from './types';

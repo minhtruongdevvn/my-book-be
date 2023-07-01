@@ -1,17 +1,17 @@
 import { Namespace, Socket } from 'socket.io';
-import Emitter from './emitter';
-import Listener from './listener';
+import { ChatSocketEmitter } from './emitter';
+import { ChatSocketListener } from './listener';
 
 export type ChatSocketServer = Namespace<
-  Listener.Events,
-  Emitter.Events,
+  ChatSocketListener,
+  ChatSocketEmitter,
   any,
   SocketData
 >;
 
 export type ChatSocket = Socket<
-  Listener.Events,
-  Emitter.Events,
+  ChatSocketListener,
+  ChatSocketEmitter,
   any,
   SocketData
 >;

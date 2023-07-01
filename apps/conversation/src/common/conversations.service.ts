@@ -10,10 +10,8 @@ import { ConversationUpsertRequest } from './types';
 
 @Injectable()
 export class ConversationsService {
-  constructor(
-    private readonly repo: ConversationsRepository,
-    private readonly helper: ServiceHelpers<Conversation>,
-  ) {
+  private readonly helper: ServiceHelpers<Conversation>;
+  constructor(private readonly repo: ConversationsRepository) {
     this.helper = new ServiceHelpers(repo);
   }
 
