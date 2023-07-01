@@ -2,7 +2,7 @@ import { Conversation } from '@app/databases';
 
 import { FilterQuery } from 'mongoose';
 import { ConversationsService } from '../conversations.service';
-import { MessageDto } from '../dto';
+import { MessageSendDto, MessageUpdateDto } from '../../gateway/dto';
 
 export abstract class BaseSubConversationsService {
   constructor(protected baseService: ConversationsService) {}
@@ -55,7 +55,7 @@ export abstract class BaseSubConversationsService {
     );
   }
 
-  addMessage(id: string, userId: number, request: MessageDto.CreateRequest) {
+  addMessage(id: string, userId: number, request: MessageSendDto) {
     return this.baseService.addMessage(
       id,
       userId,
@@ -64,7 +64,7 @@ export abstract class BaseSubConversationsService {
     );
   }
 
-  updateMessage(id: string, userId: number, request: MessageDto.UpdateRequest) {
+  updateMessage(id: string, userId: number, request: MessageUpdateDto) {
     return this.baseService.updateMessage(
       id,
       userId,
