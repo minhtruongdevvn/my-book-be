@@ -1,7 +1,7 @@
 import { Conversation } from '@app/databases';
 
 import { FilterQuery } from 'mongoose';
-import { Listener } from '../../gateway/types';
+import { MessageSendDto, MessageUpdateDto } from '../../gateway/dto';
 import { ConversationsService } from '../conversations.service';
 
 export abstract class BaseSubConversationsService {
@@ -55,11 +55,7 @@ export abstract class BaseSubConversationsService {
     );
   }
 
-  addMessage(
-    id: string,
-    userId: number,
-    request: Listener.Message.Payload.Send,
-  ) {
+  addMessage(id: string, userId: number, request: MessageSendDto) {
     return this.baseService.addMessage(
       id,
       userId,
@@ -68,11 +64,7 @@ export abstract class BaseSubConversationsService {
     );
   }
 
-  updateMessage(
-    id: string,
-    userId: number,
-    request: Listener.Message.Payload.Update,
-  ) {
+  updateMessage(id: string, userId: number, request: MessageUpdateDto) {
     return this.baseService.updateMessage(
       id,
       userId,
