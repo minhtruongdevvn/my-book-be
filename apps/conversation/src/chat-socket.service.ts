@@ -4,7 +4,7 @@ import { Namespace } from 'socket.io';
 
 import { conversationFullProjection as convoFullProjection } from '@app/databases';
 
-import { ConversationsService } from './conversations.service';
+import { ConversationsService } from './common/conversations.service';
 import { ConversationDto } from './dto';
 import { ChatSocketServer } from './gateway/types';
 import { UsersService } from './users.service';

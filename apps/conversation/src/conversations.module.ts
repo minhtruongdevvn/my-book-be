@@ -10,8 +10,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ChatSocketService } from './chat-socket.service';
-import { ConversationsRepository } from './conversations.repository';
-import { ConversationsService } from './conversations.service';
+import { ConversationsRepository } from './common/conversations.repository';
+import { ConversationsService } from './common/conversations.service';
 import { ConversationGateway } from './gateway';
 import {
   GroupConversationsController,

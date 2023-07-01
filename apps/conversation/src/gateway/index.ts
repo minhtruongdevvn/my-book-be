@@ -24,8 +24,8 @@ import { z } from 'zod';
 import { validationOptions } from '../common/utils';
 
 import { ChatSocketService } from '../chat-socket.service';
+import { ConversationsService } from '../common/conversations.service';
 import { getIdByJWToken } from '../common/utils/jwt-token.util';
-import { ConversationsService } from '../conversations.service';
 import { WsExceptionFilter } from './exception.filter';
 import {
   ChatSocket,

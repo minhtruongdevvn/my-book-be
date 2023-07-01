@@ -2,9 +2,9 @@ import { Conversation } from '@app/databases';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterQuery, ProjectionType } from 'mongoose';
 
-import { ServiceHelpers } from './common/services/service.helper';
+import { ConversationDto, ConversationUpsertRequest, MessageDto } from '../dto';
 import { ConversationsRepository } from './conversations.repository';
-import { ConversationDto, ConversationUpsertRequest, MessageDto } from './dto';
+import { ServiceHelpers } from './services/service.helper';
 
 @Injectable()
 export class ConversationsService {
@@ -22,14 +22,14 @@ export class ConversationsService {
     projection?: ProjectionType<Conversation>,
   ) {
     return this.repo.findOne(
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
       projection ?? { messages: 0 },
     );
   }
 
   getByUserId(userId: number, filter?: FilterQuery<Conversation>) {
     return this.helper.getMessageByUserId(
-      this.getOrExtendsDefaultFitler(userId, undefined, filter),
+      this.getOrExtendsDefaultFilter(userId, undefined, filter),
     );
   }
 
@@ -82,14 +82,14 @@ export class ConversationsService {
     await this.helper.validateConversation(id, userId);
 
     await this.repo.updateOne(
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
       { $set: { ...request } },
     );
   }
 
   async remove(id: string, userId: number, filter?: FilterQuery<Conversation>) {
     await this.repo.deleteOne(
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
     );
   }
 
@@ -127,7 +127,7 @@ export class ConversationsService {
   ) {
     const convo = await this.repo.findOne(
       {
-        ...this.getOrExtendsDefaultFitler(userId, undefined, filter),
+        ...this.getOrExtendsDefaultFilter(userId, undefined, filter),
         'messages.id': messageId,
         'messages.from': userId,
       },
@@ -146,7 +146,7 @@ export class ConversationsService {
     filter?: FilterQuery<Conversation>,
   ) {
     return this.helper.getMessagesByTimeRange(
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
       startAt,
       endAt,
     );
@@ -160,7 +160,7 @@ export class ConversationsService {
     filter?: FilterQuery<Conversation>,
   ) {
     return this.helper.getMessagesByOrder(
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
       count,
       nthFromEnd,
     );
@@ -174,7 +174,7 @@ export class ConversationsService {
   ) {
     await this.helper.validateConversation(id);
     return this.helper.addMessage(
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
       userId,
       request.content,
       request.at,
@@ -191,7 +191,7 @@ export class ConversationsService {
     return await this.helper.updateMessage(
       userId,
       request,
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
     );
   }
 
@@ -203,7 +203,7 @@ export class ConversationsService {
   ) {
     await this.helper.validateConversation(id);
     return await this.helper.deleteMessage(
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
       { arrayFilters: [{ 'el.id': messageId }] },
     );
   }
@@ -216,13 +216,13 @@ export class ConversationsService {
   ) {
     await this.helper.validateConversation(id);
     return await this.helper.updateMessageSeenLog(
-      this.getOrExtendsDefaultFitler(userId, id, filter),
+      this.getOrExtendsDefaultFilter(userId, id, filter),
       userId,
       messageId,
     );
   }
 
-  private getOrExtendsDefaultFitler(
+  private getOrExtendsDefaultFilter(
     userId: number,
     id?: string,
     filter?: FilterQuery<Conversation>,

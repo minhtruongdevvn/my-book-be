@@ -3,8 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { Conversation } from '@app/databases';
 
 import { FilterQuery } from 'mongoose';
+import { ConversationsService } from '../common/conversations.service';
 import { BaseSubConversationsService } from '../common/services';
-import { ConversationsService } from '../conversations.service';
 import {
   ConversationDto,
   ConversationUpsertRequest,
