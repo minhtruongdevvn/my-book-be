@@ -2,7 +2,6 @@
   "name": "conversation",
   "version": "0.0.1",
   "dependencies": {
-    "@nestjs/jwt": "^10.1.0",
     "@nestjs/platform-socket.io": "^10.0.4",
     "@nestjs/websockets": "^10.0.4",
     "@socket.io/redis-adapter": "^8.2.1",

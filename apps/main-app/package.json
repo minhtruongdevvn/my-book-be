@@ -4,7 +4,6 @@
   "dependencies": {
     "@aws-sdk/client-s3": "3.338.0",
     "@nestjs-modules/mailer": "1.8.1",
-    "@nestjs/jwt": "10.0.3",
     "@nestjs/passport": "9.0.3",
     "cookie-parser": "^1.4.6",
     "google-auth-library": "8.8.0",

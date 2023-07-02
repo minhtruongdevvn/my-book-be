@@ -62,7 +62,8 @@
     "rxjs": "7.8.1",
     "source-map-support": "0.5.21",
     "typeorm": "0.3.16",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "@nestjs/jwt": "10.0.3"
   },
   "devDependencies": {
     "@nestjs/cli": "9.5.0",

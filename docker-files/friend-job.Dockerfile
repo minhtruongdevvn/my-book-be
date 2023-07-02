@@ -3,6 +3,13 @@ FROM node:18.16.0-alpine
 RUN apk add --no-cache bash
 RUN npm i -g @nestjs/cli
 
+COPY package*.json /tmp/
+COPY ./apps/friend-job/package.json /tmp/apps/friend-job/
+RUN cd /tmp && npm install
+RUN mkdir -p /main
+RUN cp -r /tmp/node_modules /main/node_modules
+RUN rm -rf /tmp
+
 COPY package*.json /main/
 COPY ./libs /main/libs
 COPY ./.env /main/.env
@@ -11,8 +18,6 @@ COPY ./tsconfig.json /main/tsconfig.json
 COPY ./tsconfig.build.json /main/tsconfig.build.json
 
 COPY ./apps/friend-job /main/apps/friend-job
-
-RUN cd /main && npm install
 
 ENV DATABASE_HOST=postgres
 ENV CHATBOX_DB_HOST=mongo
