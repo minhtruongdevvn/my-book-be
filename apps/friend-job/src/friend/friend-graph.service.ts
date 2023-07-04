@@ -142,7 +142,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     for (const friendId of user.friendIds) {
       const friend = this.graph.get(friendId);
 
-      if (!friend || includeName(friend, search)) continue;
+      if (!friend || !includeName(friend, search)) continue;
       if (skip > 0) {
         skip--;
         continue;
