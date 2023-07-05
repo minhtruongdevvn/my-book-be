@@ -23,6 +23,7 @@ import { HomeModule } from './home/home.module';
 import { InterestsModule } from './interests/interests.module';
 import { MailConfigService } from './mail/mail-config.service';
 import { MailModule } from './mail/mail.module';
+import { PostsModule } from './posts/posts.module';
 import { UsersModule } from './users/users.module';
 import { MongoExceptionFilter } from './utils/filters/mongo-exception.filter';
 import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter';
@@ -69,6 +70,7 @@ import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter
     FriendsModule,
     AddressesModule,
     InterestsModule,
+    PostsModule,
   ],
   providers: [
     {

@@ -11,8 +11,6 @@ import { FriendGraphService } from './friend-graph.service';
 
 import { FriendController } from './friend.controller';
 
-export const FRIEND_GRAPH_KEY = 'friend-graph';
-
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
   providers: [

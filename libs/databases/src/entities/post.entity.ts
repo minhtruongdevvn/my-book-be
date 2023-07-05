@@ -3,6 +3,7 @@ import {
   Entity,
   JoinColumn,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -11,6 +12,7 @@ import { EntityHelper } from '../utils/entity-helper';
 import { Comment } from './comment.entity';
 import { FileEntity } from './file.entity';
 import { Interest } from './interest.entity';
+import { User } from './user.entity';
 
 @Entity()
 export class Post extends EntityHelper {
@@ -25,6 +27,13 @@ export class Post extends EntityHelper {
 
   @Column({ nullable: true })
   backgroundCode: string;
+
+  @Column()
+  userId: number;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @Column({ nullable: true })
   picId: string;

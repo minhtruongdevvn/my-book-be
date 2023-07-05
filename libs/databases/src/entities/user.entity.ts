@@ -11,6 +11,7 @@ import {
   Index,
   ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -18,6 +19,7 @@ import { AuthProvidersEnum } from '../enum/auth-providers.enum';
 import { EntityHelper } from '../utils/entity-helper';
 import { FileEntity } from './file.entity';
 import { Interest } from './interest.entity';
+import { Post } from './post.entity';
 import { Role } from './role.entity';
 import { Status } from './status.entity';
 
@@ -101,6 +103,12 @@ export class User extends EntityHelper {
 
   @ManyToMany(() => Interest, (interest) => interest.users)
   interests: Interest[];
+
+  @OneToMany(() => Post, (post) => post.user, {
+    cascade: true,
+    nullable: true,
+  })
+  posts: Post[];
 
   @CreateDateColumn()
   createdAt: Date;
