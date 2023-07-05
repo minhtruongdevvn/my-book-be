@@ -39,8 +39,10 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
         });
 
       for (const user of users) {
-        const add = Person.fromUser(user);
-        add && this.graph.set(user.id, add);
+        const userToAdd = Person.fromUser(user);
+        if (userToAdd) {
+          this.graph.set(user.id, userToAdd);
+        }
       }
     }
   }

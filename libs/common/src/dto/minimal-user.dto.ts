@@ -26,9 +26,9 @@ export class MinimalUserDto {
   );
   constructor(
     id: number,
-    alias: string,
     firstName: string | null,
     lastName: string | null,
+    alias: string,
     photo?: Photo,
     photoId?: string,
     photoPath?: string,
