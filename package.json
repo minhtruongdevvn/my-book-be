@@ -12,6 +12,11 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "post:build": "nest build post",
+    "post:start": "nest start post",
+    "post:dev": "nest start post --watch",
+    "post:debug": "nest start post --debug --watch",
+    "post:prod": "node dist/apps/post/apps/post/src/main",
     "friend-reco:build": "nest build friend-recommendation",
     "friend-reco:start": "nest start friend-recommendation",
     "friend-reco:dev": "nest start friend-recommendation --watch",

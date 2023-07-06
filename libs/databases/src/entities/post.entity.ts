@@ -20,13 +20,13 @@ export class Post extends EntityHelper {
   id: number;
 
   @Column({ nullable: true, length: 200 })
-  title: string;
+  title?: string;
 
   @Column({ nullable: true })
-  content: string;
+  content?: string;
 
   @Column({ nullable: true })
-  backgroundCode: string;
+  backgroundCode?: string;
 
   @Column()
   userId: number;
@@ -36,18 +36,20 @@ export class Post extends EntityHelper {
   user: User;
 
   @Column({ nullable: true })
-  picId: string;
+  picId?: string;
 
-  @OneToOne(() => FileEntity, { eager: true, cascade: true, nullable: true })
-  @JoinColumn({ name: 'picId' })
-  pic: FileEntity;
+  @OneToOne(() => FileEntity, (file) => file.post, {
+    eager: true,
+    nullable: true,
+  })
+  pic?: FileEntity;
 
   @ManyToMany(() => Interest, (interest) => interest.posts)
-  interests: Interest[];
+  interests?: Interest[];
 
   @OneToMany(() => Comment, (comment) => comment.post, {
     cascade: true,
     nullable: true,
   })
-  comments: Comment[];
+  comments?: Comment[];
 }

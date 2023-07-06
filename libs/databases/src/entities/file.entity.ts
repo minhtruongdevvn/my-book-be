@@ -5,11 +5,14 @@ import {
   AfterLoad,
   Column,
   Entity,
+  JoinColumn,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import appConfig from '../config/app.config';
 import { AppConfig } from '../config/config.type';
 import { EntityHelper } from '../utils/entity-helper';
+import { Post } from './post.entity';
 
 @Entity({ name: 'file' })
 export class FileEntity extends EntityHelper {
@@ -20,6 +23,10 @@ export class FileEntity extends EntityHelper {
   @Allow()
   @Column()
   path: string;
+
+  @OneToOne(() => Post, (post) => post.pic, { onDelete: 'CASCADE' })
+  @JoinColumn()
+  post: Post;
 
   @AfterLoad()
   @AfterInsert()

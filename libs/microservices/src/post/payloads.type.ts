@@ -1,9 +1,9 @@
-interface Post {
+export interface Post {
   userId: number;
   title?: string;
   content?: string;
   backgroundCode?: string;
-  picId?: string;
+  picPath?: string;
   interests?: number[];
 }
 

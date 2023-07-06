@@ -1,5 +1,5 @@
 import { ClientError } from '@app/common';
-import { Post as PostEntity } from '@app/databases';
+import { FileEntity, Post as PostEntity, PostInterest } from '@app/databases';
 import { RpcControlledException } from '@app/microservices';
 import * as Post from '@app/microservices/post';
 import { Injectable } from '@nestjs/common';
@@ -11,6 +11,10 @@ export class PostService {
   constructor(
     @InjectRepository(PostEntity)
     private readonly postRepo: Repository<PostEntity>,
+    @InjectRepository(PostInterest)
+    private readonly postInterestRepo: Repository<PostInterest>,
+    @InjectRepository(FileEntity)
+    private readonly fileRepo: Repository<FileEntity>,
   ) {}
 
   async getByUser(payload: Post.Payload.GetByUser) {
@@ -24,10 +28,33 @@ export class PostService {
     return { posts, count };
   }
 
-  create(payload: Post.Payload.Create) {
-    return this.postRepo.save(
-      this.postRepo.create(payload as unknown as PostEntity),
-    );
+  async create(payload: Post.Payload.Create) {
+    const { interests, picPath, ...postToAdd } = payload;
+    const post = await this.postRepo.save(this.postRepo.create(postToAdd));
+    const postPic: FileEntity = new FileEntity();
+
+    await Promise.all([
+      (async () => {
+        if (interests) {
+          await this.postInterestRepo.insert(
+            interests.map((interestId) => ({
+              postId: post.id,
+              interestId,
+            })),
+          );
+        }
+      })(),
+      (async () => {
+        if (picPath) {
+          postPic.path = picPath;
+          postPic.post = post;
+          await postPic.save();
+        }
+      })(),
+    ]);
+
+    post.picId = postPic.id;
+    return post;
   }
 
   async update(payload: Post.Payload.Update) {
@@ -41,7 +68,39 @@ export class PostService {
       });
     }
 
-    return this.postRepo.save(payload as unknown as PostEntity);
+    const { interests, picPath, ...postToUpdate } = payload;
+    const postPic: FileEntity = new FileEntity();
+
+    await Promise.all([
+      (async () => {
+        if (interests) {
+          await this.postInterestRepo.delete({ postId: postToUpdate.id });
+          await this.postInterestRepo.insert(
+            interests.map((interestId) => ({
+              postId: postToUpdate.id,
+              interestId,
+            })),
+          );
+        }
+      })(),
+      (async () => {
+        if (picPath) {
+          const postToUpdatePic = new PostEntity();
+          postToUpdatePic.id = postToUpdate.id;
+
+          await this.fileRepo.delete({ post: { id: postToUpdate.id } });
+
+          postPic.path = picPath;
+          postPic.post = postToUpdatePic;
+          await postPic.save();
+        }
+      })(),
+    ]);
+
+    const updatedPost = await this.postRepo.save(postToUpdate);
+
+    updatedPost.picId = postPic.id;
+    return updatedPost;
   }
 
   async delete(payload: Post.Payload.Delete) {

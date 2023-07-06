@@ -1,4 +1,9 @@
-import { DatabasesModule, Post } from '@app/databases';
+import {
+  DatabasesModule,
+  FileEntity,
+  Post,
+  PostInterest,
+} from '@app/databases';
 import {
   ExceptionFilter,
   TransformResponseInterceptor,
@@ -14,7 +19,7 @@ import { PostService } from './post.service';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabasesModule.forRoot(),
-    TypeOrmModule.forFeature([Post]),
+    TypeOrmModule.forFeature([Post, PostInterest, FileEntity]),
   ],
   controllers: [PostController],
   providers: [

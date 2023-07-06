@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { IsNumber, IsOptional, IsString, Length } from 'class-validator';
 
 export class CreatePostDto {
@@ -16,5 +17,6 @@ export class CreatePostDto {
 
   @IsOptional()
   @IsNumber({}, { each: true })
+  @Type(() => Number)
   interests?: number[];
 }

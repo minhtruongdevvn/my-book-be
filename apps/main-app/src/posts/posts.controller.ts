@@ -1,6 +1,5 @@
 import { GetUser } from '@/auth/decorators/get-user.decorator';
 import { FilesService } from '@/files/files.service';
-import { FileEntity } from '@app/databases';
 import { ClientProvider, InjectAppClient } from '@app/microservices';
 import * as PostService from '@app/microservices/post';
 import {
@@ -29,10 +28,10 @@ import { UpdatePostDto } from './dto/update.dto';
 export class PostsController {
   constructor(
     @InjectAppClient() private readonly client: ClientProvider,
-    private readonly filesService: FilesService,
+    private readonly fileService: FilesService,
   ) {}
 
-  @Get('user/:userId')
+  @Get('user')
   getByUser(
     @GetUser('id') userId: number,
     @Query('skip') skip?: number,
@@ -46,17 +45,13 @@ export class PostsController {
   @UseInterceptors(FileInterceptor('file'))
   async create(
     @GetUser('id') userId: number,
-    @Body('dto') dto: CreatePostDto,
+    @Body() dto: CreatePostDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    let fileInfo: FileEntity | undefined = undefined;
-    if (file) {
-      fileInfo = await this.filesService.uploadFile(file);
-    }
     const payload: PostService.Payload.Create = {
       userId,
       ...dto,
-      picId: fileInfo?.id,
+      picPath: file ? this.fileService.generatePath(file) : undefined,
     };
 
     return await this.client.sendAndReceive(PostService.Msg.CREATE, payload);
@@ -67,18 +62,14 @@ export class PostsController {
   async update(
     @Param('id') id: number,
     @GetUser('id') userId: number,
-    @Body('dto') dto: UpdatePostDto,
+    @Body() dto: UpdatePostDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    let fileInfo: FileEntity | undefined = undefined;
-    if (file) {
-      fileInfo = await this.filesService.uploadFile(file);
-    }
     const payload: PostService.Payload.Update = {
       id,
       userId,
       ...dto,
-      picId: fileInfo?.id,
+      picPath: file ? this.fileService.generatePath(file) : undefined,
     };
 
     return await this.client.sendAndReceive(PostService.Msg.UPDATE, payload);

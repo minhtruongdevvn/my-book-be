@@ -31,7 +31,7 @@ export class FilesService {
     );
   }
 
-  private generatePath(file: Express.Multer.File | Express.MulterS3.File) {
+  generatePath(file: Express.Multer.File | Express.MulterS3.File) {
     const adapters = {
       local: () => {
         const domain = this.configService.getOrThrow('app.backendDomain', {

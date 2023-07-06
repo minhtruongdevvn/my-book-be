@@ -4,7 +4,7 @@ export class UserInterest1687784928061 implements MigrationInterface {
   name = 'UserInterest1687784928061';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`DROP TABLE "user_interests"`);
+    await queryRunner.query(`DROP TABLE IF EXISTS "user_interests"`);
     await queryRunner.query(
       `CREATE TABLE "user_interest" ("userId" integer NOT NULL, "interestId" integer NOT NULL, CONSTRAINT "PK_34dc415098c1b8caa114be60db3" PRIMARY KEY ("userId", "interestId"))`,
     );
