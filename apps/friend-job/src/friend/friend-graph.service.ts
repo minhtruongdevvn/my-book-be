@@ -1,7 +1,7 @@
 /* eslint-disable prefer-const */
 import { ClientError, MinimalUserDto } from '@app/common';
 import { User } from '@app/databases';
-import { RpcControlledException } from '@app/microservices';
+import { RpcClientException } from '@app/microservices';
 import { Friend, Person } from '@app/microservices/friend';
 import { MutualFriendsOfUserWithUsers } from '@app/microservices/friend/payloads/mutual-friend-of-user-with-users';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
@@ -32,7 +32,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
       });
 
       if (users.length != userQuery.length)
-        throw new RpcControlledException({
+        throw new RpcClientException({
           name: ClientError.NotFound,
           description: 'user not found',
         });
@@ -48,7 +48,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
 
   async addRelationship(user1Id: number, user2Id: number) {
     if (user1Id == user2Id)
-      throw new RpcControlledException({
+      throw new RpcClientException({
         name: ClientError.InvalidPayload,
         description: 'cannot add friend with your self',
       });
@@ -57,7 +57,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     let user1 = this.graph.get(user1Id);
     let user2 = this.graph.get(user2Id);
     if (!user1 || !user2)
-      throw new RpcControlledException({
+      throw new RpcClientException({
         name: ClientError.NotFound,
         description: 'user not found',
       });
@@ -109,7 +109,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     );
 
     if (!user)
-      throw new RpcControlledException({
+      throw new RpcClientException({
         name: ClientError.NotFound,
         description: 'user not found',
       });
@@ -124,7 +124,7 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
     const user1 = this.graph.get(user1Id);
     const user2 = this.graph.get(user2Id);
     if (!user1 || !user2)
-      throw new RpcControlledException({
+      throw new RpcClientException({
         name: ClientError.NotFound,
         description: 'user not found',
       });

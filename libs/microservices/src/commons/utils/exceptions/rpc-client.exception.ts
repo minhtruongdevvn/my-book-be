@@ -1,9 +1,9 @@
 import { ClientErrorResponse, Optional } from '@app/common';
 import { RpcException } from '@nestjs/microservices';
 
-export class RpcControlledException extends RpcException {
+export class RpcClientException extends RpcException {
   constructor(err: Optional<ClientErrorResponse, 'description'>) {
     if (err.description === undefined) err.description = null;
-    super({ controlled: true, error: err });
+    super({ client: true, error: err });
   }
 }

@@ -12,7 +12,7 @@ export class ExceptionFilter
   catch(exception: any, host: ArgumentsHost): Observable<any> {
     if (exception instanceof RpcException) {
       const err = exception.getError();
-      if (!err['controlled']) {
+      if (!err['client']) {
         return super.catch(exception, host);
       }
 

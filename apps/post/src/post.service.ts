@@ -1,6 +1,6 @@
 import { ClientError } from '@app/common';
 import { FileEntity, Post as PostEntity, PostInterest } from '@app/databases';
-import { RpcControlledException } from '@app/microservices';
+import { RpcClientException } from '@app/microservices';
 import * as Post from '@app/microservices/post';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -63,7 +63,7 @@ export class PostService {
       where: { id: payload.id, userId: payload.userId },
     });
     if (!isExists) {
-      throw new RpcControlledException({
+      throw new RpcClientException({
         name: ClientError.UnprocessableEntity,
         description: `user with ID: ${payload.userId} does not has the post`,
       });
