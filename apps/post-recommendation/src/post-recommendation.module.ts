@@ -1,12 +1,7 @@
 import { DatabasesModule, Post, PostInterest, User } from '@app/databases';
-import {
-  AppClientModule,
-  ExceptionFilter,
-  TransformResponseInterceptor,
-} from '@app/microservices';
+import { AppClientModule, rootProviders } from '@app/microservices';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -37,8 +32,7 @@ import { RECO_STORAGE_KEY } from './storage-key';
       },
       inject: [getConnectionToken()],
     },
-    { provide: APP_INTERCEPTOR, useClass: TransformResponseInterceptor },
-    { provide: APP_FILTER, useClass: ExceptionFilter },
+    ...rootProviders,
   ],
 })
 export class PostRecommendationModule {}

@@ -1,12 +1,7 @@
 import { DatabasesModule } from '@app/databases';
-import {
-  AppClientModule,
-  ExceptionFilter,
-  TransformResponseInterceptor,
-} from '@app/microservices';
+import { AppClientModule, rootProviders } from '@app/microservices';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { FriendModule } from './friend/friend.module';
 
 @Module({
@@ -16,9 +11,6 @@ import { FriendModule } from './friend/friend.module';
     FriendModule,
     AppClientModule.forRoot(),
   ],
-  providers: [
-    { provide: APP_INTERCEPTOR, useClass: TransformResponseInterceptor },
-    { provide: APP_FILTER, useClass: ExceptionFilter },
-  ],
+  providers: [...rootProviders],
 })
 export class FriendJobModule {}

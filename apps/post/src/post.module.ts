@@ -4,13 +4,9 @@ import {
   Post,
   PostInterest,
 } from '@app/databases';
-import {
-  ExceptionFilter,
-  TransformResponseInterceptor,
-} from '@app/microservices';
+import { rootProviders } from '@app/microservices';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PostController } from './post.controller';
 import { PostService } from './post.service';
@@ -22,10 +18,6 @@ import { PostService } from './post.service';
     TypeOrmModule.forFeature([Post, PostInterest, FileEntity]),
   ],
   controllers: [PostController],
-  providers: [
-    PostService,
-    { provide: APP_INTERCEPTOR, useClass: TransformResponseInterceptor },
-    { provide: APP_FILTER, useClass: ExceptionFilter },
-  ],
+  providers: [PostService, ...rootProviders],
 })
 export class PostModule {}

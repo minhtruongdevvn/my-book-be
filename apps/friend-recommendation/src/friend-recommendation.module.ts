@@ -1,13 +1,8 @@
 import { DatabasesModule, User } from '@app/databases';
-import {
-  AppClientModule,
-  ExceptionFilter,
-  TransformResponseInterceptor,
-} from '@app/microservices';
+import { AppClientModule, rootProviders } from '@app/microservices';
 import { BullModule } from '@nestjs/bull';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection, Schema } from 'mongoose';
@@ -57,11 +52,10 @@ import { RECO_STORAGE_KEY } from './storage-key';
     FriendRecommendationService,
     FriendRecommendationProcessor,
     FriendRecommendationConsumer,
-    { provide: APP_INTERCEPTOR, useClass: TransformResponseInterceptor },
-    { provide: APP_FILTER, useClass: ExceptionFilter },
     UserCommonInterestProvider,
     UserMutualFriendProvider,
     UserProvinceProvider,
+    ...rootProviders,
   ],
 })
 export class FriendRecommendationModule {}

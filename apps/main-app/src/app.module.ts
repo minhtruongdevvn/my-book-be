@@ -1,3 +1,4 @@
+import { MongoExceptionFilter, TypeORMExceptionFilter } from '@app/common';
 import { DatabasesModule } from '@app/databases';
 import { AppClientModule } from '@app/microservices';
 import { MailerModule } from '@nestjs-modules/mailer';
@@ -25,8 +26,6 @@ import { MailConfigService } from './mail/mail-config.service';
 import { MailModule } from './mail/mail.module';
 import { PostsModule } from './posts/posts.module';
 import { UsersModule } from './users/users.module';
-import { MongoExceptionFilter } from './utils/filters/mongo-exception.filter';
-import { TypeORMExceptionFilter } from './utils/filters/typeorm-exception.filter';
 
 @Module({
   imports: [
