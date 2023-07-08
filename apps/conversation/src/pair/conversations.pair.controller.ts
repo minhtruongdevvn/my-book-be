@@ -40,11 +40,12 @@ export class PairedConversationsController {
     }
 
     const response = convos.map((convo) => {
+      const latestMessage = convo.messages[0];
       const participants = convo.participants
         .map((ptId) => users.get(ptId))
         .filter((user): user is MinimalUserDto => !!user);
 
-      return new Response(convo, participants);
+      return new Response(convo, participants, latestMessage);
     });
 
     return response;
