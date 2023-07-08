@@ -65,3 +65,5 @@ WORKER_HOST=localhost
 CHAT_REDIS_PORT=6380
 CHAT_REDIS_HOST=localhost
 CHAT_PORT=3001
+
+POST_RECO_TIME_RANGE=3 #should be blank to get enough data

@@ -1,0 +1,10 @@
+{
+  "name": "post-recommendation",
+  "version": "0.0.1",
+  "dependencies": {
+    "@nestjs/schedule": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/cron": "^2.0.1"
+  }
+}

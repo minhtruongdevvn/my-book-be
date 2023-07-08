@@ -102,6 +102,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/post/tsconfig.app.json"
       }
+    },
+    "post-recommendation": {
+      "type": "application",
+      "root": "apps/post-recommendation",
+      "entryFile": "main",
+      "sourceRoot": "apps/post-recommendation/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/post-recommendation/tsconfig.app.json"
+      }
     }
   }
 }

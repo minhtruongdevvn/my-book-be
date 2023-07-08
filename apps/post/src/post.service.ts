@@ -49,6 +49,7 @@ export class PostService {
           postPic.path = picPath;
           postPic.post = post;
           await postPic.save();
+          await this.postRepo.update({ id: post.id }, { picId: postPic.id });
         }
       })(),
     ]);
@@ -93,6 +94,10 @@ export class PostService {
           postPic.path = picPath;
           postPic.post = postToUpdatePic;
           await postPic.save();
+          await this.postRepo.update(
+            { id: postToUpdate.id },
+            { picId: postPic.id },
+          );
         }
       })(),
     ]);

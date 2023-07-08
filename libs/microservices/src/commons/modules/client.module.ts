@@ -48,7 +48,7 @@ export class AppClientModule {
 export class ClientProvider {
   constructor(private readonly client: ClientProxy & Closeable) {}
 
-  async sendAndReceive<TResult, TInput>(pattern: any, input: TInput) {
+  async sendAndReceive<TResult, TInput = unknown>(pattern: any, input: TInput) {
     const response = await this.lastValueFrom(
       this.client.send<ServiceResponse<TResult>, TInput>(pattern, input),
     );

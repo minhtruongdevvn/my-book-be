@@ -16,8 +16,11 @@ import { AddressSeedModule } from './address/address-seed.module';
 
 import { InterestSeedModule } from './interest/interest-seed.module';
 
+import { PostSeedModule } from './post/post-seed.module';
+
 @Module({
   imports: [
+    PostSeedModule,
     InterestSeedModule,
     AddressSeedModule,
     RoleSeedModule,

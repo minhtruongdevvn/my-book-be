@@ -4,4 +4,5 @@ export const Msg = {
   UPDATE: { post: 'update' },
   DELETE: { post: 'delete' },
   GET_BY_USER: { post: 'get_by_user' },
+  GET_POST_RECO: { post: 'get_post_recommendation' },
 };

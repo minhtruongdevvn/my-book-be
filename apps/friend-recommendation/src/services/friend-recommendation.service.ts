@@ -21,7 +21,7 @@ import { UserGraph } from '../types';
 
 @Injectable()
 export class FriendRecommendationService implements OnApplicationBootstrap {
-  readonly maxRecommendationResult = 25;
+  readonly limit = 25;
 
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
@@ -33,37 +33,28 @@ export class FriendRecommendationService implements OnApplicationBootstrap {
     @Inject(RECO_STORAGE_KEY) private readonly model: Model<any>,
   ) {}
 
-  async onApplicationBootstrap() {
-    await this.model.ensureIndexes({ userId: 1 } as any);
-    const markInit = { init: true };
-    const isInit = await this.model.findOne(markInit).exec();
-    if (!isInit) {
-      await this.model.create(markInit);
-      await this.friendQueue.add(Job.INIT);
-    }
-  }
-
   async getRecommendation(userId: number): Promise<MinimalUserDto[]> {
     // maximum possible start index, the random will pick <= this index
-    const maximumStartIndex = {
-      $subtract: [{ $size: '$recommendation' }, this.maxRecommendationResult],
+    const maxStartIndex = {
+      $subtract: [{ $size: '$recommendation' }, this.limit],
     };
-    const positiveStartIndex = { $max: [maximumStartIndex, 0] };
+    const positiveStartIndex = { $max: [maxStartIndex, 0] };
     // we need to plus 1 because floor of Math.random excludes the right side
     const startIndex = { $add: [positiveStartIndex, 1] };
 
+    const getOneByUserId = [{ $match: { userId } }, { $limit: 1 }];
+    const getRandomInRangeStartIdx = {
+      $floor: { $multiply: ['$startIndex', Math.random()] },
+    };
+
     const queryResult = await this.model
       .aggregate([
-        { $match: { userId } },
+        ...getOneByUserId,
         { $project: { recommendation: 1, startIndex } },
         {
           $project: {
             selectedElements: {
-              $slice: [
-                '$recommendation', // field name
-                { $floor: { $multiply: ['$startIndex', Math.random()] } }, // start idx
-                this.maxRecommendationResult, // count
-              ],
+              $slice: ['$recommendation', getRandomInRangeStartIdx, this.limit],
             },
           },
         },
@@ -160,6 +151,16 @@ export class FriendRecommendationService implements OnApplicationBootstrap {
       if (friend.metadata) {
         friend.metadata.mutualFriendCount = mutualFriendCount;
       } else friend.metadata = { mutualFriendCount };
+    }
+  }
+
+  async onApplicationBootstrap() {
+    await this.model.ensureIndexes({ userId: 1 } as any);
+    const markInit = { init: true };
+    const isInit = await this.model.findOne(markInit).exec();
+    if (!isInit) {
+      await this.model.create(markInit);
+      await this.friendQueue.add(Job.INIT);
     }
   }
 }

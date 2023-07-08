@@ -1,17 +1,18 @@
 import {
   Column,
+  CreateDateColumn,
   Entity,
   JoinColumn,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { EntityHelper } from '../utils/entity-helper';
 import { Comment } from './comment.entity';
 import { FileEntity } from './file.entity';
-import { Interest } from './interest.entity';
+import { PostInterest } from './post-interest.entity';
 import { User } from './user.entity';
 
 @Entity()
@@ -44,12 +45,18 @@ export class Post extends EntityHelper {
   })
   pic?: FileEntity;
 
-  @ManyToMany(() => Interest, (interest) => interest.posts)
-  interests?: Interest[];
+  @OneToMany(() => PostInterest, (pi) => pi.post)
+  postInterests?: PostInterest[];
 
   @OneToMany(() => Comment, (comment) => comment.post, {
     cascade: true,
     nullable: true,
   })
   comments?: Comment[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

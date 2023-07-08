@@ -1,5 +1,11 @@
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { Post } from './post.entity';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { PostInterest } from './post-interest.entity';
 import { User } from './user.entity';
 
 @Entity()
@@ -13,6 +19,6 @@ export class Interest {
   @ManyToMany(() => User, (user) => user.interests)
   users: User[];
 
-  @ManyToMany(() => Post, (post) => post.interests)
-  posts: Post[];
+  @OneToMany(() => PostInterest, (pi) => pi.interest)
+  postInterests: PostInterest[];
 }

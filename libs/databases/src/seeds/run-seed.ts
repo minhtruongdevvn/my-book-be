@@ -15,6 +15,8 @@ const runSeed = async () => {
   await app.get(AddressSeedService).run();
   await app.get(InterestSeedService).run();
 
+  // await app.get(PostSeedService).run(); // costly computation
+
   await app.close();
 };
 
