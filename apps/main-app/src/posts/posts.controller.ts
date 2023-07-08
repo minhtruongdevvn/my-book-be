@@ -11,11 +11,15 @@ import {
   Post,
   Put,
   Query,
-  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import * as path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import { UploadedPostPic } from './decorators/uploaded-post-pic.decorator';
 import { CreatePostDto } from './dto/create.dto';
 import { UpdatePostDto } from './dto/update.dto';
 
@@ -45,16 +49,19 @@ export class PostsController {
   }
 
   @Post()
+  @UseInterceptors(FileInterceptor('file'))
   async create(
     @GetUser('id') userId: number,
     @Body() dto: CreatePostDto,
-    @UploadedFile('file') file?: Express.Multer.File | Express.MulterS3.File,
+    @UploadedPostPic()
+    file?: Express.Multer.File | Express.MulterS3.File,
   ) {
-    const payload: PostService.Payload.Create = {
-      userId,
-      ...dto,
-      picPath: file ? this.fileService.generatePath(file) : undefined,
-    };
+    const payload: PostService.Payload.Create = { userId, ...dto };
+
+    if (file) {
+      file.filename = `${uuidv4()}${path.extname(file.originalname)}`;
+      payload.picPath = this.fileService.generatePath(file);
+    }
 
     const response = await this.client.sendAndReceive(
       PostService.Msg.CREATE,
@@ -67,18 +74,20 @@ export class PostsController {
   }
 
   @Put(':id')
+  @UseInterceptors(FileInterceptor('file'))
   async update(
     @Param('id') id: number,
     @GetUser('id') userId: number,
     @Body() dto: UpdatePostDto,
-    @UploadedFile('file') file?: Express.Multer.File | Express.MulterS3.File,
+    @UploadedPostPic()
+    file?: Express.Multer.File | Express.MulterS3.File,
   ) {
-    const payload: PostService.Payload.Update = {
-      id,
-      userId,
-      ...dto,
-      picPath: file ? this.fileService.generatePath(file) : undefined,
-    };
+    const payload: PostService.Payload.Update = { id, userId, ...dto };
+
+    if (file) {
+      file.filename = `${uuidv4()}${path.extname(file.originalname)}`;
+      payload.picPath = this.fileService.generatePath(file);
+    }
 
     const response = await this.client.sendAndReceive(
       PostService.Msg.UPDATE,

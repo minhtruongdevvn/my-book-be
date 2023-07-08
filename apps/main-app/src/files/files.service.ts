@@ -84,8 +84,8 @@ export class FilesService {
     return 'bucket' in file;
   }
 
-  private async localSave(file: Express.Multer.File) {
-    await writeFile(
+  private localSave(file: Express.Multer.File) {
+    return writeFile(
       path.join(__dirname, 'file-storage', file.filename),
       file.buffer,
     );
@@ -106,14 +106,18 @@ export class FilesService {
     await s3.send(
       new PutObjectCommand({
         Bucket: this.s3Config.defaultBucket,
-        Key: `${randomStringGenerator()}.${file.originalname
-          .split('.')
-          .pop()
-          ?.toLowerCase()}`,
+        Key: this.generateName(file),
         Body: file.buffer,
         ACL: 'public-read',
         ContentType: contentType,
       }),
     );
+  }
+
+  private generateName(file: Express.MulterS3.File | Express.Multer.File) {
+    return `${randomStringGenerator()}.${file.originalname
+      .split('.')
+      .pop()
+      ?.toLowerCase()}`;
   }
 }
