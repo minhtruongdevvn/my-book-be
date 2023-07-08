@@ -31,6 +31,11 @@ export class PostsController {
     private readonly fileService: FilesService,
   ) {}
 
+  @Get('user/reco')
+  getPostRecoByUser(@GetUser('id') userId: number) {
+    return this.client.sendAndReceive(PostService.Msg.GET_POST_RECO, userId);
+  }
+
   @Get('user')
   getByUser(
     @GetUser('id') userId: number,

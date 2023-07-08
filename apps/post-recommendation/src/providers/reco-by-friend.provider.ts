@@ -32,6 +32,7 @@ export class RecoByFriendProvider {
       },
       take: this.maxProcessedPost,
       select: ['id'],
+      loadEagerRelations: false,
     });
 
     return posts.map((e) => e.id);
