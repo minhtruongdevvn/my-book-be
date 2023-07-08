@@ -29,7 +29,6 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
       const users = await this.userRepo.find({
         where: userQuery,
         select: ['id', 'lastName', 'firstName', 'alias'],
-        relations: ['photo'],
       });
 
       if (users.length != userQuery.length)
@@ -106,7 +105,6 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
       await this.userRepo.findOne({
         where: { id: userId },
         select: ['id', 'lastName', 'firstName', 'alias'],
-        relations: ['photo'],
       }),
     );
 

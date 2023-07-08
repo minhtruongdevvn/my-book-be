@@ -13,7 +13,6 @@ export class UserProvinceProvider {
     const userFriends = await this.userRepo.find({
       where: { address: user.address, id: Not(user.id) },
       select: ['id', 'lastName', 'firstName', 'alias'],
-      relations: ['photo'],
     });
 
     return userFriends.map((e) => ({
@@ -26,7 +25,6 @@ export class UserProvinceProvider {
     return this.userRepo.find({
       where: { address: Like(`${user.address.split(', ')[0]}, %`) },
       select: ['id', 'lastName', 'firstName', 'alias'],
-      relations: ['photo'],
     });
   }
 }
