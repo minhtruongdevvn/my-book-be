@@ -13,10 +13,8 @@ import {
   Query,
   UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreatePostDto } from './dto/create.dto';
 import { UpdatePostDto } from './dto/update.dto';
@@ -47,11 +45,10 @@ export class PostsController {
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
   async create(
     @GetUser('id') userId: number,
     @Body() dto: CreatePostDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile('file') file?: Express.Multer.File | Express.MulterS3.File,
   ) {
     const payload: PostService.Payload.Create = {
       userId,
@@ -59,16 +56,22 @@ export class PostsController {
       picPath: file ? this.fileService.generatePath(file) : undefined,
     };
 
-    return await this.client.sendAndReceive(PostService.Msg.CREATE, payload);
+    const response = await this.client.sendAndReceive(
+      PostService.Msg.CREATE,
+      payload,
+    );
+
+    file && (await this.fileService.save(file));
+
+    return response;
   }
 
   @Put(':id')
-  @UseInterceptors(FileInterceptor('file'))
   async update(
     @Param('id') id: number,
     @GetUser('id') userId: number,
     @Body() dto: UpdatePostDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile('file') file?: Express.Multer.File | Express.MulterS3.File,
   ) {
     const payload: PostService.Payload.Update = {
       id,
@@ -77,7 +80,14 @@ export class PostsController {
       picPath: file ? this.fileService.generatePath(file) : undefined,
     };
 
-    return await this.client.sendAndReceive(PostService.Msg.UPDATE, payload);
+    const response = await this.client.sendAndReceive(
+      PostService.Msg.UPDATE,
+      payload,
+    );
+
+    file && (await this.fileService.save(file));
+
+    return response;
   }
 
   @Delete(':id')
