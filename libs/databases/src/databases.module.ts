@@ -1,4 +1,4 @@
-import { DynamicModule, Global, Module } from '@nestjs/common';
+import { DynamicModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -44,14 +44,10 @@ export class DatabasesModule {
       imports.push(...Object.values(OrmModules.forRoot));
     }
 
-    @Global()
-    @Module({
-      imports,
-    })
-    class DynamicDatabasesModule {}
-
     return {
-      module: DynamicDatabasesModule,
+      module: DatabasesModule,
+      global: true,
+      imports,
     };
   }
 }
