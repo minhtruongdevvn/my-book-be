@@ -1,5 +1,6 @@
 import { GetUser } from '@/auth/decorators/get-user.decorator';
 import { FilesService } from '@/files/files.service';
+import { FileEntity } from '@app/databases';
 import { ClientProvider, InjectAppClient } from '@app/microservices';
 import * as PostService from '@app/microservices/post';
 import {
@@ -17,8 +18,6 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 import { UploadedPostPic } from './decorators/uploaded-post-pic.decorator';
 import { CreatePostDto } from './dto/create.dto';
 import { UpdatePostDto } from './dto/update.dto';
@@ -59,8 +58,7 @@ export class PostsController {
     const payload: PostService.Payload.Create = { userId, ...dto };
 
     if (file) {
-      file.filename = `${uuidv4()}${path.extname(file.originalname)}`;
-      payload.picPath = this.fileService.generatePath(file);
+      payload.picPath = this.fileService.getFileURL(file);
     }
 
     const response = await this.client.sendAndReceive(
@@ -68,7 +66,7 @@ export class PostsController {
       payload,
     );
 
-    file && (await this.fileService.save(file));
+    file && (await this.fileService.saveFile(file));
 
     return response;
   }
@@ -83,10 +81,12 @@ export class PostsController {
     file?: Express.Multer.File | Express.MulterS3.File,
   ) {
     const payload: PostService.Payload.Update = { id, userId, ...dto };
+    let oldFile: FileEntity | null = null;
 
     if (file) {
-      file.filename = `${uuidv4()}${path.extname(file.originalname)}`;
-      payload.picPath = this.fileService.generatePath(file);
+      file.filename = this.fileService.generateFileName(file);
+      payload.picPath = this.fileService.getFileURL(file);
+      oldFile = await this.fileService.findOne({ post: { id } });
     }
 
     const response = await this.client.sendAndReceive(
@@ -94,7 +94,17 @@ export class PostsController {
       payload,
     );
 
-    file && (await this.fileService.save(file));
+    if (file) {
+      await Promise.all([
+        (async () => {
+          if (oldFile) {
+            const fileName = oldFile.path.split('/').pop();
+            if (fileName) await this.fileService.deleteFile(fileName);
+          }
+        })(),
+        this.fileService.saveFile(file),
+      ]);
+    }
 
     return response;
   }

@@ -44,7 +44,7 @@ export class FilesController {
   async uploadFile(
     @UploadedFile() file: Express.Multer.File | Express.MulterS3.File,
   ) {
-    return this.filesService.uploadFile(file);
+    return this.filesService.createFileEntity(file);
   }
 
   @Get(':path')
