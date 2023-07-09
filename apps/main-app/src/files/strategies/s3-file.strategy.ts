@@ -17,7 +17,7 @@ export class S3FileStrategy extends FileStrategy {
   };
 
   constructor(configService: ConfigService<AllConfigType>) {
-    super();
+    super(configService);
 
     const get = (name: string) =>
       configService.getOrThrow<string>(name as any, {
@@ -32,15 +32,14 @@ export class S3FileStrategy extends FileStrategy {
     };
   }
 
-  getFileURL(file: Express.MulterS3.File): string {
-    if (!file.filename) file.filename = this.generateFileName(file);
+  getFileURLImplementation(file: Express.MulterS3.File): string {
     return (
       file.location ??
       `https://${this.s3Config.defaultBucket}.s3.${this.s3Config.region}.amazonaws.com/${file.filename}`
     );
   }
 
-  async saveFile(file: Express.MulterS3.File): Promise<string> {
+  async saveFileImplementation(file: Express.MulterS3.File): Promise<string> {
     const s3 = new S3Client({
       region: this.s3Config.region,
       credentials: {
@@ -48,7 +47,6 @@ export class S3FileStrategy extends FileStrategy {
         secretAccessKey: this.s3Config.secretAccessKey,
       },
     });
-    if (!file.filename) file.filename = this.generateFileName(file);
 
     const contentType = mime.lookup(file.filename);
 

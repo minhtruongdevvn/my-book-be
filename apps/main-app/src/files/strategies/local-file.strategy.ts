@@ -8,11 +8,11 @@ import { FileStrategy } from './file.strategy';
 export class LocalFileStrategy extends FileStrategy {
   private readonly domain: string;
   private readonly apiPrefix: string;
-  constructor(config: ConfigService<AllConfigType>) {
-    super();
+  constructor(configService: ConfigService<AllConfigType>) {
+    super(configService);
 
     const get = (name: string) =>
-      config.getOrThrow<string>(name as any, {
+      configService.getOrThrow<string>(name as any, {
         infer: true,
       });
 
@@ -20,14 +20,11 @@ export class LocalFileStrategy extends FileStrategy {
     this.apiPrefix = get('app.apiPrefix');
   }
 
-  getFileURL(file: Express.Multer.File): string {
-    if (!file.filename) file.filename = this.generateFileName(file);
+  getFileURLImplementation(file: Express.Multer.File): string {
     return `${this.domain}/${this.apiPrefix}/v1/files/${file.filename}`;
   }
 
-  async saveFile(file: Express.Multer.File): Promise<string> {
-    if (!file.filename) file.filename = this.generateFileName(file);
-
+  async saveFileImplementation(file: Express.Multer.File): Promise<string> {
     await writeFile(
       path.join(__dirname, 'file-storage', file.filename),
       file.buffer,

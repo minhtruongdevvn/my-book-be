@@ -44,6 +44,7 @@ export class FilesController {
   async uploadFile(
     @UploadedFile() file: Express.Multer.File | Express.MulterS3.File,
   ) {
+    await this.filesService.saveFile(file);
     return this.filesService.createFileEntity(file);
   }
 

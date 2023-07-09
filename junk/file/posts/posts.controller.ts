@@ -12,13 +12,13 @@ import {
   Post,
   Put,
   Query,
-  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { UploadedPostPic } from './decorators/uploaded-post-pic.decorator';
 import { CreatePostDto } from './dto/create.dto';
 import { UpdatePostDto } from './dto/update.dto';
 
@@ -52,7 +52,8 @@ export class PostsController {
   async create(
     @GetUser('id') userId: number,
     @Body() dto: CreatePostDto,
-    @UploadedFile() file?: Express.Multer.File | Express.MulterS3.File,
+    @UploadedPostPic()
+    file?: Express.Multer.File | Express.MulterS3.File,
   ) {
     const payload: PostService.Payload.Create = { userId, ...dto };
 
@@ -76,7 +77,8 @@ export class PostsController {
     @Param('id') id: number,
     @GetUser('id') userId: number,
     @Body() dto: UpdatePostDto,
-    @UploadedFile() file?: Express.Multer.File | Express.MulterS3.File,
+    @UploadedPostPic()
+    file?: Express.Multer.File | Express.MulterS3.File,
   ) {
     const payload: PostService.Payload.Update = { id, userId, ...dto };
     let oldFile: FileEntity | null = null;
@@ -108,20 +110,8 @@ export class PostsController {
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: number, @GetUser('id') userId: number) {
+  delete(@Param('id') id: number, @GetUser('id') userId: number) {
     const payload: PostService.Payload.Delete = { id, userId };
-    const deleted = await this.client.sendAndReceive<boolean>(
-      PostService.Msg.DELETE,
-      payload,
-    );
-    if (deleted) {
-      const file = await this.fileService.findOne({ post: { id } });
-      if (file) {
-        const fileName = file.path.split('/').pop();
-        if (fileName) await this.fileService.deleteFile(fileName);
-      }
-    }
-
-    return deleted;
+    return this.client.sendAndReceive(PostService.Msg.DELETE, payload);
   }
 }
