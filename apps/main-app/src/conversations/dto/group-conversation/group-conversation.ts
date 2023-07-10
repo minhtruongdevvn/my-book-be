@@ -8,7 +8,7 @@ export class GroupConversation implements Conversation {
       if (!(key in this) || !(key in convo) || ['id'].includes(key)) continue;
       this[key] = convo[key];
     }
-    this.id = convo.id ?? '';
+    this.id = convo.id ?? convo._id?.toString() ?? '';
   }
 
   id: string;
