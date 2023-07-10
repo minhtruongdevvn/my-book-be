@@ -39,3 +39,4 @@ apps/main-app/files
 .env
 /ormconfig.json
 *.csv
+/file-storage/

@@ -4,7 +4,7 @@ import { FileEntity } from '@app/databases';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, Repository } from 'typeorm';
+import { FindOneOptions, Repository } from 'typeorm';
 import { FileStrategy, getFileStrategy } from './strategies';
 
 @Injectable()
@@ -19,10 +19,8 @@ export class FilesService {
     this.fileStrategy = getFileStrategy(configService);
   }
 
-  findOne(
-    where: FindOptionsWhere<FileEntity> | FindOptionsWhere<FileEntity>[],
-  ) {
-    return this.fileRepository.findOneBy(where);
+  findOne(findOption: FindOneOptions<FileEntity>) {
+    return this.fileRepository.findOne(findOption);
   }
 
   async createFileEntity(
@@ -50,6 +48,8 @@ export class FilesService {
 
   saveFile = (file: Express.Multer.File | Express.MulterS3.File) =>
     this.fileStrategy.saveFile(file);
+
+  getFilePath = (fileName: string) => this.fileStrategy.getFilePath(fileName);
 
   deleteFile = (fileName: string) => this.fileStrategy.deleteFile(fileName);
 }

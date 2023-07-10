@@ -108,12 +108,19 @@ export class PostService {
     return updatedPost;
   }
 
-  async delete(payload: Post.Payload.Delete) {
+  async delete(payload: Post.Payload.Delete): Promise<Post.Type.DeleteResult> {
+    const postToDelete = await this.postRepo.findOne({
+      where: { id: payload.id, userId: payload.userId },
+    });
+
     const result = await this.postRepo.delete({
       id: payload.id,
       userId: payload.userId,
     });
 
-    return result.affected ? result.affected > 0 : false;
+    return {
+      deleted: result.affected ? result.affected > 0 : false,
+      deletedPost: postToDelete,
+    };
   }
 }

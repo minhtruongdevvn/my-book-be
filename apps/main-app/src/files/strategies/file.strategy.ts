@@ -1,7 +1,7 @@
 import { AllConfigType } from '@/config/config.type';
 import { ClientError, ClientErrorException } from '@app/common';
 import { ConfigService } from '@nestjs/config';
-import path from 'path';
+import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 export abstract class FileStrategy {
@@ -43,9 +43,10 @@ export abstract class FileStrategy {
   }
 
   abstract getFileURLImplementation(
-    file: Express.Multer.File | Express.MulterS3.File,
+    fileName: Express.Multer.File | Express.MulterS3.File,
   ): string;
   abstract deleteFile(fileName: string): Promise<void>;
+  abstract getFilePath(fileName: string): string | undefined;
   abstract saveFileImplementation(
     file: Express.Multer.File | Express.MulterS3.File,
   ): Promise<string>;

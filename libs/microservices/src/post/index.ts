@@ -1,4 +1,5 @@
 export * as Payload from './payloads.type';
+export * as Type from './types';
 export const Msg = {
   CREATE: { post: 'create' },
   UPDATE: { post: 'update' },

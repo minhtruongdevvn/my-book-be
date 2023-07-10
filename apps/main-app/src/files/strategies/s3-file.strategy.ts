@@ -79,4 +79,8 @@ export class S3FileStrategy extends FileStrategy {
       }),
     );
   }
+
+  getFilePath(): string | undefined {
+    throw new Error('No getFilePath logic for S3');
+  }
 }

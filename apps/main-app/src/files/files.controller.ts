@@ -13,8 +13,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { Response as ResponseType } from 'express';
-import * as fs from 'fs';
-import * as path from 'path';
 import { FilesService } from './files.service';
 
 @ApiTags('Files')
@@ -48,16 +46,19 @@ export class FilesController {
     return this.filesService.createFileEntity(file);
   }
 
-  @Get(':path')
-  download(@Param('path') id: string, @Response() response: ResponseType) {
-    const root = path.join(__dirname, 'file-storage');
-    if (!fs.existsSync(path.join(root, id))) {
+  @Get(':fileName')
+  download(
+    @Param('fileName') fileName: string,
+    @Response() response: ResponseType,
+  ) {
+    const filePath = this.filesService.getFilePath(fileName);
+    if (!filePath) {
       throw new ClientErrorException({
         name: ClientError.NotFound,
         description: 'path not exist',
       });
     }
 
-    return response.sendFile(id, { root });
+    return response.sendFile(filePath);
   }
 }

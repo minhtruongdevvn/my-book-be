@@ -84,7 +84,11 @@ export class PostsController {
     if (file) {
       file.filename = this.fileService.generateFileName(file);
       payload.picPath = this.fileService.getFileURL(file);
-      oldFile = await this.fileService.findOne({ post: { id } });
+      oldFile = await this.fileService.findOne({
+        where: { post: { id } },
+      });
+
+      await this.fileService.createFileEntity(file);
     }
 
     const response = await this.client.sendAndReceive(
@@ -110,18 +114,19 @@ export class PostsController {
   @Delete(':id')
   async delete(@Param('id') id: number, @GetUser('id') userId: number) {
     const payload: PostService.Payload.Delete = { id, userId };
-    const deleted = await this.client.sendAndReceive<boolean>(
-      PostService.Msg.DELETE,
-      payload,
-    );
-    if (deleted) {
-      const file = await this.fileService.findOne({ post: { id } });
-      if (file) {
-        const fileName = file.path.split('/').pop();
-        if (fileName) await this.fileService.deleteFile(fileName);
-      }
+    const result =
+      await this.client.sendAndReceive<PostService.Type.DeleteResult>(
+        PostService.Msg.DELETE,
+        payload,
+      );
+
+    const picPath = result.deletedPost?.pic?.path;
+
+    if (result.deleted && picPath) {
+      const fileName = picPath.split('/').pop();
+      if (fileName) await this.fileService.deleteFile(fileName);
     }
 
-    return deleted;
+    return result.deleted;
   }
 }
