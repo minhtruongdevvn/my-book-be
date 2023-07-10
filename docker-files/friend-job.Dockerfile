@@ -20,4 +20,4 @@ ENV CHATBOX_DB_HOST=mongo
 ENV WORKER_HOST=redis
 
 WORKDIR /main
-RUN npm run friend-job:build
+RUN nest build friend-job

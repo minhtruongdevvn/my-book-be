@@ -22,4 +22,4 @@ ENV CHAT_REDIS_HOST=chat-redis
 ENV CHAT_REDIS_PORT=6379
 
 WORKDIR /main
-RUN npm run conversation:build
+RUN nest build conversation

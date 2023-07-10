@@ -21,4 +21,4 @@ ENV MAIL_HOST=maildev
 ENV WORKER_HOST=redis
 
 WORKDIR /main
-RUN npm run main:build
+RUN nest build main-app

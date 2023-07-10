@@ -71,7 +71,7 @@ services:
       - mongo
       - redis
       - friend-job
-    command: npm run friend-reco:prod
+    command: node dist/apps/friend-recommendation/apps/friend-recommendation/src/main
 
   friend-job:
     build:
@@ -81,7 +81,29 @@ services:
       - postgres
       - mongo
       - redis
-    command: npm run friend-job:prod
+    command: node dist/apps/friend-job/apps/friend-job/src/main
+
+  post:
+    build:
+      context: .
+      dockerfile: ./docker-files/post.Dockerfile
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+    command: node dist/apps/post/apps/post/src/main
+
+  post-reco:
+    build:
+      context: .
+      dockerfile: ./docker-files/post-reco.Dockerfile
+    depends_on:
+      - postgres
+      - mongo
+      - redis
+      - friend-job
+      - post
+    command: node dist/apps/post-recommendation/apps/post-recommendation/src/main
 
   main-app:
     build:
@@ -95,7 +117,9 @@ services:
       - mongo
       - redis
       - friend-reco
-    command: npm run main:prod
+      - post
+      - post-reco
+    command: node dist/apps/main-app/apps/main-app/src/main
 
   conversation:
     build:
@@ -108,4 +132,4 @@ services:
       - mongo
       - redis
       - chat-redis
-    command: npm run conversation:prod
+    command: node dist/apps/conversation/apps/conversation/src/main
