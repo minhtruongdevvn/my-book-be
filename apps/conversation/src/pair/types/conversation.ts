@@ -7,7 +7,7 @@ export class PairedConversation
     if (!convo) return;
 
     for (const key in convo) this[key] = convo[key];
-    this.id = convo.id ?? '';
+    this.id = convo.id ?? convo._id?.toString() ?? '';
   }
 
   id: string;
