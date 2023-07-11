@@ -9,12 +9,13 @@ export type ChatSocketEmitter = MapEventPayloadActions<{
   [User.Events.LEAVE_CHAT]: User.Payload.LeaveChat;
 
   [Message.Events.SEND_SUCCESS]: Message.Payload.SendSuccess;
+  [Message.Events.SEND_FAILURE]: Message.Payload.SendFailure;
   [Message.Events.RECEIVE]: Message.Payload.Receive;
   [Message.Events.READ_RECEIPT]: Message.Payload.ReadReceipt;
   [Message.Events.DELETE_NOTIFY]: Message.Payload.DeleteNotify;
-  [Message.Events.DELETE_SUCCESS]: Message.Payload.DeleteSuccess;
+  [Message.Events.DELETE_FAILURE]: Message.Payload.DeleteFailure;
   [Message.Events.UPDATE_NOTIFY]: Message.Payload.UpdateNotify;
-  [Message.Events.UPDATE_SUCCESS]: Message.Payload.UpdateSuccess;
+  [Message.Events.UPDATE_FAILURE]: Message.Payload.UpdateFailure;
 }>;
 
 export { User, Message };

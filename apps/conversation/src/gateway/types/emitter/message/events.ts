@@ -3,14 +3,17 @@ export const Events = {
   READ_RECEIPT: 'message_read_receipt',
   /** Notify other clients a new message is sent. */
   RECEIVE: 'message_receive',
-  /** When a message is successfully sent. */
-  SEND_SUCCESS: 'message_send_success',
-  /** When a message is successfully updated. */
-  UPDATE_SUCCESS: 'message_update_success',
   /** To notify clients that a message has been updated. */
   UPDATE_NOTIFY: 'message_update_notify',
-  /** When a message is successfully deleted. */
-  DELETE_SUCCESS: 'message_delete_success',
   /** Notify clients that a message has been deleted. */
   DELETE_NOTIFY: 'message_delete_notify',
+
+  /** When a message is successfully sent. */
+  SEND_SUCCESS: 'message_send_success',
+  /** When a message is failed to sent. */
+  SEND_FAILURE: 'message_send_failure',
+  /** When a message is failed to update. */
+  UPDATE_FAILURE: 'message_update_failure',
+  /** When a message is failed to delete. */
+  DELETE_FAILURE: 'message_delete_failure',
 } as const;

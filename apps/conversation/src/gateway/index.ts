@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   ClassSerializerInterceptor,
-  InternalServerErrorException,
   UseFilters,
   UseInterceptors,
   UsePipes,
@@ -99,7 +98,13 @@ export class ConversationGateway
       userId,
       payload,
     );
-    if (!response) throw new BadRequestException('Invalid content!');
+    if (!response) {
+      client.emit(Emitter.Message.Events.SEND_FAILURE, {
+        payload,
+        reason: 'Invalid content!',
+      });
+      return;
+    }
 
     client.emit(Emitter.Message.Events.SEND_SUCCESS, response);
     client.broadcast.emit(Emitter.Message.Events.RECEIVE, response);
@@ -124,7 +129,8 @@ export class ConversationGateway
     if (!success) return;
 
     client.broadcast.emit(Emitter.Message.Events.READ_RECEIPT, {
-      id: messageId,
+      messageId,
+      userId,
     });
   }
 
@@ -144,18 +150,27 @@ export class ConversationGateway
       userId,
       payload,
     );
-    if (!success) throw new BadRequestException('Invalid message!');
+    if (!success) {
+      client.emit(Emitter.Message.Events.UPDATE_FAILURE, {
+        payload,
+        reason: 'Invalid message!',
+      });
+      return;
+    }
 
     const updatedMessage = await this.convoService.getMessageById(
       userId,
       messageId,
     );
     if (!updatedMessage) {
-      throw new InternalServerErrorException('Something went wrong!');
+      client.emit(Emitter.Message.Events.UPDATE_FAILURE, {
+        payload,
+        reason: 'Something went wrong!',
+      });
+      return;
     }
 
     // emits
-    client.emit(Emitter.Message.Events.UPDATE_SUCCESS, updatedMessage);
     client.broadcast.emit(Emitter.Message.Events.UPDATE_NOTIFY, updatedMessage);
   }
 
@@ -175,10 +190,15 @@ export class ConversationGateway
       userId,
       messageId,
     );
-    if (!success) throw new BadRequestException('Invalid message!');
+    if (!success) {
+      client.emit(Emitter.Message.Events.DELETE_FAILURE, {
+        payload,
+        reason: 'Invalid message!',
+      });
+      return;
+    }
 
     // emits
-    client.emit(Emitter.Message.Events.DELETE_SUCCESS, { id: messageId });
     client.broadcast.emit(Emitter.Message.Events.DELETE_NOTIFY, {
       id: messageId,
     });
