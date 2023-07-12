@@ -46,7 +46,7 @@ export class UsersService {
         'user.firstName',
         'user.lastName',
         'user.alias',
-        'user.createAt',
+        'user.createdAt',
         'photo',
       ])
       .getMany();
