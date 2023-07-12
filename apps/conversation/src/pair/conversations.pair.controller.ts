@@ -27,7 +27,7 @@ export class PairedConversationsController {
   }
 
   @MessagePattern(Pair.Msg.GET_ALL_BY_USER)
-  async get(payload: number) {
+  async getAllByUser(payload: number) {
     const convos = await this.convoService.getByUserId(payload);
     if (!convos) return;
     const users = new Map<number, MinimalUserDto>();

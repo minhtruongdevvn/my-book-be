@@ -28,7 +28,7 @@ export class ConversationsService {
   }
 
   getByUserId(userId: number, filter?: FilterQuery<Conversation>) {
-    return this.helper.getMessageByUserId(
+    return this.helper.getByUserId(
       this.getOrExtendsDefaultFilter(userId, undefined, filter),
     );
   }

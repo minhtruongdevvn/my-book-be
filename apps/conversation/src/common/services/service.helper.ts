@@ -25,7 +25,7 @@ export class ServiceHelpers<TConvo extends Conversation> {
     }
   }
 
-  getMessageByUserId(filter: FilterQuery<TConvo>) {
+  getByUserId(filter: FilterQuery<TConvo>) {
     return this.repo.find(filter, {
       ...conversationFullProjection,
       messages: { $arrayElemAt: ['$messages', -1] },
