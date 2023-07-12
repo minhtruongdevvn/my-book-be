@@ -57,11 +57,12 @@ export class UserCommonInterestProvider {
       .getRawMany<MinimalUserDto & { commonInterestsCount: number }>();
 
     return result.map((e) => {
-      const { id, lastName, firstName, alias, commonInterestsCount } = e;
-      const user = new MinimalUserDto(id, firstName, lastName, alias, {
-        id: e['photo_id'],
-        path: e['photo_path'],
+      const user = new MinimalUserDto({
+        ...e,
+        photo: { id: e['photo_id'], path: e['photo_path'] },
       });
+
+      const { commonInterestsCount } = e;
       user.metadata = { commonInterestsCount };
       user.metadata.type = RecommendationType.commonInterest;
 

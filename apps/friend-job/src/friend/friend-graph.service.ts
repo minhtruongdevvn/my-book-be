@@ -223,9 +223,8 @@ export class FriendGraphService implements OnModuleDestroy, OnModuleInit {
         if (user.friendIds.has(i)) count++;
       }
       if (min && count < min) continue;
-      const { id, firstName, lastName, alias, photoId, photoPath } = friend;
-      const item = new MinimalUserDto(id, firstName, lastName, alias);
-      if (photoId && photoPath) item.photo = { id: photoId, path: photoPath };
+
+      const item = new MinimalUserDto(friend);
       item.metadata = { mutualFriendCount: count };
 
       result.push(item);
