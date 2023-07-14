@@ -45,35 +45,31 @@ export class ConversationGateway
 
   async handleConnection(client: ChatSocket) {
     const userId = getIdByJWToken(client.handshake.headers.authorization);
-    if (!userId) {
-      client.disconnect(true);
-      return;
-    }
-
-    client.data.userId = userId;
     const { conversationId } = this.#strictExtractSocketHandShakeQuery(
       client.handshake.query,
     );
-
-    const convo = await this.socketService.getConversationById(
-      conversationId,
-      userId,
-    );
-
-    if (!convo) {
+    if (!conversationId || !userId) {
       client.disconnect(true);
       return;
     }
 
-    await client.join(convo.id);
+    const conversation = await this.socketService.getConversationById(
+      conversationId,
+      userId,
+    );
+    if (!conversation) {
+      client.disconnect(true);
+      return;
+    }
 
-    const activeUserIds = this.socketService.getActiveUserIdsById(convo.id);
+    client.data = { ...client.data, conversationId, userId };
+    await client.join(conversationId);
+
+    const activeUserIds =
+      this.socketService.getActiveUserIdsById(conversationId);
 
     client.broadcast.emit(Emitter.User.Events.JOIN_CHAT, { id: userId });
-    client.emit(Emitter.User.Events.CONNECT, {
-      conversation: convo,
-      activeUserIds,
-    });
+    client.emit(Emitter.User.Events.CONNECT, { activeUserIds, conversation });
   }
 
   handleDisconnect(client: ChatSocket) {
@@ -89,12 +85,12 @@ export class ConversationGateway
     @ConnectedSocket() client: ChatSocket,
   ) {
     const { userId } = client.data;
-    const convoId = client.id;
+    const conversationId = client.data.conversationId;
 
     this.#validateUserSocket(userId);
 
     const response = await this.convoService.addMessage(
-      convoId,
+      conversationId,
       userId,
       payload,
     );
@@ -116,7 +112,7 @@ export class ConversationGateway
     @ConnectedSocket() client: ChatSocket,
   ) {
     const { userId } = client.data;
-    const convoId = client.id;
+    const convoId = client.data.conversationId;
     const messageId = payload.id;
 
     this.#validateUserSocket(userId);
@@ -140,7 +136,7 @@ export class ConversationGateway
     @ConnectedSocket() client: ChatSocket,
   ) {
     const { userId } = client.data;
-    const convoId = client.id;
+    const convoId = client.data.conversationId;
     const messageId = payload.id;
 
     this.#validateUserSocket(userId);
@@ -170,7 +166,6 @@ export class ConversationGateway
       return;
     }
 
-    // emits
     client.broadcast.emit(Emitter.Message.Events.UPDATE_NOTIFY, updatedMessage);
   }
 
@@ -180,7 +175,7 @@ export class ConversationGateway
     @ConnectedSocket() client: ChatSocket,
   ) {
     const { userId } = client.data;
-    const convoId = client.id;
+    const convoId = client.data.conversationId;
     const messageId = payload.id;
 
     this.#validateUserSocket(userId);
@@ -215,12 +210,11 @@ export class ConversationGateway
     });
 
     const expectedData = expectedBodyZod.deepPartial().safeParse(query);
-    if (
+    const isInvalidQuery =
       !expectedData.success ||
-      Object.values(expectedData.data).some((d) => d === undefined)
-    ) {
-      throw new BadRequestException();
-    }
+      Object.values(expectedData.data).some((d) => d === undefined);
+
+    if (isInvalidQuery) throw new BadRequestException();
 
     return expectedData.data;
   }

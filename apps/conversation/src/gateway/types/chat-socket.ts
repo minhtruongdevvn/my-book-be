@@ -15,4 +15,4 @@ export type ChatSocket = Socket<
   any,
   SocketData
 >;
-export type SocketData = { userId: number };
+export type SocketData = { userId: number; conversationId: string };
