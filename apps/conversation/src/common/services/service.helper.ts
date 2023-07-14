@@ -14,12 +14,12 @@ export class ServiceHelpers<TConvo extends Conversation> {
   constructor(private repo: MongoRepository<TConvo>) {}
 
   async validateConversation(id: string, adminId?: number) {
-    const convo = await this.repo.findOne(
-      { _id: id, ...(adminId && { admin: adminId }) },
-      { _id: 1 },
-    );
+    const isConvoExists = await this.repo.exist({
+      _id: id,
+      ...(adminId ? { admin: adminId } : {}),
+    });
 
-    if (!convo) {
+    if (!isConvoExists) {
       const additionalMessage = adminId ? 'or admin' : '';
       throw new BadRequestException(`invalid group ${additionalMessage}`);
     }

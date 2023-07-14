@@ -9,6 +9,7 @@ import { verifyJWToken } from '../common/utils';
 
 export class ConversationSocketIOAdapter extends IoAdapter {
   private adapterConstructor: ReturnType<typeof createAdapter>;
+
   constructor(
     app: INestApplicationContext,
     private readonly configService: ConfigService,
@@ -33,8 +34,8 @@ export class ConversationSocketIOAdapter extends IoAdapter {
     const cors = { origin: [clientPort] };
     const chatboxOption: Partial<ServerOptions> = {
       ...(options ?? {}),
-      cors,
       allowRequest: (req, fn) => validateRequest(req, this.configService, fn),
+      cors,
     };
 
     const server: Server = super.createIOServer(port, chatboxOption);
