@@ -60,8 +60,9 @@ export class ServiceHelpers<TConvo extends Conversation> {
     filter: FilterQuery<TConvo>,
     userId: number,
     content: string,
-    at: Date,
+    _at: Date | string | number,
   ) {
+    const at = new Date(_at);
     if (!isDate(at)) throw new BadRequestException('Invalid Date');
 
     const message: Message = {

@@ -11,7 +11,7 @@ export type UpdateFailure = WithFailure<WithKeys<'id'>>;
 export type DeleteFailure = WithFailure<WithKeys<'id'>>;
 
 // helpers
-type Payload = Message;
+type Payload = Omit<Message, 'at'> & { at: Date | string | number };
 type WithKeys<T extends keyof Payload> = Pick<Payload, T>;
 type WithFailure<T> = {
   payload: T;

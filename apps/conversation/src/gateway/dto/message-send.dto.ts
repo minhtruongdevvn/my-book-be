@@ -7,5 +7,5 @@ export class MessageSendDto {
 
   @IsDate()
   @IsNotEmpty()
-  at: Date;
+  at: Date | string | number;
 }
