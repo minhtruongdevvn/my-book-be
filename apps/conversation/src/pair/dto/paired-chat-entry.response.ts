@@ -1,8 +1,8 @@
 import { MinimalUserDto } from '@app/common';
 import { Conversation, Message } from '@app/databases';
-import { BaseConversationResponse } from '../../common/types';
+import { BaseChatEntryResponse } from '../../common/types';
 
-export class Response extends BaseConversationResponse {
+export class PairedChatEntryResponse extends BaseChatEntryResponse {
   constructor(
     convo: Conversation,
     participants: MinimalUserDto[],

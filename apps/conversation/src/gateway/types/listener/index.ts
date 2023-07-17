@@ -6,5 +6,8 @@ export type ChatSocketListener = MapEventPayloadActions<{
   [Message.Events.SEND]: Message.Payload.Send;
   [Message.Events.UPDATE]: Message.Payload.Update;
   [Message.Events.DELETE]: Message.Payload.Delete;
+
+  [Message.Events.LOAD_HISTORY]: Message.Payload.LoadHistory;
+  [Message.Events.COUNT_TOTAL]: Message.Payload.CountTotal;
 }>;
 export { Message };

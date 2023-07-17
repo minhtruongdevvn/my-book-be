@@ -23,7 +23,7 @@ export class PairedConversationsService extends BaseSubConversationsService {
     if (user1Id == user2Id) {
       throw new BadRequestException('Users cannot be identical');
     }
-    let convo = await this.repo.findOne(
+    let conversation = await this.repo.findOne(
       { participants: { $all: [user1Id, user2Id] }, admin: { $exists: false } },
       {
         ...conversationFullProjection,
@@ -31,13 +31,13 @@ export class PairedConversationsService extends BaseSubConversationsService {
       },
     );
 
-    if (!convo) {
-      convo = new PairedConversation();
-      convo.participants = [user1Id, user2Id];
-      await this.repo.create(convo);
+    if (!conversation) {
+      conversation = await this.repo.create(
+        new PairedConversation({ participants: [user1Id, user2Id] }),
+      );
     }
 
-    return new PairedConversation(convo);
+    return new PairedConversation(conversation);
   }
 
   protected override getOrExtendsDefaultFilter(

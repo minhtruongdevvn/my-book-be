@@ -1,8 +1,10 @@
 import { Conversation } from '@app/databases';
 
 import { FilterQuery } from 'mongoose';
-import { MessageSendDto, MessageUpdateDto } from '../../gateway/dto';
+import { Listener } from '../../gateway/types';
 import { ConversationsService } from '../conversations.service';
+
+import Request = Listener.Message.Payload;
 
 export abstract class BaseSubConversationsService {
   constructor(protected baseService: ConversationsService) {}
@@ -55,7 +57,7 @@ export abstract class BaseSubConversationsService {
     );
   }
 
-  addMessage(id: string, userId: number, request: MessageSendDto) {
+  addMessage(id: string, userId: number, request: Request.Send) {
     return this.baseService.addMessage(
       id,
       userId,
@@ -64,7 +66,7 @@ export abstract class BaseSubConversationsService {
     );
   }
 
-  updateMessage(id: string, userId: number, request: MessageUpdateDto) {
+  updateMessage(id: string, userId: number, request: Request.Update) {
     return this.baseService.updateMessage(
       id,
       userId,

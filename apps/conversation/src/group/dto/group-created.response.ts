@@ -1,27 +1,24 @@
-import { GroupConversation } from './group-conversation';
+import { Conversation } from '@app/databases';
+import { ConversationResponse } from '../../common/types';
 
-export class CreateResponse {
+export class GroupCreatedResponse {
   constructor(
-    convo: GroupConversation,
+    convo: Conversation | ConversationResponse,
     successMemberIds?: number[],
     failedMemberIds?: number[],
   ) {
-    this.id = convo.id;
-    this.admin = convo.admin;
-    this.quickEmoji = convo.quickEmoji;
+    this.id = convo.id ?? '';
     this.name = convo.name;
-    this.theme = convo.theme;
+    this.admin = convo.admin ?? -1;
     this.photo = convo.photo;
     this.successMemberIds = successMemberIds;
     this.failedMemberIds = failedMemberIds;
   }
 
   id: string;
-  admin?: number;
   name?: string;
+  admin: number;
   photo?: string;
-  theme?: string;
-  quickEmoji?: string;
   successMemberIds?: number[];
   failedMemberIds?: number[];
 }

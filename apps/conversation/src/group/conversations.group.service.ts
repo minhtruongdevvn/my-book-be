@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
-import { Conversation } from '@app/databases';
-
 import { Group } from '@app/microservices/conversation';
 import { FilterQuery } from 'mongoose';
 import { ConversationsService } from '../common/conversations.service';
-import { ConversationDto } from '../common/dto';
 import { BaseSubConversationsService } from '../common/services';
+import { GroupCreatedResponse } from './dto';
+import { GroupConversation } from './types';
 
 @Injectable()
 export class GroupConversationsService extends BaseSubConversationsService {
@@ -57,7 +56,7 @@ export class GroupConversationsService extends BaseSubConversationsService {
   protected override getOrExtendsDefaultFilter(
     userId: number,
     id?: string,
-    filter?: FilterQuery<Conversation>,
+    filter?: FilterQuery<GroupConversation>,
   ) {
     return {
       ...(filter ?? {}),
@@ -67,26 +66,4 @@ export class GroupConversationsService extends BaseSubConversationsService {
       participants: userId,
     };
   }
-}
-
-class GroupCreatedResponse {
-  constructor(
-    convo: Conversation | ConversationDto,
-    successMemberIds?: number[],
-    failedMemberIds?: number[],
-  ) {
-    this.id = convo.id ?? '';
-    this.name = convo.name;
-    this.admin = convo.admin ?? -1;
-    this.photo = convo.photo;
-    this.successMemberIds = successMemberIds;
-    this.failedMemberIds = failedMemberIds;
-  }
-
-  id: string;
-  name?: string;
-  admin: number;
-  photo?: string;
-  successMemberIds?: number[];
-  failedMemberIds?: number[];
 }

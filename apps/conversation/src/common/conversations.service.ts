@@ -1,16 +1,16 @@
 import { Conversation } from '@app/databases';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterQuery, ProjectionType } from 'mongoose';
-import { ConversationDto } from './dto';
 
 import { ConversationsRepository } from './conversations.repository';
 import { ServiceHelpers } from './services/service.helper';
-import { ConversationUpsertRequest } from './types';
 import { Listener } from '../gateway/types';
+import { ConversationResponse } from './types';
 
 @Injectable()
 export class ConversationsService {
   private readonly helper: ServiceHelpers<Conversation>;
+
   constructor(private readonly repo: ConversationsRepository) {
     this.helper = new ServiceHelpers(repo);
   }
@@ -33,7 +33,11 @@ export class ConversationsService {
     );
   }
 
-  async create(userId: number, request: ConversationUpsertRequest) {
+  /**
+   * Create conversation.
+   * @remarks For now only handle group convesation.
+   */
+  async create(userId: number, request: GroupConversationUpsertRequest) {
     const convo = new Conversation();
     convo.admin = userId;
     convo.name = request.name;
@@ -41,12 +45,15 @@ export class ConversationsService {
     convo.theme = request.theme;
     convo.photo = request.photo;
     convo.participants = [];
-    convo.messages = [];
     convo.messageSeenLog = [];
+    convo.messages = [];
 
     const createdConvo = await this.repo.create(convo);
 
-    const convoDto = new ConversationDto(createdConvo, []);
+    const convoDto = new ConversationResponse({
+      ...createdConvo,
+      participants: [],
+    });
     const successMemberIds: number[] = [];
     const failedMemberIds: number[] = [];
 
@@ -75,10 +82,14 @@ export class ConversationsService {
     return { convoDto, successMemberIds, failedMemberIds };
   }
 
+  /**
+   * Update conversation.
+   * @remarks For now only handle group convesation.
+   */
   async update(
     id: string,
     userId: number,
-    request: ConversationUpsertRequest,
+    request: GroupConversationUpsertRequest,
     filter?: FilterQuery<Conversation>,
   ) {
     await this.helper.validateConversation(id, userId);
@@ -224,6 +235,10 @@ export class ConversationsService {
     );
   }
 
+  countTotalMessages(id: string, userId: number) {
+    return this.repo.count(this.getOrExtendsDefaultFilter(userId, id));
+  }
+
   private getOrExtendsDefaultFilter(
     userId: number,
     id?: string,
@@ -235,4 +250,23 @@ export class ConversationsService {
     };
     return query;
   }
+}
+
+class GroupConversationUpsertRequest {
+  constructor(convo?: Partial<Conversation>) {
+    if (!convo) return;
+    this.participants = convo.participants;
+    this.admin = convo.admin;
+    this.quickEmoji = convo.quickEmoji;
+    this.name = convo.name;
+    this.theme = convo.theme;
+    this.photo = convo.photo;
+  }
+
+  admin?: number;
+  quickEmoji?: string;
+  name?: string;
+  theme?: string;
+  photo?: string;
+  participants?: number[];
 }

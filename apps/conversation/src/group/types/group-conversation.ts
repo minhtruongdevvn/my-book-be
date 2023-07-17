@@ -1,6 +1,9 @@
+import { ExtractClassProperties } from '@app/common';
 import { Conversation, Message, MessageSeenLog } from '@app/databases';
 
-export class GroupConversation implements Conversation {
+export class GroupConversation
+  implements ExtractClassProperties<Conversation, '_id' | '_type'>
+{
   constructor(convo?: Conversation) {
     if (!convo) return;
 
@@ -19,9 +22,9 @@ export class GroupConversation implements Conversation {
   messages: Message[];
   participants: number[];
   messageSeenLog: MessageSeenLog[];
-  theme?: string;
-  quickEmoji?: string;
   name?: string;
   admin?: number;
   photo?: string;
+  theme?: string;
+  quickEmoji?: string;
 }

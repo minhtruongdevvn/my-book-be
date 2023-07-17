@@ -1,8 +1,8 @@
+import { BaseUpdateRequest } from '@/conversations/common/types';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsOptional, IsString } from 'class-validator';
-import { BaseUpdateDto } from '../../types';
 
-export class UpdateRequest extends BaseUpdateDto {
+export class UpdateRequest extends BaseUpdateRequest {
   @IsString()
   @IsOptional()
   @ApiProperty()

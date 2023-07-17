@@ -1,3 +1,3 @@
-export * from './base-conversation.response';
-export * from './conversation-upsert-request';
+export * from './base-chat-entry.response';
+export * from './conversation.response';
 export * from './utils';

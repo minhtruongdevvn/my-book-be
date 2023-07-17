@@ -1,8 +1,8 @@
 import { MinimalUserDto } from '@app/common';
-import { ConversationDto } from 'apps/conversation/src/common/dto';
+import { ConversationResponse } from 'apps/conversation/src/common/types';
 
 export type Connect = ActiveUserPayload & {
-  conversation: ConversationDto;
+  conversation: ConversationResponse;
 };
 export type JoinChat = WithKeys<'id'>;
 export type LeaveChat = WithKeys<'id'>;

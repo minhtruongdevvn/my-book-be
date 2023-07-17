@@ -4,7 +4,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { UsersService } from '../common/users.service';
 import { GroupConversationsService } from './conversations.group.service';
-import { Response } from './types';
+import { GroupChatEntryResponse } from './dto';
 
 @Controller()
 export class GroupConversationsController {
@@ -38,7 +38,7 @@ export class GroupConversationsController {
         .map((ptId) => users.get(ptId))
         .filter((user): user is MinimalUserDto => !!user);
 
-      return new Response(convo, participants, latestMessage);
+      return new GroupChatEntryResponse(convo, participants, latestMessage);
     });
 
     return response;
@@ -56,7 +56,7 @@ export class GroupConversationsController {
       convo.participants,
     );
 
-    return new Response(convo, members);
+    return new GroupChatEntryResponse(convo, members);
   }
 
   @MessagePattern(Group.Msg.UPDATE)

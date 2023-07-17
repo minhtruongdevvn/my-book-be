@@ -5,7 +5,7 @@ import { MessagePattern } from '@nestjs/microservices';
 import { UsersService } from '../common/users.service';
 
 import { PairedConversationsService } from './conversations.pair.service';
-import { Response } from './types';
+import { PairedChatEntryResponse } from './dto';
 
 @Controller()
 export class PairedConversationsController {
@@ -23,7 +23,7 @@ export class PairedConversationsController {
       convo.participants,
     );
 
-    return new Response(convo, members);
+    return new PairedChatEntryResponse(convo, members);
   }
 
   @MessagePattern(Pair.Msg.GET_ALL_BY_USER)
@@ -45,7 +45,7 @@ export class PairedConversationsController {
         .map((ptId) => users.get(ptId))
         .filter((user): user is MinimalUserDto => !!user);
 
-      return new Response(convo, participants, latestMessage);
+      return new PairedChatEntryResponse(convo, participants, latestMessage);
     });
 
     return response;

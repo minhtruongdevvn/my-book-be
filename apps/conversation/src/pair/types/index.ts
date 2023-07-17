@@ -1,2 +1,1 @@
-export * from './conversation';
-export * from './response';
+export * from './paired-conversation';

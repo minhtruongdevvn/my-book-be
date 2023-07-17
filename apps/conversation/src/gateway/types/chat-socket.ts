@@ -1,18 +1,18 @@
 import { Namespace, Socket } from 'socket.io';
-import { ChatSocketEmitter } from './emitter';
-import { ChatSocketListener } from './listener';
+import { ChatSocketEmitter as ServerToClientEvents } from './emitter';
+import { ChatSocketListener as ClientToServerEvents } from './listener';
 
 export type ChatSocketServer = Namespace<
-  ChatSocketListener,
-  ChatSocketEmitter,
+  ClientToServerEvents,
+  ServerToClientEvents,
   any,
   SocketData
 >;
 
 export type ChatSocket = Socket<
-  ChatSocketListener,
-  ChatSocketEmitter,
-  any,
+  ClientToServerEvents,
+  ServerToClientEvents,
+  never,
   SocketData
 >;
 export type SocketData = { userId: number; conversationId: string };

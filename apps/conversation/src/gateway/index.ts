@@ -45,9 +45,9 @@ export class ConversationGateway
 
   async handleConnection(client: ChatSocket) {
     const userId = getIdByJWToken(client.handshake.headers.authorization);
-    const { conversationId } = this.#strictExtractSocketHandShakeQuery(
-      client.handshake.query,
-    );
+    const { conversationId, latestMessagesCount } =
+      this.#strictExtractSocketHandShakeQuery(client.handshake.query);
+
     if (!conversationId || !userId) {
       client.disconnect(true);
       return;
@@ -56,6 +56,7 @@ export class ConversationGateway
     const conversation = await this.socketService.getConversationById(
       conversationId,
       userId,
+      latestMessagesCount,
     );
     if (!conversation) {
       client.disconnect(true);
@@ -199,6 +200,41 @@ export class ConversationGateway
     });
   }
 
+  @SubscribeMessage(Listener.Message.Events.LOAD_HISTORY)
+  async loadMessageHistory(
+    @MessageBody() payload: Listener.Message.Payload.LoadHistory,
+    @ConnectedSocket() client: ChatSocket,
+  ) {
+    const { userId } = client.data;
+    const convoId = client.data.conversationId;
+    const [{ count, nthFromEnd }, response] = payload;
+
+    this.#validateUserSocket(userId);
+
+    const historyMessages = await this.convoService.getMessagesByOrder(
+      convoId,
+      userId,
+      count,
+      nthFromEnd,
+    );
+
+    response(historyMessages);
+  }
+
+  @SubscribeMessage(Listener.Message.Events.COUNT_TOTAL)
+  async countTotalMessages(
+    @MessageBody() payload: Listener.Message.Payload.CountTotal,
+    @ConnectedSocket() client: ChatSocket,
+  ) {
+    const { userId } = client.data;
+    const convoId = client.data.conversationId;
+    const [, response] = payload;
+
+    this.#validateUserSocket(userId);
+
+    response(await this.convoService.countTotalMessages(convoId, userId));
+  }
+
   #validateUserSocket(userId: number | undefined): asserts userId is number {
     if (userId) return;
     throw new BadRequestException('Invalid client!');
@@ -207,14 +243,11 @@ export class ConversationGateway
   #strictExtractSocketHandShakeQuery(query: ParsedUrlQuery) {
     const expectedBodyZod = z.object({
       conversationId: z.string(),
+      latestMessagesCount: z.coerce.number().optional(),
     });
 
     const expectedData = expectedBodyZod.deepPartial().safeParse(query);
-    const isInvalidQuery =
-      !expectedData.success ||
-      Object.values(expectedData.data).some((d) => d === undefined);
-
-    if (isInvalidQuery) throw new BadRequestException();
+    if (!expectedData.success) return {};
 
     return expectedData.data;
   }

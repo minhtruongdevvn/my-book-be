@@ -4,7 +4,7 @@ import { Namespace } from 'socket.io';
 import { conversationFullProjection as convoFullProjection } from '@app/databases';
 
 import { ConversationsService } from './common/conversations.service';
-import { ConversationDto } from './common/dto';
+import { ConversationResponse } from './common/types';
 import { UsersService } from './common/users.service';
 import { ChatSocketServer } from './gateway/types';
 
@@ -38,16 +38,27 @@ export class ChatSocketService {
     return this.getActiveUserIdsById(id).length;
   }
 
-  async getConversationById(id: any, userId: number | undefined) {
+  async getConversationById(
+    id: any,
+    userId: number | undefined,
+    latestCount?: number,
+  ) {
     if (!userId || !id) return;
 
     const convo = await this.convoService.getById(id, userId, undefined, {
       ...convoFullProjection,
-      messages: { $slice: -10 },
+      messages: { $slice: -(latestCount ?? 10) },
     });
     if (!convo) return;
-    const users = await this.#getUsersFromSocket(id, convo.participants);
-    return new ConversationDto(convo, users);
+
+    const participants = await this.#getUsersFromSocket(id, convo.participants);
+    const count = await this.convoService.countTotalMessages(id, userId);
+
+    return new ConversationResponse({
+      ...convo,
+      participants,
+      totalMessageCount: count,
+    });
   }
 
   async #getUsersFromSocket(convoId: string, participants: number[]) {
