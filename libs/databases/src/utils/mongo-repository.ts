@@ -98,10 +98,6 @@ export class MongoRepository<T> implements MongoRepositoryInterface<T> {
     return !!id;
   }
 
-  count(filter?: FilterQuery<T>) {
-    return this.model.count(filter);
-  }
-
   private validateObjectId(filter?: FilterQuery<T>) {
     if (filter && filter['_id']) {
       if (!ObjectId.isValid(filter['_id']))

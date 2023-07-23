@@ -69,8 +69,8 @@ export class ConversationGateway
     const activeUserIds =
       this.socketService.getActiveUserIdsById(conversationId);
 
-    client.broadcast.emit(Emitter.User.Events.JOIN_CHAT, { id: userId });
     client.emit(Emitter.User.Events.CONNECT, { activeUserIds, conversation });
+    client.broadcast.emit(Emitter.User.Events.JOIN_CHAT, { id: userId });
   }
 
   handleDisconnect(client: ChatSocket) {
@@ -90,12 +90,12 @@ export class ConversationGateway
 
     this.#validateUserSocket(userId);
 
-    const response = await this.convoService.addMessage(
+    const newlyCreatedMessage = await this.convoService.addMessage(
       conversationId,
       userId,
       payload,
     );
-    if (!response) {
+    if (!newlyCreatedMessage) {
       client.emit(Emitter.Message.Events.SEND_FAILURE, {
         payload,
         reason: 'Invalid content!',
@@ -103,8 +103,9 @@ export class ConversationGateway
       return;
     }
 
-    client.emit(Emitter.Message.Events.SEND_SUCCESS, response);
-    client.broadcast.emit(Emitter.Message.Events.RECEIVE, response);
+    client.broadcast.emit(Emitter.Message.Events.RECEIVE, newlyCreatedMessage);
+
+    return newlyCreatedMessage;
   }
 
   @SubscribeMessage(Listener.Message.Events.SEEN)
@@ -202,12 +203,12 @@ export class ConversationGateway
 
   @SubscribeMessage(Listener.Message.Events.LOAD_HISTORY)
   async loadMessageHistory(
-    @MessageBody() payload: Listener.Message.Payload.LoadHistory,
     @ConnectedSocket() client: ChatSocket,
+    @MessageBody() payload: Listener.Message.Payload.LoadHistory,
   ) {
     const { userId } = client.data;
     const convoId = client.data.conversationId;
-    const [{ count, nthFromEnd }, response] = payload;
+    const { count, nthFromEnd } = payload;
 
     this.#validateUserSocket(userId);
 
@@ -218,21 +219,7 @@ export class ConversationGateway
       nthFromEnd,
     );
 
-    response(historyMessages);
-  }
-
-  @SubscribeMessage(Listener.Message.Events.COUNT_TOTAL)
-  async countTotalMessages(
-    @MessageBody() payload: Listener.Message.Payload.CountTotal,
-    @ConnectedSocket() client: ChatSocket,
-  ) {
-    const { userId } = client.data;
-    const convoId = client.data.conversationId;
-    const [, response] = payload;
-
-    this.#validateUserSocket(userId);
-
-    response(await this.convoService.countTotalMessages(convoId, userId));
+    return historyMessages;
   }
 
   #validateUserSocket(userId: number | undefined): asserts userId is number {

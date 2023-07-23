@@ -235,10 +235,6 @@ export class ConversationsService {
     );
   }
 
-  countTotalMessages(id: string, userId: number) {
-    return this.repo.count(this.getOrExtendsDefaultFilter(userId, id));
-  }
-
   private getOrExtendsDefaultFilter(
     userId: number,
     id?: string,

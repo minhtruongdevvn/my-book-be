@@ -39,7 +39,7 @@ export class ChatSocketService {
   }
 
   async getConversationById(
-    id: any,
+    id: string,
     userId: number | undefined,
     latestCount?: number,
   ) {
@@ -52,13 +52,8 @@ export class ChatSocketService {
     if (!convo) return;
 
     const participants = await this.#getUsersFromSocket(id, convo.participants);
-    const count = await this.convoService.countTotalMessages(id, userId);
 
-    return new ConversationResponse({
-      ...convo,
-      participants,
-      totalMessageCount: count,
-    });
+    return new ConversationResponse({ ...convo, participants });
   }
 
   async #getUsersFromSocket(convoId: string, participants: number[]) {

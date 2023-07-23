@@ -111,8 +111,20 @@ export class ServiceHelpers<TConvo extends Conversation> {
     userId: number,
     messageId: string,
   ) {
-    return this.repo.updateOne(filter, {
-      $addToSet: { messageSeenLog: { userId, messageId } },
-    });
+    const convo = await this.repo.findOne(filter, { messageSeenLog: 1 });
+    const existingLog = convo?.messageSeenLog.find(
+      (log) => log.userId === userId,
+    );
+    if (!existingLog) return;
+
+    return this.repo.updateOne(
+      {
+        ...filter,
+        ...(existingLog ? { 'messageSeenLog.userId': userId } : undefined),
+      },
+      existingLog
+        ? { $set: { 'messageSeenLog.$.messageId': messageId } }
+        : { $addToSet: { messageSeenLog: { userId, messageId } } },
+    );
   }
 }

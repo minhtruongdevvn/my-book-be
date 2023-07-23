@@ -8,7 +8,7 @@ export const Events = {
   /** Notify clients that a message has been deleted. */
   DELETE_NOTIFY: 'message_delete_notify',
 
-  /** When a message is successfully sent. */
+  /** When a message is successfully sent. @deprecated replaced by ack */
   SEND_SUCCESS: 'message_send_success',
   /** When a message is failed to sent. */
   SEND_FAILURE: 'message_send_failure',

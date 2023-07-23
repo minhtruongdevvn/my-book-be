@@ -26,7 +26,6 @@ export class ConversationResponse
   admin?: number;
   messages: Message[] = [];
   messageSeenLog: MessageSeenLog[];
-  totalMessageCount?: number;
   quickEmoji?: string;
   name?: string;
   theme?: string;
@@ -36,7 +35,6 @@ export class ConversationResponse
 type ConstructorArgs = BaseConversationResponse & {
   id?: string;
   participants: MinimalUserDto[];
-  totalMessageCount?: number;
 };
 type BaseConversationResponse = ExtractClassProperties<
   Conversation,

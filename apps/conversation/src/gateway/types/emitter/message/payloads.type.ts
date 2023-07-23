@@ -5,6 +5,7 @@ export type Receive = Payload;
 export type UpdateNotify = Payload;
 export type DeleteNotify = WithKeys<'id'>;
 
+/** @deprecated replaced by ack */
 export type SendSuccess = Payload;
 export type SendFailure = WithFailure<WithKeys<'at'>>;
 export type UpdateFailure = WithFailure<WithKeys<'id'>>;

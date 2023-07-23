@@ -11,6 +11,4 @@ export const Events = {
   // API-like
   /** When the client request for previous messages. */
   LOAD_HISTORY: 'message_load_history',
-  /** When the client request for latest total message count. */
-  COUNT_TOTAL: 'message_count_total',
 } as const;
